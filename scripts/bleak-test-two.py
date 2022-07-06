@@ -1,7 +1,7 @@
 import asyncio
 from bleak import BleakClient
 
-UUID = '00000002-0000-1000-8000-00805f9b34fb'
+UUID = '00000003-0000-1000-8000-00805f9b34fb'
 mac = '00:00:00:08:08:01'
 
 
