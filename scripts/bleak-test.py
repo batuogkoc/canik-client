@@ -12,26 +12,10 @@ mac_apple = '56:08:2E:83:6A:B5'
  """
 
 def callback(sender: int, data: bytearray):
-    print(sender, data)
-    if sender == 21:
-        with open('dimport asyncio
-import bleak
-from bleak import BleakScanner, BleakClient, discover
-
-RAW_DATA_UUID = "0000002-0000-1000-8000-00805f9b34fb"
-METRICS_UUID = '0000001-0000-1000-8000-00805f9b34fb'
-
-UUID = '00000003-0000-1000-8000-00805f9b34fb'
-
-""" mac_batu_samsung = 'E8:6D:CB:62:B5:D7'
-mac_apple = '56:08:2E:83:6A:B5'
- """
-
-def callback(sender: int, data: bytearray):
-    print(sender, data)
+    print(sender, 'data')
     if sender == 21:
         with open('data.bin', 'wb') as f:
-            f.write(data)
+            f.write(str(data))
 
 
 async def main():
