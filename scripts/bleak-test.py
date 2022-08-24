@@ -173,21 +173,14 @@ async def main():
 async def connect(address)->bool:
     try:
         client = BleakClient(address)
-        # try:
         if not await client.connect():
             return False
-        service_dict = {}
         print('connected')
         services = await client.get_services()
         print('found ' + str(len(services.services.keys())) + ' services')
-        # await client.start_notify(UUID, callback)
-        for i, service in enumerate(services.services.values()):
-            service_dict[service] = []
-            for characteristic in service.characteristics:
-                service_dict[service].append(characteristic)
 
-        for service in service_dict.keys():
-            for characteristic in service_dict[service]:
+        for service in services.services.values():
+            for characteristic in service.characteristics:
                 try:
                     # if str(characteristic.uuid) == RAW_DATA_UUID:
                     print(service.description, characteristic.uuid, characteristic.handle)
