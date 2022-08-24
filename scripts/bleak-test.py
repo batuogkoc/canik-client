@@ -6,18 +6,8 @@ import time
 import os
 from ahrs.filters import Madgwick
 import math as m
-import rospy
-import tf2_ros
-from geometry_msgs.msg import TransformStamped
 
 RAW_DATA_UUID = "00000002-0000-1000-8000-00805f9b34fb"
-METRICS_UUID = '0000001-0000-1000-8000-00805f9b34fb'
-
-UUID = '00000003-0000-1000-8000-00805f9b34fb'
-
-""" mac_batu_samsung = 'E8:6D:CB:62:B5:D7'
-mac_apple = '56:08:2E:83:6A:B5'
- """
 
 previous_time = time.time()
 madgwick = Madgwick()
@@ -29,6 +19,10 @@ RAD_TO_DEG = 1/DEG_TO_RAD
 GRAVITATIONAL_ACCEL = 9.8106
 
 ROS_VISUALIZATION = False
+if ROS_VISUALIZATION:
+    import rospy
+    import tf2_ros
+    from geometry_msgs.msg import TransformStamped
 
 connected = False
 def quaternion_rotation_matrix(Q):
@@ -151,7 +145,6 @@ async def main():
             await asyncio.sleep(100)
         print()
         devices = await discover()
-        # devices = await BleakScanner.discover()
         caniks = []
         for d in devices:
             try:
@@ -195,14 +188,6 @@ async def connect(address)->bool:
     except Exception as e:
         print(e)
         return False
-    # metrics_service = services.get_service(METRICS_UUID)
-    # print(metrics_service)
-    # raw_data_characteristic = metrics_service.get_characteristic(RAW_DATA_UUID)
-    # print(raw_data_characteristic)
-    # except Exception as e:
-    #     print(e)
-    # finally:
-    #     await client.disconnect()
 
 
 if __name__ == '__main__':
