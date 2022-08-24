@@ -6,8 +6,11 @@ import time
 import os
 from ahrs.filters import Madgwick
 import math as m
+import rospy
+import tf2_ros
+from geometry_msgs.msg import TransformStamped
 
-RAW_DATA_UUID = "0000002-0000-1000-8000-00805f9b34fb"
+RAW_DATA_UUID = "00000002-0000-1000-8000-00805f9b34fb"
 METRICS_UUID = '0000001-0000-1000-8000-00805f9b34fb'
 
 UUID = '00000003-0000-1000-8000-00805f9b34fb'
@@ -18,11 +21,14 @@ mac_apple = '56:08:2E:83:6A:B5'
 
 previous_time = time.time()
 madgwick = Madgwick()
+madgwick.gain = 0.1
 Q = [1,0,0,0]
 
 DEG_TO_RAD = m.pi/180
 RAD_TO_DEG = 1/DEG_TO_RAD
 GRAVITATIONAL_ACCEL = 9.8106
+
+ROS_VISUALIZATION = False
 
 connected = False
 def quaternion_rotation_matrix(Q):
@@ -113,6 +119,7 @@ def callback(sender: int, data: bytearray):
         for i in range(20):
             Q = madgwick.updateIMU(Q, gyro[:,i]*DEG_TO_RAD, accel[:,i]*GRAVITATIONAL_ACCEL)
         # print(gyro)
+        
         ypr = ToEulerAngles(Q)
         rot_mat = np.array(quaternion_rotation_matrix(Q))
         removed = accel[:,0:1]*GRAVITATIONAL_ACCEL - np.matmul(np.linalg.inv(rot_mat),np.array([[0],[0],[GRAVITATIONAL_ACCEL]]))
@@ -122,15 +129,26 @@ def callback(sender: int, data: bytearray):
         print("yaw:   {:5.2f}".format(ypr["yaw"]*RAD_TO_DEG))
         print("pitch: {:5.2f}".format(ypr["pitch"]*RAD_TO_DEG))
         print("roll:  {:5.2f}".format(ypr["roll"]*RAD_TO_DEG))
-        # print()
-        # print()
-        # print(Q)
-        # print("{:10.2f}".format(np.average(raw_data[2,:])))
-
+        print(Q)
+        if ROS_VISUALIZATION:
+            transform = TransformStamped()
+            transform.header.frame_id = "odom"
+            transform.header.stamp = rospy.Time.now()
+            transform.child_frame_id = "canik"
+            transform.transform.translation.z = 1
+            transform.transform.rotation.w = Q[0]
+            transform.transform.rotation.x = Q[1]
+            transform.transform.rotation.y = Q[2]
+            transform.transform.rotation.z = Q[3]
+            tf2_ros.TransformBroadcaster().sendTransform(transform)
 
 async def main():
     global connected
+    if ROS_VISUALIZATION:
+        rospy.init_node("canik")
     while True:
+        if connected:
+            await asyncio.sleep(100)
         print()
         devices = await discover()
         # devices = await BleakScanner.discover()
@@ -171,16 +189,14 @@ async def connect(address)->bool:
         for service in service_dict.keys():
             for characteristic in service_dict[service]:
                 try:
-                    await client.start_notify(characteristic.uuid, callback)
+                    # if str(characteristic.uuid) == RAW_DATA_UUID:
                     print(service.description, characteristic.uuid, characteristic.handle)
+                    await client.start_notify(characteristic.uuid, callback)
+                except bleak.exc.BleakDBusError as dbe:
+                    print(dbe)
+                    continue
                 except Exception as e:
-                    # print(e)
-                    continue
-                except PermissionError as pe:
-                    print(pe)
-                    continue
-                except bleak.exc.BleakError as be:
-                    print(be)
+                    print(e)
                     continue
         return True
     except Exception as e:

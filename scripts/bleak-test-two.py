@@ -1,8 +1,8 @@
 import asyncio
 from bleak import BleakClient
 
-UUID = '00000003-0000-1000-8000-00805f9b34fb'
-mac = '00:00:00:08:08:01'
+RAW_DATA_UUID = "00000002-0000-1000-8000-00805f9b34fb"
+mac = '00:80:E1:26:2C:D5'
 
 
 def callback(sender: int, data: bytearray):
@@ -12,9 +12,9 @@ async def main():
     client = BleakClient(mac)
     await client.connect()
     print('connected')
-    await client.start_notify(UUID, callback)
+    await client.start_notify(RAW_DATA_UUID, callback)
     while True:
-        pass
+        await asyncio.sleep(100)
 
 if __name__ == '__main__':
     asyncio.run(main())
