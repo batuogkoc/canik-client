@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:flutter/foundation.dart";
+import 'canik_backend.dart';
 
 void main() {
   runApp(const CanikApp());
@@ -125,6 +126,25 @@ class HomePage extends StatelessWidget {
                   },
                 ),
               ),
+              Text("Connected devices:"),
+              FutureBuilder<List<BluetoothDevice>>(
+                future: FlutterBluePlus.instance.connectedDevices,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) {
+                      return const Text("Error in fetching connected devices");
+                    }
+                    return Column(
+                        children: snapshot.data!
+                            .map((e) => Text(
+                                "${e.name == "" ? "<No device name>" : e.name} : ${e.id}"))
+                            .toList());
+                  } else {
+                    return const Text("Fetching connected devices");
+                  }
+                },
+              ),
+              Text("Scanned devices:"),
               StreamBuilder<List<ScanResult>>(
                 stream: FlutterBluePlus.instance.scanResults,
                 initialData: const [],
@@ -138,7 +158,8 @@ class HomePage extends StatelessWidget {
                                   Navigator.push(context, MaterialPageRoute(
                                     builder: (context) {
                                       FlutterBluePlus.instance.stopScan();
-                                      return DevicePage(device: e.device);
+                                      return DevicePage(
+                                          device: CanikDevice(e.device));
                                     },
                                   ));
                                 },
@@ -153,7 +174,7 @@ class HomePage extends StatelessWidget {
 }
 
 class DevicePage extends StatelessWidget {
-  final BluetoothDevice device;
+  final CanikDevice device;
   const DevicePage({Key? key, required this.device}) : super(key: key);
 
   @override
@@ -164,14 +185,16 @@ class DevicePage extends StatelessWidget {
         future: device.connect(timeout: const Duration(seconds: 4)),
         // initialData: BluetoothDeviceState.connecting,
         builder: (context, snapshot) {
-          print(snapshot);
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
-              return Column(
-                children: [
-                  const Text("Connection error"),
-                  const Icon(Icons.error_outline)
-                ],
+              return Center(
+                child: Column(
+                  children: [
+                    const Text(
+                        "Connection error, device may not be a canik device."),
+                    const Icon(Icons.error_outline)
+                  ],
+                ),
               );
             }
             return Center(
@@ -184,29 +207,10 @@ class DevicePage extends StatelessWidget {
                       Navigator.pop(context);
                     },
                   ),
-                  FutureBuilder<List<BluetoothService>>(
-                    future: device.discoverServices(),
-                    // initialData: const [],
-                    builder: ((context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return const Text("Error while fetching services");
-                        }
-                        return Column(
-                            children: snapshot.data!.map((e) {
-                          print("S: ${e.uuid}");
-                          e.characteristics.forEach(
-                            (element) {
-                              print("C: ${element.uuid}");
-                            },
-                          );
-                          return Text("${e.uuid}");
-                        }).toList());
-                      } else {
-                        return const Text("Fetching services");
-                      }
-                    }),
-                  )
+                  Column(
+                      children: device.services.map((e) {
+                    return Text("${e.uuid}");
+                  }).toList())
                 ],
               ),
             );

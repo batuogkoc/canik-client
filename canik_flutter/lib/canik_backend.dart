@@ -65,8 +65,11 @@ class CanikDevice {
   }
 
   CanikDevice(this._device);
-  Future<void> connect() async {
-    await _device.connect();
+  Future<void> connect({
+    Duration? timeout,
+    bool autoConnect = true,
+  }) async {
+    await _device.connect(timeout: timeout, autoConnect: autoConnect);
     services = await _device.discoverServices();
     if (checkIfCanik(services) == false) {
       _device.disconnect();
@@ -88,5 +91,9 @@ class CanikDevice {
 
   getRssi() {
     return _device.readRssi();
+  }
+
+  disconnect() {
+    return _device.disconnect();
   }
 }
