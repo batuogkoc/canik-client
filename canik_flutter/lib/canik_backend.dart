@@ -1,18 +1,18 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "dart:async";
+import "package:vector_math/vector_math.dart";
 
 class CanikServices {
   static const metrics = "00000001-0000-1000-8000-00805f9b34fb";
   static const parameters = "00000005-0000-1000-8000-00805f9b34fb";
 }
 
-class CanikCharacteristics {}
+class CanikCharacteristics {
+  static const bufferedRawData = "00000002-0000-1000-8000-00805f9b34fb";
+  static const configMonitor = "00000004-0000-1000-8000-00805f9b34fb";
+}
 
-class CanikDevice {
-  final BluetoothDevice _device;
-
-  late List<BluetoothService> services;
-
+class CanikUtilities {
   static const Map<String, List<String>> serviceCharacteristicUUIDMapping = {
     "00001801-0000-1000-8000-00805f9b34fb": [
       "00002a05-0000-1000-8000-00805f9b34fb"
@@ -64,6 +64,36 @@ class CanikDevice {
     return true;
   }
 
+  static BluetoothService? findService(
+      List<BluetoothService> services, String uuid) {
+    for (final service in services) {
+      if (service.uuid.toString() == uuid) {
+        return service;
+      }
+    }
+    return null;
+  }
+
+  static BluetoothCharacteristic? findCharacteristic(
+      List<BluetoothService> services, String uuid) {
+    for (final service in services) {
+      for (final characteristic in service.characteristics) {
+        if (characteristic.uuid.toString() == uuid) {
+          return characteristic;
+        }
+      }
+    }
+    return null;
+  }
+}
+
+class CanikDevice {
+  final BluetoothDevice _device;
+
+  late List<BluetoothService> services;
+
+  final _quaternionController = StreamController<Quaternion>();
+
   CanikDevice(this._device);
   Future<void> connect({
     Duration? timeout,
@@ -71,10 +101,13 @@ class CanikDevice {
   }) async {
     await _device.connect(timeout: timeout, autoConnect: autoConnect);
     services = await _device.discoverServices();
-    if (checkIfCanik(services) == false) {
+    if (CanikUtilities.checkIfCanik(services) == false) {
       _device.disconnect();
       throw Exception("The bluetooth device is not a Canik device");
     }
+    final bufferedRawData = CanikUtilities.findCharacteristic(
+        services, CanikCharacteristics.bufferedRawData);
+    await bufferedRawData!.setNotifyValue(true);
   }
 
   get id {

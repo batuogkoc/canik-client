@@ -3,12 +3,17 @@ import "package:vector_math/vector_math.dart";
 
 class Madgwick {
   final double beta;
-  var q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;
+  // var q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;
+  Quaternion _quaternion;
 
   Madgwick({this.beta = 0.1});
 
   void updateIMU(double gx, double gy, double gz, double ax, double ay,
       double az, double dt) {
+    double q0 = _quaternion.w;
+    double q1 = _quaternion.x;
+    double q2 = _quaternion.y;
+    double q3 = _quaternion.z;
     double recipNorm;
     double s0, s1, s2, s3;
     double qDot1, qDot2, qDot3, qDot4;
@@ -103,10 +108,18 @@ class Madgwick {
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
+    _quaternion.w = q0;
+    _quaternion.x = q1;
+    _quaternion.y = q2;
+    _quaternion.z = q3;
   }
 
   void updateMag(double gx, double gy, double gz, double ax, double ay,
       double az, double mx, double my, double mz, double dt) {
+    double q0 = _quaternion.w;
+    double q1 = _quaternion.x;
+    double q2 = _quaternion.y;
+    double q3 = _quaternion.z;
     double recipNorm;
     double s0, s1, s2, s3;
     double qDot1, qDot2, qDot3, qDot4;
@@ -269,5 +282,9 @@ class Madgwick {
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
+    _quaternion.w = q0;
+    _quaternion.x = q1;
+    _quaternion.y = q2;
+    _quaternion.z = q3;
   }
 }
