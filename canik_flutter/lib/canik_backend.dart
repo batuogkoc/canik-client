@@ -1,8 +1,17 @@
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "dart:async";
 
+class CanikServices {
+  static const metrics = "00000001-0000-1000-8000-00805f9b34fb";
+  static const parameters = "00000005-0000-1000-8000-00805f9b34fb";
+}
+
+class CanikCharacteristics {}
+
 class CanikDevice {
   final BluetoothDevice _device;
+
+  late List<BluetoothService> services;
 
   static const Map<String, List<String>> serviceCharacteristicUUIDMapping = {
     "00001801-0000-1000-8000-00805f9b34fb": [
@@ -37,26 +46,47 @@ class CanikDevice {
     ]
   };
 
-  late List<BluetoothService> services;
-
-  CanikDevice(this._device);
-  Future<void> connect() async {
-    await _device.connect();
-    services = await _device.discoverServices();
-
+  static bool checkIfCanik(List<BluetoothService> services) {
     for (var service in services) {
       if (serviceCharacteristicUUIDMapping
               .containsKey(service.uuid.toString()) !=
           true) {
-        throw Exception("The bluetooth device is not a Canik device");
+        return false;
       }
       for (var characteristic in service.characteristics) {
         if (serviceCharacteristicUUIDMapping[service.uuid.toString()]
                 ?.contains(characteristic.uuid.toString()) !=
             true) {
-          throw Exception("The bluetooth device is not a Canik device");
+          return false;
         }
       }
     }
+    return true;
+  }
+
+  CanikDevice(this._device);
+  Future<void> connect() async {
+    await _device.connect();
+    services = await _device.discoverServices();
+    if (checkIfCanik(services) == false) {
+      _device.disconnect();
+      throw Exception("The bluetooth device is not a Canik device");
+    }
+  }
+
+  get id {
+    return _device.id;
+  }
+
+  get name {
+    return _device.name;
+  }
+
+  get state {
+    return _device.state;
+  }
+
+  getRssi() {
+    return _device.readRssi();
   }
 }
