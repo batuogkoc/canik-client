@@ -3,6 +3,52 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "dart:async";
 import "package:vector_math/vector_math.dart";
 import "dart:typed_data";
+import "dart:math";
+
+Vector3 quaternionToEuler(Quaternion q) {
+  double w = q.w;
+  double x = q.x;
+  double y = q.y;
+  double z = q.z;
+  Vector3 ret = Vector3.zero(); //yaw pitch roll
+
+  //roll (x-axis rotation)
+  double sinr_cosp = 2 * (w * x + y * z);
+  double cosr_cosp = 1 - 2 * (x * x + y * y);
+  ret.z = atan2(sinr_cosp, cosr_cosp);
+
+  //pitch (y-axis rotation)
+  double sinp = 2 * (w * y - z * x);
+  if ((sinp).abs() >= 1) {
+    ret.y = copySign(pi / 2, sinp); // use 90 degrees if out of range
+  } else {
+    ret.y = asin(sinp);
+  }
+
+  // yaw (z-axis rotation)
+  double siny_cosp = 2 * (w * z + x * y);
+  double cosy_cosp = 1 - 2 * (y * y + z * z);
+  ret.x = atan2(siny_cosp, cosy_cosp);
+
+  return ret;
+}
+
+double copySign(double magnitude, double sign) {
+  // The highest order bit is going to be zero if the
+  // highest order bit of m and s is the same and one otherwise.
+  // So (m^s) will be positive if both m and s have the same sign
+  // and negative otherwise.
+  /*final long m = Double.doubleToRawLongBits(magnitude); // don't care about NaN
+  final long s = Double.doubleToRawLongBits(sign);
+  if ((m^s) >= 0) {
+      return magnitude;
+  }
+  return -magnitude; // flip sign*/
+  if (sign == 0.0 || sign.isNaN || magnitude.sign == sign.sign) {
+    return magnitude;
+  }
+  return -magnitude; // flip sign
+}
 
 class CanikServices {
   static const metrics = "00000001-0000-1000-8000-00805f9b34fb";
@@ -105,7 +151,7 @@ class CanikDevice {
   final double accGScale;
   double _lastCanikTime = 0;
   CanikDevice(this._device,
-      {this.gyroRadsScale = 0.000635783,
+      {this.gyroRadsScale = 0.000635783 * (pi / 180),
       this.accGScale = 0.000061035,
       double ahrsBeta = 0.1})
       : _ahrs = Madgwick(beta: ahrsBeta);
@@ -135,9 +181,9 @@ class CanikDevice {
     final int messageCounter = byteBuffer.getUint16(0, Endian.little);
     final health = byteBuffer.getUint8(2);
     final int timestamp =
-        ByteData.sublistView(byteBuffer, 3).getUint32(3, Endian.little);
+        ByteData.sublistView(byteBuffer, 3).getUint32(0, Endian.little);
 
-    final canikTime = timestamp * 0.000025;
+    final double canikTime = timestamp.toDouble() * 0.000025;
     if (_lastCanikTime == 0) {
       _lastCanikTime = canikTime;
     }
@@ -162,7 +208,7 @@ class CanikDevice {
       final gyro = gyroRaw * gyroRadsScale;
       final accel = accRaw * accGScale;
       _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z,
-          canikTime - _lastCanikTime);
+          (canikTime - _lastCanikTime) / 20);
       _lastCanikTime = canikTime;
 
       _rawAccelGStreamController.sink.add(accel);

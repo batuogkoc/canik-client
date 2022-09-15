@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'canik_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -160,7 +162,10 @@ class HomePage extends StatelessWidget {
                                     builder: (context) {
                                       FlutterBluePlus.instance.stopScan();
                                       return DevicePage(
-                                          canikDevice: CanikDevice(e.device));
+                                          canikDevice: CanikDevice(e.device,
+                                              ahrsBeta: 0.1,
+                                              gyroRadsScale:
+                                                  (radians(6000) / 32767)));
                                     },
                                   ));
                                 },
@@ -236,8 +241,10 @@ class DevicePage extends StatelessWidget {
                     stream: canikDevice.orientationStream,
                     initialData: Quaternion.identity(),
                     builder: (context, snapshot) {
+                      final euler = quaternionToEuler(
+                          snapshot.data ?? Quaternion.identity());
                       return Text(
-                          "W: ${snapshot.data!.w}\nX: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
+                          "Yaw: ${degrees(euler.x)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.z)}\n");
                     },
                   )
                 ],
