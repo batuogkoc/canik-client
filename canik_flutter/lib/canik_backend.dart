@@ -5,6 +5,11 @@ import "package:vector_math/vector_math.dart";
 import "dart:typed_data";
 import "dart:math";
 
+//TODO: Gravitational accel removed accel stream
+//TODO: device.state stream for canik devices as well
+//TODO: Status callbacks and connection logic
+//TODO: ?Maybe leave the connection to the different characteristics up to the user
+
 Vector3 quaternionToEuler(Quaternion q) {
   double w = q.w;
   double x = q.x;
