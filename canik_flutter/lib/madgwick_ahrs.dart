@@ -4,9 +4,11 @@ import "package:vector_math/vector_math.dart";
 class Madgwick {
   final double beta;
   // var q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;
-  Quaternion _quaternion;
+  late Quaternion _quaternion;
 
-  Madgwick({this.beta = 0.1});
+  Madgwick({this.beta = 0.1}) {
+    _quaternion = Quaternion.identity();
+  }
 
   void updateIMU(double gx, double gy, double gz, double ax, double ay,
       double az, double dt) {
@@ -286,5 +288,9 @@ class Madgwick {
     _quaternion.x = q1;
     _quaternion.y = q2;
     _quaternion.z = q3;
+  }
+
+  get quaternion {
+    return _quaternion;
   }
 }

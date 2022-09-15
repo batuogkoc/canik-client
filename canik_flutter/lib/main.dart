@@ -1,7 +1,8 @@
+import 'canik_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:flutter/foundation.dart";
-import 'canik_backend.dart';
+import 'package:vector_math/vector_math.dart' hide Colors;
 
 void main() {
   runApp(const CanikApp());
@@ -159,7 +160,7 @@ class HomePage extends StatelessWidget {
                                     builder: (context) {
                                       FlutterBluePlus.instance.stopScan();
                                       return DevicePage(
-                                          device: CanikDevice(e.device));
+                                          canikDevice: CanikDevice(e.device));
                                     },
                                   ));
                                 },
@@ -174,15 +175,15 @@ class HomePage extends StatelessWidget {
 }
 
 class DevicePage extends StatelessWidget {
-  final CanikDevice device;
-  const DevicePage({Key? key, required this.device}) : super(key: key);
+  final CanikDevice canikDevice;
+  const DevicePage({Key? key, required this.canikDevice}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Canik: ${device.id}")),
+      appBar: AppBar(title: Text("Canik: ${canikDevice.id}")),
       body: FutureBuilder(
-        future: device.connect(timeout: const Duration(seconds: 4)),
+        future: canikDevice.connect(timeout: const Duration(seconds: 10)),
         // initialData: BluetoothDeviceState.connecting,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
@@ -203,14 +204,42 @@ class DevicePage extends StatelessWidget {
                   ElevatedButton(
                     child: const Text("Disconnect"),
                     onPressed: () {
-                      device.disconnect();
+                      canikDevice.disconnect();
                       Navigator.pop(context);
                     },
                   ),
+                  const Text("Services:"),
                   Column(
-                      children: device.services.map((e) {
+                      children: canikDevice.services.map((e) {
                     return Text("${e.uuid}");
-                  }).toList())
+                  }).toList()),
+                  const Text("Raw Accel (g)"),
+                  StreamBuilder<Vector3>(
+                    stream: canikDevice.rawAccelGStream,
+                    initialData: Vector3.zero(),
+                    builder: (context, snapshot) {
+                      return Text(
+                          "X: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
+                    },
+                  ),
+                  const Text("Rate (rad)"),
+                  StreamBuilder<Vector3>(
+                    stream: canikDevice.rateRadStream,
+                    initialData: Vector3.zero(),
+                    builder: (context, snapshot) {
+                      return Text(
+                          "X: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
+                    },
+                  ),
+                  const Text("Orientation"),
+                  StreamBuilder<Quaternion>(
+                    stream: canikDevice.orientationStream,
+                    initialData: Quaternion.identity(),
+                    builder: (context, snapshot) {
+                      return Text(
+                          "W: ${snapshot.data!.w}\nX: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
+                    },
+                  )
                 ],
               ),
             );
