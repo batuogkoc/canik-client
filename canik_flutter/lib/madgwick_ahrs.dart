@@ -290,7 +290,7 @@ class Madgwick {
     _quaternion.z = q3;
   }
 
-  get quaternion {
+  Quaternion get quaternion {
     return _quaternion;
   }
 }

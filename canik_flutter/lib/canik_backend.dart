@@ -1,13 +1,14 @@
 import 'package:canik_flutter/madgwick_ahrs.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "dart:async";
 import "package:vector_math/vector_math.dart";
 import "dart:typed_data";
 import "dart:math";
 
-//TODO: Gravitational accel removed accel stream
-//TODO: device.state stream for canik devices as well
-//TODO: Status callbacks and connection logic
+//TODO: Device configuration
+//TODO: Accel and gyro calibration
+//TODO: Connection logic for other characteristics
 //TODO: ?Maybe leave the connection to the different characteristics up to the user
 
 Vector3 quaternionToEuler(Quaternion q) {
@@ -151,26 +152,34 @@ class CanikDevice {
   final _rawAccelGStreamController = StreamController<Vector3>();
   final _deviceAccelGStreamController = StreamController<Vector3>();
   final _rateRadStreamController = StreamController<Vector3>();
+  final _stateStreamController = StreamController<BluetoothDeviceState>();
 
   final double gyroRadsScale;
   final double accGScale;
   double _lastCanikTime = 0;
   CanikDevice(this._device,
-      {this.gyroRadsScale = 0.000635783 * (pi / 180),
+      {this.gyroRadsScale = degrees2Radians * (6000) / 32767,
       this.accGScale = 0.000061035,
-      double ahrsBeta = 0.1})
+      double ahrsBeta = 5})
       : _ahrs = Madgwick(beta: ahrsBeta);
   Future<void> connect({
     Duration? timeout,
     bool autoConnect = true,
   }) async {
-    await _device.connect(timeout: timeout, autoConnect: autoConnect);
+    _stateStreamController.sink.add(BluetoothDeviceState.connecting);
+    try {
+      await _device.connect(timeout: timeout, autoConnect: autoConnect);
+    } on PlatformException {}
     services = await _device.discoverServices();
     if (CanikUtilities.checkIfCanik(services) == false) {
+      _stateStreamController.sink.add(BluetoothDeviceState.disconnecting);
+      _stateStreamController.sink.addStream(_device.state);
       _device.disconnect();
       throw Exception("The bluetooth device is not a Canik device");
     }
     await _notifyToBufferedRawData();
+    _stateStreamController.sink.add(BluetoothDeviceState.connected);
+    _stateStreamController.sink.addStream(_device.state);
   }
 
   Future<void> _notifyToBufferedRawData() async {
@@ -216,9 +225,11 @@ class CanikDevice {
           (canikTime - _lastCanikTime) / 20);
       _lastCanikTime = canikTime;
 
+      Vector3 gravitationalAccel = _ahrs.quaternion.rotate(Vector3(0, 0, 1));
       _rawAccelGStreamController.sink.add(accel);
       _rateRadStreamController.sink.add(gyro);
       _orientationStreamController.sink.add(_ahrs.quaternion);
+      _deviceAccelGStreamController.sink.add(accel - gravitationalAccel);
     }
   }
 
@@ -232,6 +243,10 @@ class CanikDevice {
 
   get orientationStream {
     return _orientationStreamController.stream;
+  }
+
+  get deviceAccelGStream {
+    return _deviceAccelGStreamController.stream;
   }
 
   get id {

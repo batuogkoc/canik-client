@@ -129,7 +129,7 @@ class HomePage extends StatelessWidget {
                   },
                 ),
               ),
-              Text("Connected devices:"),
+              const Text("Connected devices:"),
               FutureBuilder<List<BluetoothDevice>>(
                 future: FlutterBluePlus.instance.connectedDevices,
                 builder: (context, snapshot) {
@@ -139,8 +139,19 @@ class HomePage extends StatelessWidget {
                     }
                     return Column(
                         children: snapshot.data!
-                            .map((e) => Text(
-                                "${e.name == "" ? "<No device name>" : e.name} : ${e.id}"))
+                            .map((e) => TextButton(
+                                  child: Text(
+                                      "${e.name == "" ? "<No device name>" : e.name} : ${e.id}"),
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) {
+                                        FlutterBluePlus.instance.stopScan();
+                                        return DevicePage(
+                                            canikDevice: CanikDevice(e));
+                                      },
+                                    ));
+                                  },
+                                ))
                             .toList());
                   } else {
                     return const Text("Fetching connected devices");
@@ -162,10 +173,7 @@ class HomePage extends StatelessWidget {
                                     builder: (context) {
                                       FlutterBluePlus.instance.stopScan();
                                       return DevicePage(
-                                          canikDevice: CanikDevice(e.device,
-                                              ahrsBeta: 0.1,
-                                              gyroRadsScale:
-                                                  (radians(6000) / 32767)));
+                                          canikDevice: CanikDevice(e.device));
                                     },
                                   ));
                                 },
@@ -195,10 +203,9 @@ class DevicePage extends StatelessWidget {
             if (snapshot.hasError) {
               return Center(
                 child: Column(
-                  children: [
-                    const Text(
-                        "Connection error, device may not be a canik device."),
-                    const Icon(Icons.error_outline)
+                  children: const [
+                    Text("Connection error, device may not be a canik device."),
+                    Icon(Icons.error_outline)
                   ],
                 ),
               );
@@ -246,15 +253,24 @@ class DevicePage extends StatelessWidget {
                       return Text(
                           "Yaw: ${degrees(euler.x)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.z)}\n");
                     },
+                  ),
+                  const Text("Device Accel (g)"),
+                  StreamBuilder<Vector3>(
+                    stream: canikDevice.deviceAccelGStream,
+                    initialData: Vector3.zero(),
+                    builder: (context, snapshot) {
+                      return Text(
+                          "X: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
+                    },
                   )
                 ],
               ),
             );
           } else {
             return Column(
-              children: [
-                const Text("Connecting..."),
-                const Icon(Icons.error_outline)
+              children: const [
+                Text("Connecting..."),
+                Icon(Icons.error_outline)
               ],
             );
           }
