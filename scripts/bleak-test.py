@@ -107,7 +107,7 @@ def callback(sender: int, data: bytearray):
         print()
         # print(1/dt)
         raw_data = np.frombuffer(data, dtype=np.dtype("<i2"), offset=7).reshape((6,20))
-        gyro = raw_data[0:3,:] * (250/2**15/8*2/3)
+        gyro = raw_data[0:3,:] * 1/114.28 # (250/2**15/8*2/3)
         accel = raw_data[3:6,:] * (2/2**15) #2g per 32k
         madgwick.Dt = dt
         for i in range(20):

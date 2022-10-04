@@ -157,10 +157,11 @@ class CanikDevice {
   final double gyroRadsScale;
   final double accGScale;
   double _lastCanikTime = 0;
+  //degrees2Radians * (6000) / 32767
   CanikDevice(this._device,
-      {this.gyroRadsScale = degrees2Radians * (6000) / 32767,
+      {this.gyroRadsScale = degrees2Radians * (250) / 32767,
       this.accGScale = 0.000061035,
-      double ahrsBeta = 5})
+      double ahrsBeta = 0.1})
       : _ahrs = Madgwick(beta: ahrsBeta);
   Future<void> connect({
     Duration? timeout,
@@ -223,7 +224,6 @@ class CanikDevice {
       final accel = accRaw * accGScale;
       _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z,
           (canikTime - _lastCanikTime) / 20);
-      _lastCanikTime = canikTime;
 
       Vector3 gravitationalAccel = _ahrs.quaternion.rotate(Vector3(0, 0, 1));
       _rawAccelGStreamController.sink.add(accel);
@@ -231,6 +231,7 @@ class CanikDevice {
       _orientationStreamController.sink.add(_ahrs.quaternion);
       _deviceAccelGStreamController.sink.add(accel - gravitationalAccel);
     }
+    _lastCanikTime = canikTime;
   }
 
   get rateRadStream {

@@ -234,13 +234,13 @@ class DevicePage extends StatelessWidget {
                           "X: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
                     },
                   ),
-                  const Text("Rate (rad)"),
+                  const Text("Rate (deg)"),
                   StreamBuilder<Vector3>(
                     stream: canikDevice.rateRadStream,
                     initialData: Vector3.zero(),
                     builder: (context, snapshot) {
                       return Text(
-                          "X: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
+                          "X: ${degrees(snapshot.data!.x)}\nY: ${degrees(snapshot.data!.y)}\nZ: ${degrees(snapshot.data!.z)}");
                     },
                   ),
                   const Text("Orientation"),
