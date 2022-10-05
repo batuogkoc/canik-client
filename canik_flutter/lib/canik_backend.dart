@@ -21,7 +21,7 @@ Vector3 quaternionToEuler(Quaternion q) {
   //roll (x-axis rotation)
   double sinr_cosp = 2 * (w * x + y * z);
   double cosr_cosp = 1 - 2 * (x * x + y * y);
-  ret.z = atan2(sinr_cosp, cosr_cosp);
+  ret.x = atan2(sinr_cosp, cosr_cosp);
 
   //pitch (y-axis rotation)
   double sinp = 2 * (w * y - z * x);
@@ -34,7 +34,7 @@ Vector3 quaternionToEuler(Quaternion q) {
   // yaw (z-axis rotation)
   double siny_cosp = 2 * (w * z + x * y);
   double cosy_cosp = 1 - 2 * (y * y + z * z);
-  ret.x = atan2(siny_cosp, cosy_cosp);
+  ret.z = atan2(siny_cosp, cosy_cosp);
 
   return ret;
 }
