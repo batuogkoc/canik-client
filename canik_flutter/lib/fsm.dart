@@ -37,7 +37,12 @@ class HolsterDrawSM {
         _firstWithdrawGun = true {
     _updateStateStream();
   }
-  void update(ProcessedData data) {
+
+  void start() {
+    _processedDataStream.forEach(_update);
+  }
+
+  void _update(ProcessedData data) {
     switch (_state) {
       case HolsterDrawState.idle:
         if (_firstIdle) {
