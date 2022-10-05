@@ -225,44 +225,30 @@ class DevicePage extends StatelessWidget {
                       children: canikDevice.services.map((e) {
                     return Text("${e.uuid}");
                   }).toList()),
-                  const Text("Raw Accel (g)"),
-                  StreamBuilder<Vector3>(
-                    stream: canikDevice.rawAccelGStream,
-                    initialData: Vector3.zero(),
+                  StreamBuilder<ProcessedData>(
+                    stream: canikDevice.processedDataStream,
+                    initialData: ProcessedData.zero(),
                     builder: (context, snapshot) {
-                      return Text(
-                          "X: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
+                      final euler =
+                          quaternionToEuler(snapshot.data!.orientation);
+                      return Column(
+                        children: [
+                          const Text("Raw Accel (g)"),
+                          Text(
+                              "X: ${snapshot.data!.rawAccelG.x}\nY: ${snapshot.data!.rawAccelG.y}\nZ: ${snapshot.data!.rawAccelG.z}"),
+                          const Text("Rate (deg)"),
+                          Text(
+                              "X: ${degrees(snapshot.data!.rateRad.x)}\nY: ${degrees(snapshot.data!.rateRad.y)}\nZ: ${degrees(snapshot.data!.rateRad.z)}"),
+                          const Text("Orientation"),
+                          Text(
+                              "Yaw: ${degrees(euler.z)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.x)}\n"),
+                          const Text("Device Accel (g)"),
+                          Text(
+                              "X: ${snapshot.data!.deviceAccelG.x}\nY: ${snapshot.data!.deviceAccelG.y}\nZ: ${snapshot.data!.deviceAccelG.z}"),
+                        ],
+                      );
                     },
                   ),
-                  const Text("Rate (deg)"),
-                  StreamBuilder<Vector3>(
-                    stream: canikDevice.rateRadStream,
-                    initialData: Vector3.zero(),
-                    builder: (context, snapshot) {
-                      return Text(
-                          "X: ${degrees(snapshot.data!.x)}\nY: ${degrees(snapshot.data!.y)}\nZ: ${degrees(snapshot.data!.z)}");
-                    },
-                  ),
-                  const Text("Orientation"),
-                  StreamBuilder<Quaternion>(
-                    stream: canikDevice.orientationStream,
-                    initialData: Quaternion.identity(),
-                    builder: (context, snapshot) {
-                      final euler = quaternionToEuler(
-                          snapshot.data ?? Quaternion.identity());
-                      return Text(
-                          "Yaw: ${degrees(euler.x)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.z)}\n");
-                    },
-                  ),
-                  const Text("Device Accel (g)"),
-                  StreamBuilder<Vector3>(
-                    stream: canikDevice.deviceAccelGStream,
-                    initialData: Vector3.zero(),
-                    builder: (context, snapshot) {
-                      return Text(
-                          "X: ${snapshot.data!.x}\nY: ${snapshot.data!.y}\nZ: ${snapshot.data!.z}");
-                    },
-                  )
                 ],
               ),
             );

@@ -21,7 +21,7 @@ Vector3 quaternionToEuler(Quaternion q) {
   //roll (x-axis rotation)
   double sinr_cosp = 2 * (w * x + y * z);
   double cosr_cosp = 1 - 2 * (x * x + y * y);
-  ret.z = atan2(sinr_cosp, cosr_cosp);
+  ret.x = atan2(sinr_cosp, cosr_cosp);
 
   //pitch (y-axis rotation)
   double sinp = 2 * (w * y - z * x);
@@ -34,7 +34,7 @@ Vector3 quaternionToEuler(Quaternion q) {
   // yaw (z-axis rotation)
   double siny_cosp = 2 * (w * z + x * y);
   double cosy_cosp = 1 - 2 * (y * y + z * z);
-  ret.x = atan2(siny_cosp, cosy_cosp);
+  ret.z = atan2(siny_cosp, cosy_cosp);
 
   return ret;
 }
@@ -141,6 +141,21 @@ class CanikUtilities {
   }
 }
 
+class ProcessedData {
+  final Quaternion orientation;
+  final Vector3 rawAccelG;
+  final Vector3 deviceAccelG;
+  final Vector3 rateRad;
+
+  ProcessedData(
+      this.orientation, this.rawAccelG, this.deviceAccelG, this.rateRad);
+  ProcessedData.zero()
+      : orientation = Quaternion.identity(),
+        rawAccelG = Vector3.zero(),
+        deviceAccelG = Vector3.zero(),
+        rateRad = Vector3.zero();
+}
+
 class CanikDevice {
   final BluetoothDevice _device;
 
@@ -148,10 +163,12 @@ class CanikDevice {
 
   late List<BluetoothService> services;
 
-  final _orientationStreamController = StreamController<Quaternion>();
-  final _rawAccelGStreamController = StreamController<Vector3>();
-  final _deviceAccelGStreamController = StreamController<Vector3>();
-  final _rateRadStreamController = StreamController<Vector3>();
+  final _processedDataStreamController = StreamController<ProcessedData>();
+  late Stream<ProcessedData> _processedDataBroadcastStream;
+  // final _orientationStreamController = StreamController<Quaternion>();
+  // final _rawAccelGStreamController = StreamController<Vector3>();
+  // final _deviceAccelGStreamController = StreamController<Vector3>();
+  // final _rateRadStreamController = StreamController<Vector3>();
   final _stateStreamController = StreamController<BluetoothDeviceState>();
 
   final double gyroRadsScale;
@@ -162,7 +179,10 @@ class CanikDevice {
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
       this.accGScale = 0.000061035,
       double ahrsBeta = 0.1})
-      : _ahrs = Madgwick(beta: ahrsBeta);
+      : _ahrs = Madgwick(beta: ahrsBeta) {
+    _processedDataBroadcastStream =
+        _processedDataStreamController.stream.asBroadcastStream();
+  }
   Future<void> connect({
     Duration? timeout,
     bool autoConnect = true,
@@ -226,28 +246,35 @@ class CanikDevice {
           (canikTime - _lastCanikTime) / 20);
 
       Vector3 gravitationalAccel = _ahrs.quaternion.rotate(Vector3(0, 0, 1));
-      _rawAccelGStreamController.sink.add(accel);
-      _rateRadStreamController.sink.add(gyro);
-      _orientationStreamController.sink.add(_ahrs.quaternion);
-      _deviceAccelGStreamController.sink.add(accel - gravitationalAccel);
+      ProcessedData processedData = ProcessedData(
+          _ahrs.quaternion, accel, accel - gravitationalAccel, gyro);
+
+      _processedDataStreamController.sink.add(processedData);
+      // _rawAccelGStreamController.sink.add(accel);
+      // _rateRadStreamController.sink.add(gyro);
+      // _orientationStreamController.sink.add(_ahrs.quaternion);
+      // _deviceAccelGStreamController.sink.add(accel - gravitationalAccel);
     }
     _lastCanikTime = canikTime;
   }
 
-  get rateRadStream {
-    return _rateRadStreamController.stream;
-  }
+  // get rateRadStream {
+  //   return _rateRadStreamController.stream;
+  // }
 
-  get rawAccelGStream {
-    return _rawAccelGStreamController.stream;
-  }
+  // get rawAccelGStream {
+  //   return _rawAccelGStreamController.stream;
+  // }
 
-  get orientationStream {
-    return _orientationStreamController.stream;
-  }
+  // get orientationStream {
+  //   return _orientationStreamController.stream;
+  // }
 
-  get deviceAccelGStream {
-    return _deviceAccelGStreamController.stream;
+  // get deviceAccelGStream {
+  //   return _deviceAccelGStreamController.stream;
+  // }
+  get processedDataStream {
+    return _processedDataBroadcastStream;
   }
 
   get id {
