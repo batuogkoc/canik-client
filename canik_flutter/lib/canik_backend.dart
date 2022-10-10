@@ -5,6 +5,7 @@ import "dart:async";
 import "package:vector_math/vector_math.dart";
 import "dart:typed_data";
 import "dart:math";
+import "fsm.dart";
 
 //TODO: Device configuration
 //TODO: Accel and gyro calibration
@@ -141,17 +142,36 @@ class CanikUtilities {
   }
 }
 
+class ProcessedData {
+  final Quaternion orientation;
+  final Vector3 rawAccelG;
+  final Vector3 deviceAccelG;
+  final Vector3 rateRad;
+
+  ProcessedData(
+      this.orientation, this.rawAccelG, this.deviceAccelG, this.rateRad);
+  ProcessedData.zero()
+      : orientation = Quaternion.identity(),
+        rawAccelG = Vector3.zero(),
+        deviceAccelG = Vector3.zero(),
+        rateRad = Vector3.zero();
+}
+
 class CanikDevice {
   final BluetoothDevice _device;
 
   final Madgwick _ahrs;
 
+  late HolsterDrawSM _holsterDrawSM;
+
   late List<BluetoothService> services;
 
-  final _orientationStreamController = StreamController<Quaternion>();
-  final _rawAccelGStreamController = StreamController<Vector3>();
-  final _deviceAccelGStreamController = StreamController<Vector3>();
-  final _rateRadStreamController = StreamController<Vector3>();
+  final _processedDataStreamController = StreamController<ProcessedData>();
+  late Stream<ProcessedData> _processedDataBroadcastStream;
+  // final _orientationStreamController = StreamController<Quaternion>();
+  // final _rawAccelGStreamController = StreamController<Vector3>();
+  // final _deviceAccelGStreamController = StreamController<Vector3>();
+  // final _rateRadStreamController = StreamController<Vector3>();
   final _stateStreamController = StreamController<BluetoothDeviceState>();
 
   final double gyroRadsScale;
@@ -161,8 +181,17 @@ class CanikDevice {
   CanikDevice(this._device,
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
       this.accGScale = 0.000061035,
-      double ahrsBeta = 0.1})
-      : _ahrs = Madgwick(beta: ahrsBeta);
+      double ahrsBeta = 0.1,
+      double drawThresholdG = 0.2,
+      double rotatingAngularRateThreshDegS = 200,
+      bool startHolsterDrawSM = true})
+      : _ahrs = Madgwick(beta: ahrsBeta) {
+    _processedDataBroadcastStream =
+        _processedDataStreamController.stream.asBroadcastStream();
+    _holsterDrawSM = HolsterDrawSM(
+        processedDataStream, drawThresholdG, rotatingAngularRateThreshDegS);
+    _holsterDrawSM.start();
+  }
   Future<void> connect({
     Duration? timeout,
     bool autoConnect = true,
@@ -226,28 +255,35 @@ class CanikDevice {
           (canikTime - _lastCanikTime) / 20);
 
       Vector3 gravitationalAccel = _ahrs.quaternion.rotate(Vector3(0, 0, 1));
-      _rawAccelGStreamController.sink.add(accel);
-      _rateRadStreamController.sink.add(gyro);
-      _orientationStreamController.sink.add(_ahrs.quaternion);
-      _deviceAccelGStreamController.sink.add(accel - gravitationalAccel);
+      ProcessedData processedData = ProcessedData(
+          _ahrs.quaternion, accel, accel - gravitationalAccel, gyro);
+
+      _processedDataStreamController.sink.add(processedData);
+      // _rawAccelGStreamController.sink.add(accel);
+      // _rateRadStreamController.sink.add(gyro);
+      // _orientationStreamController.sink.add(_ahrs.quaternion);
+      // _deviceAccelGStreamController.sink.add(accel - gravitationalAccel);
     }
     _lastCanikTime = canikTime;
   }
 
-  get rateRadStream {
-    return _rateRadStreamController.stream;
-  }
+  // get rateRadStream {
+  //   return _rateRadStreamController.stream;
+  // }
 
-  get rawAccelGStream {
-    return _rawAccelGStreamController.stream;
-  }
+  // get rawAccelGStream {
+  //   return _rawAccelGStreamController.stream;
+  // }
 
-  get orientationStream {
-    return _orientationStreamController.stream;
-  }
+  // get orientationStream {
+  //   return _orientationStreamController.stream;
+  // }
 
-  get deviceAccelGStream {
-    return _deviceAccelGStreamController.stream;
+  // get deviceAccelGStream {
+  //   return _deviceAccelGStreamController.stream;
+  // }
+  get processedDataStream {
+    return _processedDataBroadcastStream;
   }
 
   get id {
@@ -260,6 +296,10 @@ class CanikDevice {
 
   get state {
     return _device.state;
+  }
+
+  HolsterDrawSM get holsterDrawSM {
+    return _holsterDrawSM;
   }
 
   getRssi() {
