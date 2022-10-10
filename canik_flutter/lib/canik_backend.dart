@@ -143,18 +143,20 @@ class CanikUtilities {
 }
 
 class ProcessedData {
+  final double time;
   final Quaternion orientation;
   final Vector3 rawAccelG;
   final Vector3 deviceAccelG;
   final Vector3 rateRad;
 
-  ProcessedData(
-      this.orientation, this.rawAccelG, this.deviceAccelG, this.rateRad);
+  ProcessedData(this.orientation, this.rawAccelG, this.deviceAccelG,
+      this.rateRad, this.time);
   ProcessedData.zero()
       : orientation = Quaternion.identity(),
         rawAccelG = Vector3.zero(),
         deviceAccelG = Vector3.zero(),
-        rateRad = Vector3.zero();
+        rateRad = Vector3.zero(),
+        time = 0;
 }
 
 class CanikDevice {
@@ -256,7 +258,7 @@ class CanikDevice {
 
       Vector3 gravitationalAccel = _ahrs.quaternion.rotate(Vector3(0, 0, 1));
       ProcessedData processedData = ProcessedData(
-          _ahrs.quaternion, accel, accel - gravitationalAccel, gyro);
+          _ahrs.quaternion, accel, accel - gravitationalAccel, gyro, canikTime);
 
       _processedDataStreamController.sink.add(processedData);
       // _rawAccelGStreamController.sink.add(accel);
@@ -282,7 +284,7 @@ class CanikDevice {
   // get deviceAccelGStream {
   //   return _deviceAccelGStreamController.stream;
   // }
-  get processedDataStream {
+  Stream<ProcessedData> get processedDataStream {
     return _processedDataBroadcastStream;
   }
 
