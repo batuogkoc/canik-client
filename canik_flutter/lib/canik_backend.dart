@@ -5,6 +5,7 @@ import "dart:async";
 import "package:vector_math/vector_math.dart";
 import "dart:typed_data";
 import "dart:math";
+import "fsm.dart";
 
 //TODO: Device configuration
 //TODO: Accel and gyro calibration
@@ -161,6 +162,8 @@ class CanikDevice {
 
   final Madgwick _ahrs;
 
+  late HolsterDrawSM _holsterDrawSM;
+
   late List<BluetoothService> services;
 
   final _processedDataStreamController = StreamController<ProcessedData>();
@@ -178,10 +181,16 @@ class CanikDevice {
   CanikDevice(this._device,
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
       this.accGScale = 0.000061035,
-      double ahrsBeta = 0.1})
+      double ahrsBeta = 0.1,
+      double drawThresholdG = 0.2,
+      double rotatingAngularRateThreshDegS = 200,
+      bool startHolsterDrawSM = true})
       : _ahrs = Madgwick(beta: ahrsBeta) {
     _processedDataBroadcastStream =
         _processedDataStreamController.stream.asBroadcastStream();
+    _holsterDrawSM = HolsterDrawSM(
+        processedDataStream, drawThresholdG, rotatingAngularRateThreshDegS);
+    _holsterDrawSM.start();
   }
   Future<void> connect({
     Duration? timeout,
@@ -287,6 +296,10 @@ class CanikDevice {
 
   get state {
     return _device.state;
+  }
+
+  HolsterDrawSM get holsterDrawSM {
+    return _holsterDrawSM;
   }
 
   getRssi() {

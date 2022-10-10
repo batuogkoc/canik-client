@@ -1,10 +1,11 @@
-import 'dart:math';
+import 'package:canik_flutter/fsm.dart';
 
 import 'canik_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:flutter/foundation.dart";
 import 'package:vector_math/vector_math.dart' hide Colors;
+import 'fsm.dart';
 
 void main() {
   runApp(const CanikApp());
@@ -137,22 +138,26 @@ class HomePage extends StatelessWidget {
                     if (snapshot.hasError) {
                       return const Text("Error in fetching connected devices");
                     }
-                    return Column(
-                        children: snapshot.data!
-                            .map((e) => TextButton(
-                                  child: Text(
-                                      "${e.name == "" ? "<No device name>" : e.name} : ${e.id}"),
-                                  onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) {
-                                        FlutterBluePlus.instance.stopScan();
-                                        return DevicePage(
-                                            canikDevice: CanikDevice(e));
-                                      },
-                                    ));
-                                  },
-                                ))
-                            .toList());
+                    List<TextButton> children = [];
+                    for (var bluetoothDevice in snapshot.data!) {
+                      if (!(bluetoothDevice.name == "")) {
+                        var textButton = TextButton(
+                          child: Text(
+                              "${bluetoothDevice.name == "" ? "<No device name>" : bluetoothDevice.name} : ${bluetoothDevice.id}"),
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) {
+                                FlutterBluePlus.instance.stopScan();
+                                return DevicePage(
+                                    canikDevice: CanikDevice(bluetoothDevice));
+                              },
+                            ));
+                          },
+                        );
+                        children.add(textButton);
+                      }
+                    }
+                    return Column(children: children);
                   } else {
                     return const Text("Fetching connected devices");
                   }
@@ -163,22 +168,26 @@ class HomePage extends StatelessWidget {
                 stream: FlutterBluePlus.instance.scanResults,
                 initialData: const [],
                 builder: (context, snapshot) {
-                  return Column(
-                      children: snapshot.data!
-                          .map((e) => TextButton(
-                                child: Text(
-                                    "${e.device.name == "" ? "<No device name>" : e.device.name} : ${e.device.id} , ${e.rssi}"),
-                                onPressed: () {
-                                  Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) {
-                                      FlutterBluePlus.instance.stopScan();
-                                      return DevicePage(
-                                          canikDevice: CanikDevice(e.device));
-                                    },
-                                  ));
-                                },
-                              ))
-                          .toList());
+                  List<TextButton> children = [];
+                  for (var result in snapshot.data!) {
+                    if (result.device.name != "") {
+                      var textButton = TextButton(
+                        child: Text(
+                            "${result.device.name == "" ? "<No device name>" : result.device.name} : ${result.device.id}"),
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) {
+                              FlutterBluePlus.instance.stopScan();
+                              return DevicePage(
+                                  canikDevice: CanikDevice(result.device));
+                            },
+                          ));
+                        },
+                      );
+                      children.add(textButton);
+                    }
+                  }
+                  return Column(children: children);
                 },
               ),
             ],
@@ -249,6 +258,14 @@ class DevicePage extends StatelessWidget {
                       );
                     },
                   ),
+                  StreamBuilder<HolsterDrawState>(
+                    stream: canikDevice.holsterDrawSM.stateStream,
+                    initialData: canikDevice.holsterDrawSM.state,
+                    builder: (context, snapshot) {
+                      return Text(
+                          "HolsterDrawSM state: ${snapshot.data!.name}");
+                    },
+                  )
                 ],
               ),
             );
