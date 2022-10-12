@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:canik_flutter/madgwick_ahrs.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -179,6 +181,8 @@ class CanikDevice {
   final double gyroRadsScale;
   final double accGScale;
   double _lastCanikTime = 0;
+  double _gravitationalAccelG = 1;
+  Vector3 _gyroOffset;
   //degrees2Radians * (6000) / 32767
   CanikDevice(this._device,
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
@@ -187,7 +191,8 @@ class CanikDevice {
       double drawThresholdG = 0.2,
       double rotatingAngularRateThreshDegS = 200,
       bool startHolsterDrawSM = true})
-      : _ahrs = Madgwick(beta: ahrsBeta) {
+      : _ahrs = Madgwick(beta: ahrsBeta),
+        _gyroOffset = Vector3.zero() {
     _processedDataBroadcastStream =
         _processedDataStreamController.stream.asBroadcastStream();
     _holsterDrawSM = HolsterDrawSM(
@@ -256,9 +261,10 @@ class CanikDevice {
       _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z,
           (canikTime - _lastCanikTime) / 20);
 
-      Vector3 gravitationalAccel = _ahrs.quaternion.rotate(Vector3(0, 0, 1));
-      ProcessedData processedData = ProcessedData(
-          _ahrs.quaternion, accel, accel - gravitationalAccel, gyro, canikTime);
+      Vector3 gravitationalAccel =
+          _ahrs.quaternion.rotate(Vector3(0, 0, _gravitationalAccelG));
+      ProcessedData processedData = ProcessedData(_ahrs.quaternion, accel,
+          accel - gravitationalAccel, gyro - _gyroOffset, canikTime);
 
       _processedDataStreamController.sink.add(processedData);
       // _rawAccelGStreamController.sink.add(accel);
@@ -267,6 +273,39 @@ class CanikDevice {
       // _deviceAccelGStreamController.sink.add(accel - gravitationalAccel);
     }
     _lastCanikTime = canikTime;
+  }
+
+  Future<void> calibrateGyro(
+      {final Duration duration = const Duration(seconds: 3),
+      final double maxAccelG = 0.1,
+      final double minFrequency = 300}) async {
+    var completer = Completer<void>();
+
+    int n = 0;
+    Vector3 gyroSum = Vector3.zero();
+    double accelNormSum = 0;
+    await for (var data in processedDataStream) {
+      if (data.deviceAccelG.length > maxAccelG) {
+        completer.completeError(Exception(
+            "Device was not kept stable. Experienced ${data.deviceAccelG.length} G, limit $maxAccelG G"));
+      }
+      n++;
+      accelNormSum += data.rawAccelG.length;
+      gyroSum += data.rateRad;
+    }
+    Timer(duration, () {
+      if (n.toDouble() / (duration.inMicroseconds.toDouble() / 1000000) <
+          minFrequency) {
+        completer.completeError(Exception(
+            "Insufficient data rate of ${n.toDouble() / (duration.inMicroseconds.toDouble() / 1000000)} hZ, expected min ${minFrequency} hZ"));
+      } else {
+        _gyroOffset = (gyroSum / n.toDouble());
+        _gravitationalAccelG = accelNormSum / n.toDouble();
+        completer.complete();
+      }
+    });
+
+    return completer.future;
   }
 
   // get rateRadStream {
