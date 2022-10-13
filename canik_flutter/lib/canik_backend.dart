@@ -42,6 +42,18 @@ Vector3 quaternionToEuler(Quaternion q) {
   return ret;
 }
 
+Vector3 accelToEuler(Vector3 accel) {
+  // Vector3 euler = Vector3(0, 0, 0);
+  //roll x axis
+  double roll = atan2(accel.y, sqrt(accel.z * accel.z + accel.x + accel.x));
+  //pitch y axis
+  double pitch = atan2(-accel.x, sqrt(accel.z * accel.z + accel.y + accel.y));
+  //yaw y axis
+  double yaw = atan2(accel.y, accel.x);
+
+  return Vector3(roll, pitch, 0);
+}
+
 double copySign(double magnitude, double sign) {
   // The highest order bit is going to be zero if the
   // highest order bit of m and s is the same and one otherwise.
@@ -183,21 +195,25 @@ class CanikDevice {
   double _lastCanikTime = 0;
   double _gravitationalAccelG = 1;
   Vector3 _gyroOffset;
+  bool _firstData;
   //degrees2Radians * (6000) / 32767
   CanikDevice(this._device,
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
       this.accGScale = 0.000061035,
-      double ahrsBeta = 0.1,
+      double ahrsBeta = 0.5,
       double drawThresholdG = 0.2,
       double rotatingAngularRateThreshDegS = 200,
       bool startHolsterDrawSM = true})
       : _ahrs = Madgwick(beta: ahrsBeta),
-        _gyroOffset = Vector3.zero() {
+        _gyroOffset = Vector3.zero(),
+        _firstData = true {
     _processedDataBroadcastStream =
         _processedDataStreamController.stream.asBroadcastStream();
     _holsterDrawSM = HolsterDrawSM(
         processedDataStream, drawThresholdG, rotatingAngularRateThreshDegS);
-    _holsterDrawSM.start();
+    if (startHolsterDrawSM) {
+      _holsterDrawSM.start();
+    }
   }
   Future<void> connect({
     Duration? timeout,
@@ -258,13 +274,20 @@ class CanikDevice {
       final accRaw = Vector3(accx, accy, accz);
       final gyro = gyroRaw * gyroRadsScale;
       final accel = accRaw * accGScale;
-      _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z,
-          (canikTime - _lastCanikTime) / 20);
-
+      double dt = (canikTime - _lastCanikTime) / 20;
+      if (_firstData) {
+        _firstData = false;
+        final double tempBeta = _ahrs.beta;
+        _ahrs.beta = 1000;
+        _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z, dt);
+        _ahrs.beta = tempBeta;
+      } else {
+        _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z, dt);
+      }
       Vector3 gravitationalAccel =
           _ahrs.quaternion.rotate(Vector3(0, 0, _gravitationalAccelG));
       ProcessedData processedData = ProcessedData(_ahrs.quaternion, accel,
-          accel - gravitationalAccel, gyro - _gyroOffset, canikTime);
+          accel - gravitationalAccel, gyro - _gyroOffset, canikTime + i * (dt));
 
       _processedDataStreamController.sink.add(processedData);
       // _rawAccelGStreamController.sink.add(accel);
@@ -284,7 +307,30 @@ class CanikDevice {
     int n = 0;
     Vector3 gyroSum = Vector3.zero();
     double accelNormSum = 0;
+
+    Timer(duration, () {
+      print("Done.");
+      if (completer.isCompleted) {
+        return;
+      }
+      if (n == 0 ||
+          (n.toDouble() / (duration.inMicroseconds.toDouble() / 1000000) <
+              minFrequency)) {
+        double dataRate =
+            n.toDouble() / (duration.inMicroseconds.toDouble() / 1000000);
+        completer.completeError(Exception(
+            "Insufficient data rate of ${dataRate.isNaN ? 0 : dataRate} hZ, expected min ${minFrequency} hZ"));
+      } else {
+        _gyroOffset = (gyroSum / n.toDouble());
+        _gravitationalAccelG = accelNormSum / n.toDouble();
+        completer.complete();
+      }
+    });
+
     await for (var data in processedDataStream) {
+      if (completer.isCompleted) {
+        break;
+      }
       if (data.deviceAccelG.length > maxAccelG) {
         completer.completeError(Exception(
             "Device was not kept stable. Experienced ${data.deviceAccelG.length} G, limit $maxAccelG G"));
@@ -293,18 +339,6 @@ class CanikDevice {
       accelNormSum += data.rawAccelG.length;
       gyroSum += data.rateRad;
     }
-    Timer(duration, () {
-      if (n.toDouble() / (duration.inMicroseconds.toDouble() / 1000000) <
-          minFrequency) {
-        completer.completeError(Exception(
-            "Insufficient data rate of ${n.toDouble() / (duration.inMicroseconds.toDouble() / 1000000)} hZ, expected min ${minFrequency} hZ"));
-      } else {
-        _gyroOffset = (gyroSum / n.toDouble());
-        _gravitationalAccelG = accelNormSum / n.toDouble();
-        completer.complete();
-      }
-    });
-
     return completer.future;
   }
 
@@ -337,6 +371,10 @@ class CanikDevice {
 
   get state {
     return _device.state;
+  }
+
+  Vector3 get gyroOffset {
+    return _gyroOffset;
   }
 
   HolsterDrawSM get holsterDrawSM {

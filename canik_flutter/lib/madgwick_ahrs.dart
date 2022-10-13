@@ -2,7 +2,7 @@ import 'dart:math';
 import "package:vector_math/vector_math.dart";
 
 class Madgwick {
-  final double beta;
+  double beta;
   // var q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;
   late Quaternion _quaternion;
 
@@ -292,5 +292,9 @@ class Madgwick {
 
   Quaternion get quaternion {
     return _quaternion;
+  }
+
+  set quaternion(Quaternion q) {
+    _quaternion = q;
   }
 }

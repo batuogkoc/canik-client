@@ -148,8 +148,7 @@ class HomePage extends StatelessWidget {
                             Navigator.push(context, MaterialPageRoute(
                               builder: (context) {
                                 FlutterBluePlus.instance.stopScan();
-                                return DevicePage(
-                                    canikDevice: CanikDevice(bluetoothDevice));
+                                return DevicePage(CanikDevice(bluetoothDevice));
                               },
                             ));
                           },
@@ -178,8 +177,7 @@ class HomePage extends StatelessWidget {
                           Navigator.push(context, MaterialPageRoute(
                             builder: (context) {
                               FlutterBluePlus.instance.stopScan();
-                              return DevicePage(
-                                  canikDevice: CanikDevice(result.device));
+                              return DevicePage(CanikDevice(result.device));
                             },
                           ));
                         },
@@ -198,7 +196,7 @@ class HomePage extends StatelessWidget {
 
 class DevicePage extends StatelessWidget {
   final CanikDevice canikDevice;
-  const DevicePage({Key? key, required this.canikDevice}) : super(key: key);
+  const DevicePage(this.canikDevice, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +227,37 @@ class DevicePage extends StatelessWidget {
                       Navigator.pop(context);
                     },
                   ),
+                  ElevatedButton(
+                    child: const Text("Calibrate Gyro"),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) {
+                          return CalibrationPage(canikDevice);
+                        },
+                      ));
+                    },
+                  ),
+                  StreamBuilder(
+                    stream: canikDevice.holsterDrawSM.stateStream,
+                    initialData: canikDevice.holsterDrawSM.state,
+                    builder: (context, snapshot) {
+                      if (snapshot.data! == HolsterDrawState.stop) {
+                        return ElevatedButton(
+                          child: const Text("Start SM"),
+                          onPressed: () {
+                            canikDevice.holsterDrawSM.start();
+                          },
+                        );
+                      } else {
+                        return ElevatedButton(
+                          child: const Text("Stop SM"),
+                          onPressed: () {
+                            canikDevice.holsterDrawSM.stop();
+                          },
+                        );
+                      }
+                    },
+                  ),
                   const Text("Services:"),
                   Column(
                       children: canikDevice.services.map((e) {
@@ -240,6 +269,7 @@ class DevicePage extends StatelessWidget {
                     builder: (context, snapshot) {
                       final euler =
                           quaternionToEuler(snapshot.data!.orientation);
+                      final accelEuler = accelToEuler(snapshot.data!.rawAccelG);
                       return Column(
                         children: [
                           const Text("Raw Accel (g)"),
@@ -248,6 +278,9 @@ class DevicePage extends StatelessWidget {
                           const Text("Rate (deg)"),
                           Text(
                               "X: ${degrees(snapshot.data!.rateRad.x)}\nY: ${degrees(snapshot.data!.rateRad.y)}\nZ: ${degrees(snapshot.data!.rateRad.z)}"),
+                          const Text("Gyro offset (deg)"),
+                          Text(
+                              "X: ${degrees(canikDevice.gyroOffset.x)}\nY: ${degrees(canikDevice.gyroOffset.y)}\nZ: ${degrees(canikDevice.gyroOffset.z)}"),
                           const Text("Orientation"),
                           Text(
                               "Yaw: ${degrees(euler.z)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.x)}\n"),
@@ -278,6 +311,36 @@ class DevicePage extends StatelessWidget {
             );
           }
         },
+      ),
+    );
+  }
+}
+
+class CalibrationPage extends StatelessWidget {
+  final CanikDevice canikDevice;
+  const CalibrationPage(this.canikDevice, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Calibrating ${canikDevice.id}")),
+      body: Center(
+        child: Column(children: [
+          FutureBuilder<void>(
+            future: canikDevice.calibrateGyro(),
+            builder: (context, snapshot) {
+              print(snapshot);
+              if (snapshot.hasError) {
+                return Text(snapshot.error!.toString());
+              } else if (snapshot.connectionState == ConnectionState.done) {
+                Navigator.pop(context);
+                return const Text("Successful calibration");
+              } else {
+                return const Text("Calibrating gyro...");
+              }
+            },
+          )
+        ]),
       ),
     );
   }

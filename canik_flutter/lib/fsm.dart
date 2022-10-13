@@ -28,32 +28,52 @@ class HolsterDrawSM {
 
   final StreamController<HolsterDrawState> _stateStreamController =
       StreamController<HolsterDrawState>();
-
+  late Stream<HolsterDrawState> _stateBroadcastStream;
   HolsterDrawSM(this._processedDataStream, this.drawThresholdG,
       this.rotatingAngularRateThreshDegS,
       {this.updateStateStreamOnChange = true})
-      : _state = HolsterDrawState.idle,
+      : _state = HolsterDrawState.stop,
         _firstIdle = true,
         _firstWithdrawGun = true {
-    _updateStateStream();
+    _stateBroadcastStream = _stateStreamController.stream.asBroadcastStream();
+    _updateState(HolsterDrawState.stop);
+    _startStreamListen();
   }
 
-  void start() {
+  void _startStreamListen() {
     _processedDataStream.forEach(_update);
   }
 
+  bool start() {
+    if (state == HolsterDrawState.stop) {
+      _updateState(HolsterDrawState.idle);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool stop() {
+    if (state != HolsterDrawState.stop) {
+      _updateState(HolsterDrawState.stop);
+      _firstIdle = true;
+      _firstWithdrawGun = true;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   void _update(ProcessedData data) {
-    switch (_state) {
+    switch (state) {
       case HolsterDrawState.idle:
         if (_firstIdle) {
           _firstIdle = false;
           _startTime = DateTime.now();
         }
         if (data.deviceAccelG.length > drawThresholdG) {
-          _state = HolsterDrawState.withdrawGun;
-          if (updateStateStreamOnChange) {
-            _updateStateStream();
-          }
+          _updateState(HolsterDrawState.withdrawGun,
+              updateStream: updateStateStreamOnChange);
         }
         break;
       case HolsterDrawState.withdrawGun:
@@ -64,6 +84,8 @@ class HolsterDrawSM {
         }
         Quaternion difference =
             _initialOrientation.inverted() * data.orientation;
+        print((quaternionToEuler(difference) * radians2Degrees));
+        print(difference.radians * radians2Degrees);
         double angularRateDeg = degrees(difference.radians) /
             (DateTime.now()
                     .difference(_withdrawGunStart)
@@ -72,52 +94,40 @@ class HolsterDrawSM {
                 1000000);
         if (degrees(difference.radians).abs() < 3 &&
             angularRateDeg > rotatingAngularRateThreshDegS) {
-          _state = HolsterDrawState.rotating;
+          _updateState(HolsterDrawState.rotating,
+              updateStream: updateStateStreamOnChange);
           _rotatingStart = DateTime.now();
-          if (updateStateStreamOnChange) {
-            _updateStateStream();
-          }
         }
         //TODO: What does orientation<0 mean?
         break;
       case HolsterDrawState.rotating:
         if (DateTime.now().difference(_rotatingStart).inMilliseconds > 2000) {
-          _state = HolsterDrawState.stop;
-          if (updateStateStreamOnChange) {
-            _updateStateStream();
-          }
+          _updateState(HolsterDrawState.stop,
+              updateStream: updateStateStreamOnChange);
         } else if (quaternionToEuler(data.orientation).y.abs() < 3) {
-          _state = HolsterDrawState.targeting;
           _targetingStart = DateTime.now();
-          if (updateStateStreamOnChange) {
-            _updateStateStream();
-          }
+          _updateState(HolsterDrawState.targeting,
+              updateStream: updateStateStreamOnChange);
         }
         break;
       case HolsterDrawState.targeting:
         bool shotDetected = shotDetection();
         if (shotDetected ||
             DateTime.now().difference(_targetingStart).inMilliseconds > 2000) {
-          _state = HolsterDrawState.stop;
-          if (updateStateStreamOnChange) {
-            _updateStateStream();
-          }
+          _updateState(HolsterDrawState.stop,
+              updateStream: updateStateStreamOnChange);
         } else if (data.deviceAccelG.length < 0.04) {
-          _state = HolsterDrawState.shot;
           _shotStart = DateTime.now();
-          if (updateStateStreamOnChange) {
-            _updateStateStream();
-          }
+          _updateState(HolsterDrawState.shot,
+              updateStream: updateStateStreamOnChange);
         }
         break;
       case HolsterDrawState.shot:
         bool shotDetected = shotDetection();
         if (shotDetected ||
             DateTime.now().difference(_shotStart).inMilliseconds > 2000) {
-          _state = HolsterDrawState.stop;
-          if (updateStateStreamOnChange) {
-            _updateStateStream();
-          }
+          _updateState(HolsterDrawState.stop,
+              updateStream: updateStateStreamOnChange);
         }
         break;
       default:
@@ -128,7 +138,14 @@ class HolsterDrawSM {
   }
 
   void _updateStateStream() {
-    _stateStreamController.sink.add(_state);
+    _stateStreamController.sink.add(state);
+  }
+
+  void _updateState(HolsterDrawState state, {bool updateStream = true}) {
+    _state = state;
+    if (updateStream) {
+      _updateStateStream();
+    }
   }
 
   //TODO: Shot detection
@@ -141,6 +158,6 @@ class HolsterDrawSM {
   }
 
   get stateStream {
-    return _stateStreamController.stream;
+    return _stateBroadcastStream;
   }
 }
