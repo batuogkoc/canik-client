@@ -202,8 +202,8 @@ class CanikDevice {
       this.accGScale = 0.000061035,
       double ahrsBeta = 0.5,
       double drawThresholdG = 0.2,
-      double rotatingAngularRateThreshDegS = 200,
-      bool startHolsterDrawSM = true})
+      double rotatingAngularRateThreshDegS = 50,
+      bool startHolsterDrawSM = false})
       : _ahrs = Madgwick(beta: ahrsBeta),
         _gyroOffset = Vector3.zero(),
         _firstData = true {
@@ -270,9 +270,17 @@ class CanikDevice {
           accelGyroRawData.getInt16(i * 2 + 160, Endian.little).toDouble();
       final accz =
           accelGyroRawData.getInt16(i * 2 + 200, Endian.little).toDouble();
-      final gyroRaw = Vector3(gyrox, gyroy, gyroz);
-      final accRaw = Vector3(accx, accy, accz);
-      final gyro = gyroRaw * gyroRadsScale;
+      //natural order
+      //final gyroRaw = Vector3(gyrox, gyroy, gyroz);
+      //final accRaw = Vector3(accx, accy, accz);
+
+      //so the axes align with the axes of the device
+      final gyroRaw = Vector3(gyroy, -gyrox, gyroz);
+      final accRaw = Vector3(accy, -accx, accz);
+
+      var gyro = gyroRaw * gyroRadsScale;
+      gyro -= gyroOffset;
+
       final accel = accRaw * accGScale;
       double dt = (canikTime - _lastCanikTime) / 20;
       if (_firstData) {
@@ -287,7 +295,7 @@ class CanikDevice {
       Vector3 gravitationalAccel =
           _ahrs.quaternion.rotate(Vector3(0, 0, _gravitationalAccelG));
       ProcessedData processedData = ProcessedData(_ahrs.quaternion, accel,
-          accel - gravitationalAccel, gyro - _gyroOffset, canikTime + i * (dt));
+          accel - gravitationalAccel, gyro, canikTime + i * (dt));
 
       _processedDataStreamController.sink.add(processedData);
       // _rawAccelGStreamController.sink.add(accel);
@@ -371,6 +379,10 @@ class CanikDevice {
 
   get state {
     return _device.state;
+  }
+
+  double get gravitationalAccelG {
+    return _gravitationalAccelG;
   }
 
   Vector3 get gyroOffset {

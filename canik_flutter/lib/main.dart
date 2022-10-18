@@ -281,6 +281,8 @@ class DevicePage extends StatelessWidget {
                           const Text("Gyro offset (deg)"),
                           Text(
                               "X: ${degrees(canikDevice.gyroOffset.x)}\nY: ${degrees(canikDevice.gyroOffset.y)}\nZ: ${degrees(canikDevice.gyroOffset.z)}"),
+                          const Text("G"),
+                          Text("${canikDevice.gravitationalAccelG}"),
                           const Text("Orientation"),
                           Text(
                               "Yaw: ${degrees(euler.z)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.x)}\n"),

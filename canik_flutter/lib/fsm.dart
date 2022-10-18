@@ -79,32 +79,40 @@ class HolsterDrawSM {
       case HolsterDrawState.withdrawGun:
         if (_firstWithdrawGun) {
           _firstWithdrawGun = false;
-          _initialOrientation = data.orientation;
+          _initialOrientation = data.orientation.clone();
           _withdrawGunStart = DateTime.now();
         }
         Quaternion difference =
             _initialOrientation.inverted() * data.orientation;
-        print((quaternionToEuler(difference) * radians2Degrees));
-        print(difference.radians * radians2Degrees);
-        double angularRateDeg = degrees(difference.radians) /
-            (DateTime.now()
-                    .difference(_withdrawGunStart)
-                    .inMicroseconds
-                    .toDouble() /
-                1000000);
-        if (degrees(difference.radians).abs() < 3 &&
-            angularRateDeg > rotatingAngularRateThreshDegS) {
+        double currentPitch =
+            quaternionToEuler(data.orientation).y * radians2Degrees;
+        double initialPitch =
+            quaternionToEuler(_initialOrientation).y * radians2Degrees;
+        double angularDifferenceDeg = 0;
+        if (initialPitch < 0) {
+          angularDifferenceDeg = currentPitch < 0
+              ? currentPitch - initialPitch
+              : (currentPitch - 180).abs() + initialPitch + 180;
+        } else {
+          angularDifferenceDeg = currentPitch < 0
+              ? currentPitch + 180 + (initialPitch - 180).abs()
+              : currentPitch - initialPitch;
+        }
+        double angularRateDeg = data.rateRad.y * radians2Degrees;
+        print("${degrees(difference.radians).abs()} ${angularDifferenceDeg}");
+        if (angularDifferenceDeg.abs() < 3 &&
+            angularRateDeg.abs() > rotatingAngularRateThreshDegS) {
           _updateState(HolsterDrawState.rotating,
               updateStream: updateStateStreamOnChange);
           _rotatingStart = DateTime.now();
         }
-        //TODO: What does orientation<0 mean?
         break;
       case HolsterDrawState.rotating:
+        var euler = quaternionToEuler(data.orientation) * radians2Degrees;
         if (DateTime.now().difference(_rotatingStart).inMilliseconds > 2000) {
           _updateState(HolsterDrawState.stop,
               updateStream: updateStateStreamOnChange);
-        } else if (quaternionToEuler(data.orientation).y.abs() < 3) {
+        } else if (euler.y.abs() < 3) {
           _targetingStart = DateTime.now();
           _updateState(HolsterDrawState.targeting,
               updateStream: updateStateStreamOnChange);
@@ -112,8 +120,8 @@ class HolsterDrawSM {
         break;
       case HolsterDrawState.targeting:
         bool shotDetected = shotDetection();
-        if (shotDetected ||
-            DateTime.now().difference(_targetingStart).inMilliseconds > 2000) {
+        var timeDifference = DateTime.now().difference(_targetingStart);
+        if (shotDetected || timeDifference.inMilliseconds > 2000) {
           _updateState(HolsterDrawState.stop,
               updateStream: updateStateStreamOnChange);
         } else if (data.deviceAccelG.length < 0.04) {
@@ -144,6 +152,7 @@ class HolsterDrawSM {
   void _updateState(HolsterDrawState state, {bool updateStream = true}) {
     _state = state;
     if (updateStream) {
+      print(state);
       _updateStateStream();
     }
   }
