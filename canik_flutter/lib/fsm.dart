@@ -2,14 +2,7 @@ import 'dart:async';
 import 'package:vector_math/vector_math.dart';
 import "canik_backend.dart";
 
-enum HolsterDrawState {
-  idle,
-  withdrawGun,
-  rotating,
-  targeting,
-  shot,
-  stop
-} //TODO: Stop?
+enum HolsterDrawState { idle, withdrawGun, rotating, targeting, shot, stop }
 
 class HolsterDrawSM {
   bool updateStateStreamOnChange;
