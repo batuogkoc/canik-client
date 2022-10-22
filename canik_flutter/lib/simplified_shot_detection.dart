@@ -1,5 +1,5 @@
 import 'dart:async';
-import "canik_backend.dart";
+import "canik_data.dart";
 import 'package:circular_buffer/circular_buffer.dart';
 import "dart:math";
 

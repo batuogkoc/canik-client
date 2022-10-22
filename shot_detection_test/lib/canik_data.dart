@@ -1,4 +1,4 @@
-import 'package:canik_flutter/madgwick_ahrs.dart';
+import 'madgwick_ahrs.dart';
 import "package:vector_math/vector_math.dart";
 import "dart:async";
 import "dart:typed_data";
