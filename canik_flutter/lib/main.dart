@@ -6,6 +6,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:flutter/foundation.dart";
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'fsm.dart';
+import 'canik_data.dart';
 
 void main() {
   runApp(const CanikApp());
@@ -269,7 +270,7 @@ class DevicePage extends StatelessWidget {
                     builder: (context, snapshot) {
                       final euler =
                           quaternionToEuler(snapshot.data!.orientation);
-                      final accelEuler = accelToEuler(snapshot.data!.rawAccelG);
+                      // final accelEuler = accelToEuler(snapshot.data!.rawAccelG);
                       return Column(
                         children: [
                           const Text("Raw Accel (g)"),
