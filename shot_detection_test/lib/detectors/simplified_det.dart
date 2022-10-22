@@ -91,8 +91,7 @@ void _update(ProcessedData data) {
       }
       if (condSet3.values.every((element) => element)) {
         bulletCount = bulletCount - 1;
-        // print("Shot detected, bullet count: ${bulletCount}");
-        print(condSet3);
+        print("Shot detected, bullet count: ${bulletCount}");
       }
       if (bulletCount == 0 || backArrowPressed == true) {
         _sfs_state = SFS_States.idle;
