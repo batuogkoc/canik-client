@@ -1,12 +1,9 @@
-import 'package:canik_flutter/fsm.dart';
-
 import 'canik_backend.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:flutter/foundation.dart";
 import 'package:vector_math/vector_math.dart' hide Colors;
-import 'fsm.dart';
-import 'canik_data.dart';
+import 'package:canik_lib/canik_lib.dart';
 
 void main() {
   runApp(const CanikApp());

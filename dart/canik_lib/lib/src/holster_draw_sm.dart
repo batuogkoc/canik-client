@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:vector_math/vector_math.dart';
-import "canik_backend.dart";
 import 'canik_data.dart';
+import 'utils.dart';
 
 enum HolsterDrawState { idle, withdrawGun, rotating, targeting, shot, stop }
 

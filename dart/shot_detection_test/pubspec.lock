@@ -36,6 +36,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  canik_lib:
+    dependency: "direct main"
+    description:
+      path: "../canik_lib"
+      relative: true
+    source: path
+    version: "1.0.0"
   circular_buffer:
     dependency: "direct main"
     description:
