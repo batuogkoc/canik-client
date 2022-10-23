@@ -89,6 +89,7 @@ void _update(ProcessedData data) {
       if (firstCall == true) {
         //Set bullet count to user defined value
       }
+      //TODO: returning true in the anonymous func. means the function always evaluates to true
       if (condSet3.values.every((element) => element)) {
         bulletCount = bulletCount - 1;
         print("Shot detected, bullet count: ${bulletCount}");
@@ -152,7 +153,7 @@ void Calculator(ProcessedData data) {
 
   // X_abs_sort = {...x_axis} as CircularBuffer<double>;
   X_abs_sort = _copyCircularBuffer(x_axis);
-  X_abs_sort.forEach((n) => {n = n.abs()});
+  X_abs_sort.map((n) => n.abs());
   X_abs_sort.sort((b, a) => a.compareTo(b));
   if (X_abs_sort.length >= 5) {
     xAbsAvarageMax = _lastNAverage(X_abs_sort, 5);
@@ -160,7 +161,7 @@ void Calculator(ProcessedData data) {
 
   // Y_abs_sort = {...y_axis} as CircularBuffer<double>;
   Y_abs_sort = _copyCircularBuffer(y_axis);
-  Y_abs_sort.forEach((n) => {n = n.abs()});
+  Y_abs_sort.map((n) => n.abs());
   Y_abs_sort.sort((b, a) => a.compareTo(b));
   if (Y_abs_sort.length >= 5) {
     yAbsAvarageMax = _lastNAverage(Y_abs_sort, 5);
@@ -168,13 +169,14 @@ void Calculator(ProcessedData data) {
 
   // Z_abs_sort = {...z_axis} as CircularBuffer<double>;
   Z_abs_sort = _copyCircularBuffer(z_axis);
-  Z_abs_sort.forEach((n) => {n = n.abs()});
+  Z_abs_sort.map((n) => n.abs());
   Z_abs_sort.sort((b, a) => a.compareTo(b));
   if (Z_abs_sort.length >= 5) {
     zAbsAvarageMax = _lastNAverage(Z_abs_sort, 5);
   }
 }
 
+//TODO: The other method did not work
 CircularBuffer<T> _copyCircularBuffer<T>(CircularBuffer<T> buffer) {
   CircularBuffer<T> ret = CircularBuffer<T>(buffer.capacity);
 
@@ -184,6 +186,7 @@ CircularBuffer<T> _copyCircularBuffer<T>(CircularBuffer<T> buffer) {
   return ret;
 }
 
+//TODO: the indexes start from the oldest values not the newest
 double _lastNAverage(CircularBuffer<double> buffer, int n) {
   assert(n > 0);
   assert(buffer.length >= n);
