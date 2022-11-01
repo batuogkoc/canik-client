@@ -19,3 +19,5 @@ dependencies:
   vector_math: ^2.1.4
   canik_lib:
     path: ../canik_lib
+  scidart: ^0.0.2-dev.12
+  moving_average: ^0.3.0
