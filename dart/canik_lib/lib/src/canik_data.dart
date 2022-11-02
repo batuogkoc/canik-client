@@ -1,4 +1,5 @@
 import 'madgwick_ahrs.dart';
+// import 'scf_ahrs.dart';
 import "package:vector_math/vector_math.dart";
 import "dart:async";
 import "dart:typed_data";
@@ -200,7 +201,7 @@ class RawDataToProcessedDataTransformer
         cancelOnError: cancelOnError);
   }
 
-  ProcessedData _proccessRawData(RawData data) {
+  ProcessedData proccessRawData(RawData data) {
     final double canikTime = data.time;
     if (_lastCanikTime == 0) {
       _lastCanikTime = canikTime;
@@ -215,10 +216,10 @@ class RawDataToProcessedDataTransformer
       _firstData = false;
       final double tempBeta = _ahrs.beta;
       _ahrs.beta = 1000;
-      _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z, dt);
+      _ahrs.updateIMU(gyro, accel, dt);
       _ahrs.beta = tempBeta;
     } else {
-      _ahrs.updateIMU(gyro.x, gyro.y, gyro.z, accel.x, accel.y, accel.z, dt);
+      _ahrs.updateIMU(gyro, accel, dt);
     }
     Vector3 gravitationalAccel =
         _ahrs.quaternion.rotate(Vector3(0, 0, gravitationalAccelG));
@@ -234,12 +235,16 @@ class RawDataToProcessedDataTransformer
   }
 
   void onData(RawData data) {
-    _controller.add(_proccessRawData(data));
+    _controller.add(proccessRawData(data));
   }
 
   @override
   Stream<ProcessedData> bind(Stream<RawData> stream) {
     _stream = stream;
     return _controller.stream;
+  }
+
+  Madgwick get ahrs {
+    return _ahrs;
   }
 }

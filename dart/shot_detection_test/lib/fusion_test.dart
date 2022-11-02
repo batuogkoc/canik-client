@@ -47,15 +47,10 @@ void csvToProccessedData(String path) async {
     RawData rawData = data[0] as RawData;
     Vector3 euler = data[1] as Vector3;
     rawDataToProcessedDataTransformer.proccessRawData(rawData);
+    Quaternion quat = rawDataToProcessedDataTransformer.ahrs.quaternion;
     Quaternion validation = Quaternion.euler(euler[2], euler[1], euler[0]);
-    return (validation.inverted() *
-                    rawDataToProcessedDataTransformer.ahrs.quaternion)
-                .radians *
-            radians2Degrees -
-        (quaternionToEuler(rawDataToProcessedDataTransformer.ahrs.quaternion) *
-                    radians2Degrees -
-                euler)
-            .length;
+    Quaternion difference = validation.inverted() * quat;
+    return [quaternionToEuler(quat) * radians2Degrees, euler];
   });
 
   stream.forEach(print);

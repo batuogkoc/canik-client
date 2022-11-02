@@ -22,3 +22,4 @@ dependencies:
   scidart: ^0.0.2-dev.12
   moving_average: ^0.3.0
   collection: ^1.17.0
+  dart_numerics: ^0.0.6

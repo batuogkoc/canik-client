@@ -10,12 +10,17 @@ class Madgwick {
     _quaternion = Quaternion.identity();
   }
 
-  void updateIMU(double gx, double gy, double gz, double ax, double ay,
-      double az, double dt) {
+  void updateIMU(Vector3 gyroRad, Vector3 accel, double dt) {
     double q0 = _quaternion.w;
     double q1 = _quaternion.x;
     double q2 = _quaternion.y;
     double q3 = _quaternion.z;
+    double gx = gyroRad.x;
+    double gy = gyroRad.y;
+    double gz = gyroRad.z;
+    double ax = accel.x;
+    double ay = accel.y;
+    double az = accel.z;
     double recipNorm;
     double s0, s1, s2, s3;
     double qDot1, qDot2, qDot3, qDot4;
@@ -116,12 +121,20 @@ class Madgwick {
     _quaternion.z = q3;
   }
 
-  void updateMag(double gx, double gy, double gz, double ax, double ay,
-      double az, double mx, double my, double mz, double dt) {
+  void updateMag(Vector3 gyroRad, Vector3 accel, Vector3 mag, double dt) {
     double q0 = _quaternion.w;
     double q1 = _quaternion.x;
     double q2 = _quaternion.y;
     double q3 = _quaternion.z;
+    double gx = gyroRad.x;
+    double gy = gyroRad.y;
+    double gz = gyroRad.z;
+    double ax = accel.x;
+    double ay = accel.y;
+    double az = accel.z;
+    double mx = mag.x;
+    double my = mag.y;
+    double mz = mag.z;
     double recipNorm;
     double s0, s1, s2, s3;
     double qDot1, qDot2, qDot3, qDot4;
@@ -152,7 +165,7 @@ class Madgwick {
         q3q3;
 
     if ((mx == 0.0) && (my == 0.0) && (mz == 0.0)) {
-      updateIMU(gx, gy, gz, ax, ay, az, dt);
+      updateIMU(gyroRad, accel, dt);
     }
 
     qDot1 = 0.5 * (-q1 * gx - q2 * gy - q3 * gz);
