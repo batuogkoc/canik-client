@@ -1,5 +1,5 @@
 import 'madgwick_ahrs.dart';
-// import 'scf_ahrs.dart';
+import 'scf_ahrs.dart';
 import "package:vector_math/vector_math.dart";
 import "dart:async";
 import "dart:typed_data";
@@ -153,7 +153,7 @@ class RawDataToProcessedDataTransformer
 
   double _lastCanikTime;
   bool _firstData;
-  final Madgwick _ahrs;
+  final ScfAhrs _ahrs;
   double gravitationalAccelG;
   Vector3 gyroOffset;
 
@@ -164,7 +164,7 @@ class RawDataToProcessedDataTransformer
       this.cancelOnError = true})
       : _lastCanikTime = 0,
         _firstData = true,
-        _ahrs = Madgwick(beta: ahrsBeta),
+        _ahrs = ScfAhrs(beta: ahrsBeta),
         gyroOffset = Vector3.zero() {
     _controller = StreamController<ProcessedData>(
         onListen: _onListen,
@@ -184,7 +184,7 @@ class RawDataToProcessedDataTransformer
       this.cancelOnError = true})
       : _lastCanikTime = 0,
         _firstData = true,
-        _ahrs = Madgwick(beta: ahrsBeta),
+        _ahrs = ScfAhrs(beta: ahrsBeta),
         gyroOffset = Vector3.zero() {
     _controller = StreamController<ProcessedData>.broadcast(
         onListen: _onListen, onCancel: _onCancel, sync: sync);
@@ -244,7 +244,7 @@ class RawDataToProcessedDataTransformer
     return _controller.stream;
   }
 
-  Madgwick get ahrs {
+  ScfAhrs get ahrs {
     return _ahrs;
   }
 }

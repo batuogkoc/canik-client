@@ -14,7 +14,13 @@ class ScfAhrs {
   void updateIMU(Vector3 gyroRad, Vector3 accel, double dt) {
     accel.normalize();
     // mag.normalize();
-    Quaternion qDot = Quaternion.dq(_quaternion, gyroRad);
+    Vector3 gyroDeltaT = gyroRad * dt;
+    Quaternion qDot = Quaternion(
+        sin(gyroDeltaT.x / 2), sin(gyroDeltaT.y / 2), sin(gyroDeltaT.z / 2), 0);
+    qDot.w = sqrt(1 - qDot.length2);
+    if (qDot.storage.any((element) => element.isNaN)) {
+      print("NaN");
+    }
     Quaternion qPred = qDot * _quaternion;
     Vector3 accelRef = Vector3(0, 0, 1);
     Vector3 accelPred = qPred.rotated(accelRef);
@@ -30,7 +36,7 @@ class ScfAhrs {
     var accelCorrectionQ = Quaternion.axisAngle(accelCor, alphaAccel);
     // var magCorrectionQ = Quaternion.axisAngle(magCor, alphaMag);
 
-    double aLambda1 = 1, aLambda2 = 1;
+    double aLambda1 = 0, aLambda2 = 0;
     double betaAccel = fCor(alphaAccel, aLambda1, aLambda2);
     // double mLambda1 = 1, mLambda2 = 1;
     // double betaMag = fCor(alphaMag, mLambda1, mLambda2);
@@ -39,6 +45,9 @@ class ScfAhrs {
     Quaternion qCor = Quaternion(fCorVector.x * c, fCorVector.y * c,
         fCorVector.z * c, sqrt(1 - fCorVector.length2 * c * c));
     _quaternion = qPred * qCor;
+    if (_quaternion.storage.any((element) => element.isNaN)) {
+      print("NaN");
+    }
 
     // double q0 = _quaternion.w;
     // double q1 = _quaternion.x;
