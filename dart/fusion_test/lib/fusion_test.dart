@@ -7,8 +7,10 @@ import 'dart:convert';
 import 'package:canik_lib/canik_lib.dart';
 import 'package:collection/collection.dart';
 
+// var rawDataToProcessedDataTransformer = RawDataToProcessedDataTransformer(
+//     ScfAhrs({"aLambda1": 0.1, "aLambda2": 0.1}));
 var rawDataToProcessedDataTransformer =
-    RawDataToProcessedDataTransformer(aLambda1: 1, aLambda2: 2);
+    RawDataToProcessedDataTransformer(MadgwickAhrs({"beta": 0.5}));
 
 void main(List<String> args) {
   String path;

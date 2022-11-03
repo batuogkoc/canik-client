@@ -12,10 +12,10 @@ class ScfAhrs implements Ahrs {
   late Quaternion quaternion;
 
   ScfAhrs(this.tuningParams)
-      : mLambda1 = tuningParams["mLambda1"]!,
-        mLambda2 = tuningParams["mLambda2"]!,
-        aLambda1 = tuningParams["aLambda1"]!,
-        aLambda2 = tuningParams["aLambda2"]! {
+      : mLambda1 = tuningParams["mLambda1"] ?? 0.1,
+        mLambda2 = tuningParams["mLambda2"] ?? 0.1,
+        aLambda1 = tuningParams["aLambda1"] ?? 0.1,
+        aLambda2 = tuningParams["aLambda2"] ?? 0.1 {
     quaternion = Quaternion.identity();
   }
 

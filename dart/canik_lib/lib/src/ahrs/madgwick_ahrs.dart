@@ -2,13 +2,13 @@ import 'dart:math';
 import 'ahrs.dart';
 import "package:vector_math/vector_math.dart";
 
-class Madgwick implements Ahrs {
+class MadgwickAhrs implements Ahrs {
   @override
   final Map<String, double> tuningParams;
   @override
   late Quaternion quaternion;
   final double beta;
-  Madgwick(this.tuningParams) : beta = tuningParams["beta"]! {
+  MadgwickAhrs(this.tuningParams) : beta = tuningParams["beta"] ?? 0.1 {
     quaternion = Quaternion.identity();
   }
   @override

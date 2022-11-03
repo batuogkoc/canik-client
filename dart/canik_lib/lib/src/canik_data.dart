@@ -1,3 +1,5 @@
+import 'package:canik_lib/src/ahrs/ahrs.dart';
+
 import 'ahrs/madgwick_ahrs.dart';
 import 'ahrs/scf_ahrs.dart';
 import "package:vector_math/vector_math.dart";
@@ -144,7 +146,7 @@ class BufferedRawDataToRawDataTransformer
   }
 }
 
-class RawDataToProcessedDataTransformer
+class RawDataToProcessedDataTransformer<T extends Ahrs>
     extends StreamTransformerBase<RawData, ProcessedData> {
   late StreamController<ProcessedData> _controller;
   StreamSubscription<RawData>? _subscription;
@@ -152,18 +154,15 @@ class RawDataToProcessedDataTransformer
   bool cancelOnError;
 
   double _lastCanikTime;
-  final ScfAhrs _ahrs;
+  final T _ahrs;
   double gravitationalAccelG;
   Vector3 gyroOffset;
 
-  RawDataToProcessedDataTransformer(
-      {double aLambda1 = 0.1,
-      double aLambda2 = 0.1,
-      this.gravitationalAccelG = 1,
-      sync = false,
-      this.cancelOnError = true})
+  RawDataToProcessedDataTransformer(this._ahrs,
+      {this.gravitationalAccelG = 1,
+      bool sync = false,
+      this.cancelOnError = false})
       : _lastCanikTime = 0,
-        _ahrs = ScfAhrs(aLambda1: aLambda1, aLambda2: aLambda2),
         gyroOffset = Vector3.zero() {
     _controller = StreamController<ProcessedData>(
         onListen: _onListen,
@@ -176,14 +175,9 @@ class RawDataToProcessedDataTransformer
         },
         sync: sync);
   }
-  RawDataToProcessedDataTransformer.broadcast(
-      {double aLambda1 = 0.1,
-      double aLambda2 = 0.1,
-      this.gravitationalAccelG = 1,
-      sync = false,
-      this.cancelOnError = true})
+  RawDataToProcessedDataTransformer.broadcast(this._ahrs,
+      {this.gravitationalAccelG = 1, sync = false, this.cancelOnError = false})
       : _lastCanikTime = 0,
-        _ahrs = ScfAhrs(aLambda1: aLambda1, aLambda2: aLambda2),
         gyroOffset = Vector3.zero() {
     _controller = StreamController<ProcessedData>.broadcast(
         onListen: _onListen, onCancel: _onCancel, sync: sync);
@@ -211,15 +205,6 @@ class RawDataToProcessedDataTransformer
     final gyro = data.rateRad - gyroOffset;
     final accel = data.rawAccelG;
     double dt = (canikTime - _lastCanikTime);
-    // if (_firstData) {
-    //   _firstData = false;
-    //   final double tempBeta = _ahrs.beta;
-    //   _ahrs.beta = 1000;
-    //   _ahrs.updateIMU(gyro, accel, dt);
-    //   _ahrs.beta = tempBeta;
-    // } else {
-    //   _ahrs.updateIMU(gyro, accel, dt);
-    // }
     _ahrs.updateIMU(gyro, accel, dt);
     Vector3 gravitationalAccel =
         _ahrs.quaternion.rotate(Vector3(0, 0, gravitationalAccelG));
@@ -244,7 +229,7 @@ class RawDataToProcessedDataTransformer
     return _controller.stream;
   }
 
-  ScfAhrs get ahrs {
+  T get ahrs {
     return _ahrs;
   }
 }
