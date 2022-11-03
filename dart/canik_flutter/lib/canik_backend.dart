@@ -116,7 +116,7 @@ class CanikDevice {
       double rotatingAngularRateThreshDegS = 50,
       bool startHolsterDrawSM = false})
       : _rawDataToProcessedDataTransformer = RawDataToProcessedDataTransformer(
-            ahrsBeta: ahrsBeta, cancelOnError: false) {
+            ScfAhrs({"aLambda1": 0.01, "aLambda2": 1000})) {
     _processedDataBroadcastStream =
         _processedDataStreamController.stream.asBroadcastStream();
     _holsterDrawSM = HolsterDrawSM(
