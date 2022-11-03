@@ -1,20 +1,22 @@
 import 'dart:math';
+import 'ahrs.dart';
 import "package:vector_math/vector_math.dart";
 
-class Madgwick {
-  double beta;
-  // var q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;
-  late Quaternion _quaternion;
-
-  Madgwick({this.beta = 0.1}) {
-    _quaternion = Quaternion.identity();
+class Madgwick implements Ahrs {
+  @override
+  final Map<String, double> tuningParams;
+  @override
+  late Quaternion quaternion;
+  final double beta;
+  Madgwick(this.tuningParams) : beta = tuningParams["beta"]! {
+    quaternion = Quaternion.identity();
   }
-
+  @override
   void updateIMU(Vector3 gyroRad, Vector3 accel, double dt) {
-    double q0 = _quaternion.w;
-    double q1 = _quaternion.x;
-    double q2 = _quaternion.y;
-    double q3 = _quaternion.z;
+    double q0 = quaternion.w;
+    double q1 = quaternion.x;
+    double q2 = quaternion.y;
+    double q3 = quaternion.z;
     double gx = gyroRad.x;
     double gy = gyroRad.y;
     double gz = gyroRad.z;
@@ -115,17 +117,18 @@ class Madgwick {
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
-    _quaternion.w = q0;
-    _quaternion.x = q1;
-    _quaternion.y = q2;
-    _quaternion.z = q3;
+    quaternion.w = q0;
+    quaternion.x = q1;
+    quaternion.y = q2;
+    quaternion.z = q3;
   }
 
+  @override
   void updateMag(Vector3 gyroRad, Vector3 accel, Vector3 mag, double dt) {
-    double q0 = _quaternion.w;
-    double q1 = _quaternion.x;
-    double q2 = _quaternion.y;
-    double q3 = _quaternion.z;
+    double q0 = quaternion.w;
+    double q1 = quaternion.x;
+    double q2 = quaternion.y;
+    double q3 = quaternion.z;
     double gx = gyroRad.x;
     double gy = gyroRad.y;
     double gz = gyroRad.z;
@@ -297,17 +300,9 @@ class Madgwick {
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
-    _quaternion.w = q0;
-    _quaternion.x = q1;
-    _quaternion.y = q2;
-    _quaternion.z = q3;
-  }
-
-  Quaternion get quaternion {
-    return _quaternion;
-  }
-
-  set quaternion(Quaternion q) {
-    _quaternion = q;
+    quaternion.w = q0;
+    quaternion.x = q1;
+    quaternion.y = q2;
+    quaternion.z = q3;
   }
 }

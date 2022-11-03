@@ -1,5 +1,5 @@
-import 'madgwick_ahrs.dart';
-import 'scf_ahrs.dart';
+import 'ahrs/madgwick_ahrs.dart';
+import 'ahrs/scf_ahrs.dart';
 import "package:vector_math/vector_math.dart";
 import "dart:async";
 import "dart:typed_data";
@@ -152,19 +152,18 @@ class RawDataToProcessedDataTransformer
   bool cancelOnError;
 
   double _lastCanikTime;
-  bool _firstData;
   final ScfAhrs _ahrs;
   double gravitationalAccelG;
   Vector3 gyroOffset;
 
   RawDataToProcessedDataTransformer(
-      {double ahrsBeta = 0.5,
+      {double aLambda1 = 0.1,
+      double aLambda2 = 0.1,
       this.gravitationalAccelG = 1,
       sync = false,
       this.cancelOnError = true})
       : _lastCanikTime = 0,
-        _firstData = true,
-        _ahrs = ScfAhrs(beta: ahrsBeta),
+        _ahrs = ScfAhrs(aLambda1: aLambda1, aLambda2: aLambda2),
         gyroOffset = Vector3.zero() {
     _controller = StreamController<ProcessedData>(
         onListen: _onListen,
@@ -178,13 +177,13 @@ class RawDataToProcessedDataTransformer
         sync: sync);
   }
   RawDataToProcessedDataTransformer.broadcast(
-      {double ahrsBeta = 0.5,
+      {double aLambda1 = 0.1,
+      double aLambda2 = 0.1,
       this.gravitationalAccelG = 1,
       sync = false,
       this.cancelOnError = true})
       : _lastCanikTime = 0,
-        _firstData = true,
-        _ahrs = ScfAhrs(beta: ahrsBeta),
+        _ahrs = ScfAhrs(aLambda1: aLambda1, aLambda2: aLambda2),
         gyroOffset = Vector3.zero() {
     _controller = StreamController<ProcessedData>.broadcast(
         onListen: _onListen, onCancel: _onCancel, sync: sync);
@@ -212,15 +211,16 @@ class RawDataToProcessedDataTransformer
     final gyro = data.rateRad - gyroOffset;
     final accel = data.rawAccelG;
     double dt = (canikTime - _lastCanikTime);
-    if (_firstData) {
-      _firstData = false;
-      final double tempBeta = _ahrs.beta;
-      _ahrs.beta = 1000;
-      _ahrs.updateIMU(gyro, accel, dt);
-      _ahrs.beta = tempBeta;
-    } else {
-      _ahrs.updateIMU(gyro, accel, dt);
-    }
+    // if (_firstData) {
+    //   _firstData = false;
+    //   final double tempBeta = _ahrs.beta;
+    //   _ahrs.beta = 1000;
+    //   _ahrs.updateIMU(gyro, accel, dt);
+    //   _ahrs.beta = tempBeta;
+    // } else {
+    //   _ahrs.updateIMU(gyro, accel, dt);
+    // }
+    _ahrs.updateIMU(gyro, accel, dt);
     Vector3 gravitationalAccel =
         _ahrs.quaternion.rotate(Vector3(0, 0, gravitationalAccelG));
     ProcessedData processedData = ProcessedData(

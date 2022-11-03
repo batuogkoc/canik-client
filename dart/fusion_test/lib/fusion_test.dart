@@ -1,10 +1,14 @@
+import 'dart:math';
+
 import 'package:csv/csv.dart';
 import 'package:vector_math/vector_math.dart';
 import "dart:io";
 import 'dart:convert';
 import 'package:canik_lib/canik_lib.dart';
+import 'package:collection/collection.dart';
 
-var rawDataToProcessedDataTransformer = RawDataToProcessedDataTransformer();
+var rawDataToProcessedDataTransformer =
+    RawDataToProcessedDataTransformer(aLambda1: 1, aLambda2: 2);
 
 void main(List<String> args) {
   String path;
@@ -16,16 +20,16 @@ void main(List<String> args) {
   csvToProccessedData(path);
 }
 
-void csvToProccessedData(String path) async {
+Future<List<List<dynamic>>> csvToProccessedData(String path) async {
   if (!FileSystemEntity.isFileSync(path)) {
     stderr.write("No file at $path \n");
-    return;
+    throw Exception("File not found");
   }
   double time = 0;
   var stream = File(path)
       .openRead()
       .transform(utf8.decoder)
-      .transform(CsvToListConverter())
+      .transform(const CsvToListConverter())
       .where((event) {
     return event.every((element) {
       try {
@@ -40,18 +44,24 @@ void csvToProccessedData(String path) async {
     var accel = Vector3(list[0], list[1], list[2]) / 1000;
     var gyro = Vector3(list[3], list[4], list[5]);
     double dt = list[6];
-    var euler = Vector3(list[7], list[8], list[9]);
+    var eulerRads = Vector3(list[7], list[8], list[9]) * degrees2Radians;
     time += dt;
-    return [RawData(accel, gyro, time), euler];
+    return [RawData(accel, gyro, time), eulerRads];
   }).map((data) {
     RawData rawData = data[0] as RawData;
-    Vector3 euler = data[1] as Vector3;
+    Vector3 eulerRads = data[1] as Vector3;
     rawDataToProcessedDataTransformer.proccessRawData(rawData);
     Quaternion quat = rawDataToProcessedDataTransformer.ahrs.quaternion;
-    Quaternion validation = Quaternion.euler(euler[2], euler[1], euler[0]);
-    Quaternion difference = validation.inverted() * quat;
-    return [quaternionToEuler(quat) * radians2Degrees, euler];
+    Quaternion validation =
+        Quaternion.euler(eulerRads[0], eulerRads[1], eulerRads[2]);
+    Quaternion diff = validation * quat.inverted();
+    Vector2 yawPitchDiffRad = eulerRads.xy - quaternionToEuler(quat).xy;
+    double angleDiff = 2 *
+        atan2(
+            sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z), diff.w);
+
+    return [rawData.time, eulerRads, quat];
   });
 
-  stream.forEach(print);
+  return stream.toList();
 }
