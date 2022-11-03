@@ -39,6 +39,7 @@ dependencies:
   circular_buffer: ^0.11.0
   canik_lib:
     path: ../canik_lib
+  syncfusion_flutter_charts: ^20.3.52
 
 dev_dependencies:
   flutter_test:

@@ -4,6 +4,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:flutter/foundation.dart";
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:canik_lib/canik_lib.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 void main() {
   runApp(const CanikApp());
@@ -216,90 +217,123 @@ class DevicePage extends StatelessWidget {
               );
             }
             return Center(
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    child: const Text("Disconnect"),
-                    onPressed: () {
-                      canikDevice.disconnect();
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ElevatedButton(
-                    child: const Text("Calibrate Gyro"),
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) {
-                          return CalibrationPage(canikDevice);
-                        },
-                      ));
-                    },
-                  ),
-                  StreamBuilder(
-                    stream: canikDevice.holsterDrawSM.stateStream,
-                    initialData: canikDevice.holsterDrawSM.state,
-                    builder: (context, snapshot) {
-                      if (snapshot.data! == HolsterDrawState.stop) {
-                        return ElevatedButton(
-                          child: const Text("Start SM"),
-                          onPressed: () {
-                            canikDevice.holsterDrawSM.start();
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      child: const Text("Disconnect"),
+                      onPressed: () {
+                        canikDevice.disconnect();
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ElevatedButton(
+                      child: const Text("Calibrate Gyro"),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (context) {
+                            return CalibrationPage(canikDevice);
                           },
+                        ));
+                      },
+                    ),
+                    StreamBuilder(
+                      stream: canikDevice.holsterDrawSM.stateStream,
+                      initialData: canikDevice.holsterDrawSM.state,
+                      builder: (context, snapshot) {
+                        if (snapshot.data! == HolsterDrawState.stop) {
+                          return ElevatedButton(
+                            child: const Text("Start SM"),
+                            onPressed: () {
+                              canikDevice.holsterDrawSM.start();
+                            },
+                          );
+                        } else {
+                          return ElevatedButton(
+                            child: const Text("Stop SM"),
+                            onPressed: () {
+                              canikDevice.holsterDrawSM.stop();
+                            },
+                          );
+                        }
+                      },
+                    ),
+                    const Text("Services:"),
+                    Column(
+                        children: canikDevice.services.map((e) {
+                      return Text("${e.uuid}");
+                    }).toList()),
+                    StreamBuilder<ProcessedData>(
+                      stream: canikDevice.processedDataStream,
+                      initialData: ProcessedData.zero(),
+                      builder: (context, snapshot) {
+                        final euler =
+                            quaternionToEuler(snapshot.data!.orientation);
+                        // final accelEuler = accelToEuler(snapshot.data!.rawAccelG);
+                        return Column(
+                          children: [
+                            const Text("Raw Accel (g)"),
+                            Text(
+                                "X: ${snapshot.data!.rawAccelG.x}\nY: ${snapshot.data!.rawAccelG.y}\nZ: ${snapshot.data!.rawAccelG.z}"),
+                            const Text("Rate (deg)"),
+                            Text(
+                                "X: ${degrees(snapshot.data!.rateRad.x)}\nY: ${degrees(snapshot.data!.rateRad.y)}\nZ: ${degrees(snapshot.data!.rateRad.z)}"),
+                            const Text("Gyro offset (deg)"),
+                            Text(
+                                "X: ${degrees(canikDevice.gyroOffset.x)}\nY: ${degrees(canikDevice.gyroOffset.y)}\nZ: ${degrees(canikDevice.gyroOffset.z)}"),
+                            const Text("G"),
+                            Text("${canikDevice.gravitationalAccelG}"),
+                            const Text("Orientation"),
+                            Text(
+                                "Yaw: ${degrees(euler.z)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.x)}\n"),
+                            const Text("Device Accel (g)"),
+                            Text(
+                                "X: ${snapshot.data!.deviceAccelG.x}\nY: ${snapshot.data!.deviceAccelG.y}\nZ: ${snapshot.data!.deviceAccelG.z}"),
+                          ],
                         );
-                      } else {
-                        return ElevatedButton(
-                          child: const Text("Stop SM"),
-                          onPressed: () {
-                            canikDevice.holsterDrawSM.stop();
-                          },
-                        );
-                      }
-                    },
-                  ),
-                  const Text("Services:"),
-                  Column(
-                      children: canikDevice.services.map((e) {
-                    return Text("${e.uuid}");
-                  }).toList()),
-                  StreamBuilder<ProcessedData>(
-                    stream: canikDevice.processedDataStream,
-                    initialData: ProcessedData.zero(),
-                    builder: (context, snapshot) {
-                      final euler =
-                          quaternionToEuler(snapshot.data!.orientation);
-                      // final accelEuler = accelToEuler(snapshot.data!.rawAccelG);
-                      return Column(
-                        children: [
-                          const Text("Raw Accel (g)"),
-                          Text(
-                              "X: ${snapshot.data!.rawAccelG.x}\nY: ${snapshot.data!.rawAccelG.y}\nZ: ${snapshot.data!.rawAccelG.z}"),
-                          const Text("Rate (deg)"),
-                          Text(
-                              "X: ${degrees(snapshot.data!.rateRad.x)}\nY: ${degrees(snapshot.data!.rateRad.y)}\nZ: ${degrees(snapshot.data!.rateRad.z)}"),
-                          const Text("Gyro offset (deg)"),
-                          Text(
-                              "X: ${degrees(canikDevice.gyroOffset.x)}\nY: ${degrees(canikDevice.gyroOffset.y)}\nZ: ${degrees(canikDevice.gyroOffset.z)}"),
-                          const Text("G"),
-                          Text("${canikDevice.gravitationalAccelG}"),
-                          const Text("Orientation"),
-                          Text(
-                              "Yaw: ${degrees(euler.z)}\nPitch: ${degrees(euler.y)}\nRoll: ${degrees(euler.x)}\n"),
-                          const Text("Device Accel (g)"),
-                          Text(
-                              "X: ${snapshot.data!.deviceAccelG.x}\nY: ${snapshot.data!.deviceAccelG.y}\nZ: ${snapshot.data!.deviceAccelG.z}"),
-                        ],
-                      );
-                    },
-                  ),
-                  StreamBuilder<HolsterDrawState>(
-                    stream: canikDevice.holsterDrawSM.stateStream,
-                    initialData: canikDevice.holsterDrawSM.state,
-                    builder: (context, snapshot) {
-                      return Text(
-                          "HolsterDrawSM state: ${snapshot.data!.name}");
-                    },
-                  )
-                ],
+                      },
+                    ),
+                    StreamBuilder<HolsterDrawState>(
+                      stream: canikDevice.holsterDrawSM.stateStream,
+                      initialData: canikDevice.holsterDrawSM.state,
+                      builder: (context, snapshot) {
+                        return Text(
+                            "HolsterDrawSM state: ${snapshot.data!.name}");
+                      },
+                    ),
+                    StreamBuilder<List<Vector2>>(
+                      stream: canikDevice.processedDataStream.transform(
+                          YawPitchVisualiser(400 * 3,
+                              dataCaptureFraction: 10 / 400)),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          print("a");
+                          return SfCartesianChart(
+                            primaryXAxis:
+                                NumericAxis(minimum: -180, maximum: 180),
+                            primaryYAxis:
+                                NumericAxis(minimum: -90, maximum: 90),
+                            series: <ChartSeries>[
+                              LineSeries<Vector2, double>(
+                                dataSource: snapshot.data!,
+                                xValueMapper: (datum, index) {
+                                  return datum.x;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return datum.y;
+                                },
+                              )
+                            ],
+                          );
+                        } else if (snapshot.hasError) {
+                          return const Text("Graph Error");
+                        } else {
+                          return const Text("Waiting graph data");
+                        }
+                      },
+                    )
+                  ],
+                ),
               ),
             );
           } else {
