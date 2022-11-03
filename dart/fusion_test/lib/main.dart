@@ -33,44 +33,156 @@ class HomePage extends StatelessWidget {
         title: const Text("Chart"),
       ),
       body: Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          FutureBuilder<List<List<dynamic>>>(
-            future: csvToProccessedData("../../test_data/DATA.csv"),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return const Text("Error!");
-              } else if (snapshot.hasData) {
-                List<List<dynamic>> data = snapshot.data!;
-                return SfCartesianChart(
-                  series: <ChartSeries>[
-                    LineSeries<List<dynamic>, double>(
-                        dataSource: data,
-                        xValueMapper: (datum, index) {
-                          return datum[0] as double;
-                        },
-                        yValueMapper: (datum, index) {
-                          return quaternionToEuler(datum[2] as Quaternion).y *
-                              radians2Degrees;
-                        },
-                        color: Colors.blue),
-                    LineSeries<List<dynamic>, double>(
-                        dataSource: data,
-                        xValueMapper: (datum, index) {
-                          return datum[0] as double;
-                        },
-                        yValueMapper: (datum, index) {
-                          return (datum[1] as Vector3).y * radians2Degrees;
-                        },
-                        color: Colors.green),
-                  ],
-                );
-              } else {
-                return const Text("Calculating");
-              }
-            },
-          )
-        ]),
+        child: SingleChildScrollView(
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            FutureBuilder<List<List<dynamic>>>(
+              future: csvToProccessedData("../../test_data/DATA_2.csv"),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Text("Error!");
+                } else if (snapshot.hasData) {
+                  List<List<dynamic>> data = snapshot.data!;
+                  return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("X axis degrees"),
+                        SfCartesianChart(
+                          series: <ChartSeries>[
+                            LineSeries<List<dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[0] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return quaternionToEuler(
+                                              datum[2] as Quaternion)
+                                          .x *
+                                      radians2Degrees;
+                                },
+                                color: Colors.blue),
+                            LineSeries<List<dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[0] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return (datum[1] as Vector3).x *
+                                      radians2Degrees;
+                                },
+                                color: Colors.green),
+                          ],
+                        ),
+                        const Text("Y axis degrees"),
+                        SfCartesianChart(
+                          series: <ChartSeries>[
+                            LineSeries<List<dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[0] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return quaternionToEuler(
+                                              datum[2] as Quaternion)
+                                          .y *
+                                      radians2Degrees;
+                                },
+                                color: Colors.blue),
+                            LineSeries<List<dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[0] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return (datum[1] as Vector3).y *
+                                      radians2Degrees;
+                                },
+                                color: Colors.green),
+                          ],
+                        ),
+                        const Text("Z axis degrees"),
+                        SfCartesianChart(
+                          series: <ChartSeries>[
+                            LineSeries<List<dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[0] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return quaternionToEuler(
+                                              datum[2] as Quaternion)
+                                          .z *
+                                      radians2Degrees;
+                                },
+                                color: Colors.blue),
+                            LineSeries<List<dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[0] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return (datum[1] as Vector3).z *
+                                      radians2Degrees;
+                                },
+                                color: Colors.green),
+                          ],
+                        ),
+                        const Text("Gyro deg/s"),
+                        vector3ListToChart(data
+                            .map((e) => [
+                                  e[0],
+                                  (e[3] as RawData).rateRad * radians2Degrees
+                                ])
+                            .toList()),
+                        const Text("Accel g"),
+                        vector3ListToChart(data
+                            .map((e) => [
+                                  e[0],
+                                  (e[3] as RawData).rawAccelG * radians2Degrees
+                                ])
+                            .toList()),
+                      ]);
+                } else {
+                  return const Text("Calculating");
+                }
+              },
+            )
+          ]),
+        ),
       ),
     );
   }
+}
+
+SfCartesianChart vector3ListToChart(List<List<dynamic>> list) {
+  return SfCartesianChart(
+    series: <ChartSeries>[
+      LineSeries<List<dynamic>, num>(
+          dataSource: list,
+          xValueMapper: (datum, index) {
+            return datum[0] as num;
+          },
+          yValueMapper: (datum, index) {
+            return (datum[1] as Vector3).x;
+          },
+          color: Colors.red),
+      LineSeries<List<dynamic>, num>(
+          dataSource: list,
+          xValueMapper: (datum, index) {
+            return datum[0] as num;
+          },
+          yValueMapper: (datum, index) {
+            return (datum[1] as Vector3).y;
+          },
+          color: Colors.green),
+      LineSeries<List<dynamic>, num>(
+          dataSource: list,
+          xValueMapper: (datum, index) {
+            return datum[0] as num;
+          },
+          yValueMapper: (datum, index) {
+            return (datum[1] as Vector3).z;
+          },
+          color: Colors.blue),
+    ],
+  );
 }

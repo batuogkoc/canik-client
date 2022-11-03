@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'package:canik_lib/canik_lib.dart';
 import 'package:collection/collection.dart';
 
-// var rawDataToProcessedDataTransformer = RawDataToProcessedDataTransformer(
-//     ScfAhrs({"aLambda1": 0.1, "aLambda2": 0.1}));
-var rawDataToProcessedDataTransformer =
-    RawDataToProcessedDataTransformer(MadgwickAhrs({"beta": 0.5}));
+var rawDataToProcessedDataTransformer = RawDataToProcessedDataTransformer(
+    ScfAhrs({"aLambda1": 0.1, "aLambda2": 0.1}));
+// var rawDataToProcessedDataTransformer =
+//     RawDataToProcessedDataTransformer(MadgwickAhrs({"beta": 0.1}));
 
 void main(List<String> args) {
   String path;
@@ -28,6 +28,7 @@ Future<List<List<dynamic>>> csvToProccessedData(String path) async {
     throw Exception("File not found");
   }
   double time = 0;
+  int index = 0;
   var stream = File(path)
       .openRead()
       .transform(utf8.decoder)
@@ -62,7 +63,8 @@ Future<List<List<dynamic>>> csvToProccessedData(String path) async {
         atan2(
             sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z), diff.w);
 
-    return [rawData.time, eulerRads, quat];
+    // return [rawData.time, eulerRads, quat, rawData];
+    return [index++, eulerRads, quat, rawData];
   });
 
   return stream.toList();

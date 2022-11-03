@@ -9,14 +9,14 @@ class ScfAhrs implements Ahrs {
   @override
   final Map<String, double> tuningParams;
   @override
-  late Quaternion quaternion;
+  late Quaternion _quaternion;
 
   ScfAhrs(this.tuningParams)
       : mLambda1 = tuningParams["mLambda1"] ?? 0.1,
         mLambda2 = tuningParams["mLambda2"] ?? 0.1,
         aLambda1 = tuningParams["aLambda1"] ?? 0.1,
         aLambda2 = tuningParams["aLambda2"] ?? 0.1 {
-    quaternion = Quaternion.identity();
+    _quaternion = Quaternion.identity();
   }
 
   double _fCor(double alpha, double tuningParam1, double tuningParam2) {
@@ -36,10 +36,13 @@ class ScfAhrs implements Ahrs {
     // Quaternion qDot = Quaternion(
     //     sin(gyroDeltaT.x / 2), sin(gyroDeltaT.y / 2), sin(gyroDeltaT.z / 2), 0);
     // qDot.w = sqrt(max((1 - qDot.length2), 0)); //TODO: prevent NaNs
-    Quaternion qDot =
-        Quaternion(gyroDeltaT.x / 2, gyroDeltaT.y / 2, gyroDeltaT.z / 2, 1);
-    // qDot.normalize();
-    Quaternion qPred = qDot * quaternion;
+
+    // Quaternion qDot =
+    //     Quaternion(gyroDeltaT.x / 2, gyroDeltaT.y / 2, gyroDeltaT.z / 2, 1);
+    // // qDot.normalize();
+    // Quaternion qPred = qDot * _quaternion;
+    Quaternion qDot = Quaternion.dq(_quaternion, gyroRad);
+    Quaternion qPred = _quaternion + qDot.scaled(dt);
     Vector3 accelRef = Vector3(0, 0, 1);
     Vector3 accelPred = qPred.rotated(accelRef);
 
@@ -52,8 +55,8 @@ class ScfAhrs implements Ahrs {
     double c = numerics.sinc(fCorVector.length);
     Quaternion qCor = Quaternion(fCorVector.x * c, fCorVector.y * c,
         fCorVector.z * c, sqrt(1 - fCorVector.length2 * c * c));
-    quaternion = qPred * qCor;
-    quaternion.normalize();
+    _quaternion = qPred * qCor;
+    _quaternion.normalize();
   }
 
   @override
@@ -65,7 +68,7 @@ class ScfAhrs implements Ahrs {
         sin(gyroDeltaT.x / 2), sin(gyroDeltaT.y / 2), sin(gyroDeltaT.z / 2), 0);
     qDot.w = sqrt(1 - qDot.length2); //TODO: prevent NaNs
 
-    Quaternion qPred = qDot * quaternion;
+    Quaternion qPred = qDot * _quaternion;
     Vector3 accelRef = Vector3(0, 0, 1);
     Vector3 accelPred = qPred.rotated(accelRef);
     Vector3 magRef = Vector3(0, 0, accelPred.dot(mag));
@@ -85,7 +88,17 @@ class ScfAhrs implements Ahrs {
     double c = numerics.sinc(fCorVector.length);
     Quaternion qCor = Quaternion(fCorVector.x * c, fCorVector.y * c,
         fCorVector.z * c, sqrt(1 - fCorVector.length2 * c * c));
-    quaternion = qPred * qCor;
-    quaternion.normalize();
+    _quaternion = qPred * qCor;
+    _quaternion.normalize();
+  }
+
+  @override
+  Quaternion get quaternion {
+    return _quaternion.clone();
+  }
+
+  @override
+  set quaternion(Quaternion quat) {
+    _quaternion.setFrom(quat);
   }
 }

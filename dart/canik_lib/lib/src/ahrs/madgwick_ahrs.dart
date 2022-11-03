@@ -6,17 +6,17 @@ class MadgwickAhrs implements Ahrs {
   @override
   final Map<String, double> tuningParams;
   @override
-  late Quaternion quaternion;
+  late Quaternion _quaternion;
   final double beta;
   MadgwickAhrs(this.tuningParams) : beta = tuningParams["beta"] ?? 0.1 {
-    quaternion = Quaternion.identity();
+    _quaternion = Quaternion.identity();
   }
   @override
   void updateIMU(Vector3 gyroRad, Vector3 accel, double dt) {
-    double q0 = quaternion.w;
-    double q1 = quaternion.x;
-    double q2 = quaternion.y;
-    double q3 = quaternion.z;
+    double q0 = _quaternion.w;
+    double q1 = _quaternion.x;
+    double q2 = _quaternion.y;
+    double q3 = _quaternion.z;
     double gx = gyroRad.x;
     double gy = gyroRad.y;
     double gz = gyroRad.z;
@@ -117,18 +117,18 @@ class MadgwickAhrs implements Ahrs {
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
-    quaternion.w = q0;
-    quaternion.x = q1;
-    quaternion.y = q2;
-    quaternion.z = q3;
+    _quaternion.w = q0;
+    _quaternion.x = q1;
+    _quaternion.y = q2;
+    _quaternion.z = q3;
   }
 
   @override
   void updateMag(Vector3 gyroRad, Vector3 accel, Vector3 mag, double dt) {
-    double q0 = quaternion.w;
-    double q1 = quaternion.x;
-    double q2 = quaternion.y;
-    double q3 = quaternion.z;
+    double q0 = _quaternion.w;
+    double q1 = _quaternion.x;
+    double q2 = _quaternion.y;
+    double q3 = _quaternion.z;
     double gx = gyroRad.x;
     double gy = gyroRad.y;
     double gz = gyroRad.z;
@@ -300,9 +300,19 @@ class MadgwickAhrs implements Ahrs {
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
-    quaternion.w = q0;
-    quaternion.x = q1;
-    quaternion.y = q2;
-    quaternion.z = q3;
+    _quaternion.w = q0;
+    _quaternion.x = q1;
+    _quaternion.y = q2;
+    _quaternion.z = q3;
+  }
+
+  @override
+  Quaternion get quaternion {
+    return _quaternion.clone();
+  }
+
+  @override
+  set quaternion(Quaternion quat) {
+    _quaternion.setFrom(quat);
   }
 }
