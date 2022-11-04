@@ -29,7 +29,7 @@ Future<List<List<dynamic>>> csvToProccessedData(String path) async {
   }
   double time = 0;
   int index = 0;
-  var stream = File(path)
+  var list = await File(path)
       .openRead()
       .transform(utf8.decoder)
       .transform(const CsvToListConverter())
@@ -50,10 +50,14 @@ Future<List<List<dynamic>>> csvToProccessedData(String path) async {
     var eulerRads = Vector3(list[7], list[8], list[9]) * degrees2Radians;
     time += dt;
     return [RawData(accel, gyro, time), eulerRads];
-  }).map((data) {
+  }).toList();
+
+  list.sort((a, b) => (a[0] as RawData).time.compareTo((b[0] as RawData).time));
+  list = list.map((data) {
     RawData rawData = data[0] as RawData;
     Vector3 eulerRads = data[1] as Vector3;
-    rawDataToProcessedDataTransformer.proccessRawData(rawData);
+    ProcessedData processedData =
+        rawDataToProcessedDataTransformer.proccessRawData(rawData);
     Quaternion quat = rawDataToProcessedDataTransformer.ahrs.quaternion;
     Quaternion validation =
         Quaternion.euler(eulerRads[0], eulerRads[1], eulerRads[2]);
@@ -64,8 +68,7 @@ Future<List<List<dynamic>>> csvToProccessedData(String path) async {
             sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z), diff.w);
 
     // return [rawData.time, eulerRads, quat, rawData];
-    return [index++, eulerRads, quat, rawData];
-  });
-
-  return stream.toList();
+    return [index++, eulerRads, quat, rawData, processedData];
+  }).toList();
+  return list;
 }

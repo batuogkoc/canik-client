@@ -135,11 +135,29 @@ class HomePage extends StatelessWidget {
                             .toList()),
                         const Text("Accel g"),
                         vector3ListToChart(data
-                            .map((e) => [
-                                  e[0],
-                                  (e[3] as RawData).rawAccelG * radians2Degrees
-                                ])
+                            .map((e) => [e[0], (e[3] as RawData).rawAccelG])
                             .toList()),
+                        const Text("Device Accel g"),
+                        vector3ListToChart(data
+                            .map((e) =>
+                                [e[0], (e[4] as ProcessedData).deviceAccelG])
+                            .toList()),
+                        const Text("Device Accel Norm g"),
+                        SfCartesianChart(
+                          series: <ChartSeries>[
+                            LineSeries<List<dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[0] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  return (datum[4] as ProcessedData)
+                                      .deviceAccelG
+                                      .length;
+                                },
+                                color: Colors.blue),
+                          ],
+                        ),
                       ]);
                 } else {
                   return const Text("Calculating");

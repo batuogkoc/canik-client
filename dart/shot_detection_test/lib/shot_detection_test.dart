@@ -43,7 +43,7 @@ void csvToProccessedData(String path) async {
         time += dt;
         return RawData(accel, gyro, time);
       })
-      .transform(RawDataToProcessedDataTransformer())
+      .transform(RawDataToProcessedDataTransformer(MadgwickAhrs({"beta": 0.1})))
       .asBroadcastStream();
 
   // stream.forEach((element) {
