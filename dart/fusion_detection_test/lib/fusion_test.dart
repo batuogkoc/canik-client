@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'package:canik_lib/canik_lib.dart';
 import 'package:collection/collection.dart';
 
-// var rawDataToProcessedDataTransformer = RawDataToProcessedDataTransformer(
-//     ScfAhrs({"aLambda1": 0.1, "aLambda2": 0.1}));
-var rawDataToProcessedDataTransformer =
-    RawDataToProcessedDataTransformer(MadgwickAhrs({"beta": 0.1}));
+var madgwickTransformer = RawDataToProcessedDataTransformer(
+    ScfAhrs({"aLambda1": 0.1, "aLambda2": 1}));
+var scfTransformer =
+    RawDataToProcessedDataTransformer(MadgwickAhrs({"beta": 0.5}));
 
 void main(List<String> args) {
   String path;
@@ -22,7 +22,7 @@ void main(List<String> args) {
   csvToProccessedData(path);
 }
 
-Future<List<List<dynamic>>> csvToProccessedData(String path) async {
+Future<List<Map<String, dynamic>>> csvToProccessedData(String path) async {
   if (!FileSystemEntity.isFileSync(path)) {
     stderr.write("No file at $path \n");
     throw Exception("File not found");
@@ -45,30 +45,47 @@ Future<List<List<dynamic>>> csvToProccessedData(String path) async {
   }).map((dynamicList) {
     List<double> list = dynamicList.cast<double>();
     var accel = Vector3(list[0], list[1], list[2]) / 1000;
-    var gyro = Vector3(list[3], list[4], list[5]);
+    var gyro = Vector3(list[3], list[4], list[5]); //TODO: z axis of the gyro
     double dt = list[6];
     var eulerRads = Vector3(list[7], list[8], list[9]) * degrees2Radians;
     time += dt;
     return [RawData(accel, gyro, time), eulerRads];
   }).toList();
-
+  bool firstTime = true;
+  double lastTime = 0;
   list.sort((a, b) => (a[0] as RawData).time.compareTo((b[0] as RawData).time));
-  list = list.map((data) {
+  return list.map((data) {
     RawData rawData = data[0] as RawData;
     Vector3 eulerRads = data[1] as Vector3;
-    ProcessedData processedData =
-        rawDataToProcessedDataTransformer.proccessRawData(rawData);
-    Quaternion quat = rawDataToProcessedDataTransformer.ahrs.quaternion;
-    Quaternion validation =
-        Quaternion.euler(eulerRads[0], eulerRads[1], eulerRads[2]);
-    Quaternion diff = validation * quat.inverted();
-    Vector2 yawPitchDiffRad = eulerRads.xy - quaternionToEuler(quat).xy;
-    double angleDiff = 2 *
-        atan2(
-            sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z), diff.w);
+    double dt;
+    if (firstTime == true) {
+      firstTime == false;
+      lastTime = rawData.time;
+      dt = 0;
+      // madgwickTransformer.ahrs.quaternion =
+      //     Quaternion.euler(eulerRads.z, eulerRads.y, eulerRads.x);
+      // scfTransformer.ahrs.quaternion =
+      //     Quaternion.euler(eulerRads.z, eulerRads.y, eulerRads.x);
+    } else {
+      dt = rawData.time - lastTime;
+      lastTime = rawData.time;
+    }
 
-    // return [rawData.time, eulerRads, quat, rawData];
-    return [index++, eulerRads, quat, rawData, processedData];
+    ProcessedData madgwickProcessedData =
+        madgwickTransformer.proccessRawData(rawData.copy());
+    ProcessedData scfProcessedData =
+        scfTransformer.proccessRawData(rawData.copy());
+    if (dt > 0.002) {
+      print(dt);
+    }
+    return <String, dynamic>{
+      "index": index++,
+      "time": rawData.time,
+      "dt": dt,
+      "euler": eulerRads.clone(),
+      "madgwick": madgwickProcessedData.copy(),
+      "scf": scfProcessedData.copy(),
+      "raw": rawData.copy()
+    };
   }).toList();
-  return list;
 }

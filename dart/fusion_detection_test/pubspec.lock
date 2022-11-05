@@ -130,6 +130,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  moving_average:
+    dependency: "direct main"
+    description:
+      name: moving_average
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   path:
     dependency: transitive
     description:
@@ -138,7 +145,7 @@ packages:
     source: hosted
     version: "1.8.2"
   scidart:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: scidart
       url: "https://pub.dartlang.org"

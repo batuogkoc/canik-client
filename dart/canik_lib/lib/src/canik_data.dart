@@ -13,25 +13,38 @@ class ProcessedData {
   final Vector3 deviceAccelG;
   final Vector3 rateRad;
 
-  ProcessedData(this.orientation, this.rawAccelG, this.deviceAccelG,
-      this.rateRad, this.time);
+  ProcessedData(Quaternion orientation, Vector3 rawAccelG, Vector3 deviceAccelG,
+      Vector3 rateRad, this.time)
+      : orientation = orientation.clone(),
+        rawAccelG = rawAccelG.clone(),
+        deviceAccelG = deviceAccelG.clone(),
+        rateRad = rateRad.clone();
   ProcessedData.zero()
       : orientation = Quaternion.identity(),
         rawAccelG = Vector3.zero(),
         deviceAccelG = Vector3.zero(),
         rateRad = Vector3.zero(),
         time = 0;
+  ProcessedData copy() {
+    return ProcessedData(orientation.clone(), rawAccelG.clone(),
+        deviceAccelG.clone(), rateRad.clone(), time);
+  }
 }
 
 class RawData {
   final double time;
   final Vector3 rawAccelG;
   final Vector3 rateRad;
-  RawData(this.rawAccelG, this.rateRad, this.time);
+  RawData(Vector3 rawAccelG, Vector3 rateRad, this.time)
+      : rawAccelG = rawAccelG.clone(),
+        rateRad = rateRad.clone();
   RawData.zero()
       : rawAccelG = Vector3.zero(),
         rateRad = Vector3.zero(),
         time = 0;
+  RawData copy() {
+    return RawData(rawAccelG.clone(), rateRad.clone(), time);
+  }
 }
 
 class BufferedRawDataToRawDataTransformer

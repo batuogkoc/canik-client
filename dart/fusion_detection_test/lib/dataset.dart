@@ -11,6 +11,30 @@ void _normalizeArray(Array array) {
   throw UnimplementedError();
 }
 
+class ShotConditions {
+  double maxResemblance;
+  double minResemblanceCount;
+  double resemblance;
+  double shotAccLowerThresh;
+  double shotAccUpperThresh;
+
+  ShotConditions(this.maxResemblance, this.minResemblanceCount,
+      this.resemblance, this.shotAccLowerThresh, this.shotAccUpperThresh);
+
+  bool checkConditions(
+      List<double> maxCorrelationArray, Array signalWihthinWindow) {
+    bool cond1 = maxCorrelationArray.average > minResemblanceCount;
+    int count =
+        maxCorrelationArray.where((element) => element > maxResemblance).length;
+    bool cond2 = count > resemblance;
+    bool cond3 = maxCorrelationArray.max > maxResemblance;
+    double signalMax = signalWihthinWindow.max;
+    bool cond4and5 =
+        shotAccLowerThresh < signalMax && signalMax < shotAccUpperThresh;
+    return cond1 && cond2 && cond3 && cond4and5;
+  }
+}
+
 class ShotDataset {
   List<Array> dataSet;
   ShotDataset() : dataSet = <Array>[];
