@@ -6,9 +6,12 @@ import 'package:csv/csv.dart';
 import 'dart:io';
 import 'package:collection/collection.dart';
 
-void _normalizeArray(Array array) {
+void normalizeInPlace(Array array) {
   //TODO: implement normalization
-  throw UnimplementedError();
+  double scalar = 1 / array.max;
+  for (int i = 0; i < array.length; i++) {
+    array[i] *= scalar;
+  }
 }
 
 class ShotConditions {
@@ -31,6 +34,10 @@ class ShotConditions {
     double signalMax = signalWihthinWindow.max;
     bool cond4and5 =
         shotAccLowerThresh < signalMax && signalMax < shotAccUpperThresh;
+    print(cond1);
+    print(cond2);
+    print(cond3);
+    print(cond4and5);
     return cond1 && cond2 && cond3 && cond4and5;
   }
 }
@@ -38,16 +45,18 @@ class ShotConditions {
 class ShotDataset {
   List<Array> dataSet;
   ShotDataset() : dataSet = <Array>[];
-  Future<void> fillFromCsv(String path) async {
+  Future<void> fillFromCsv(String path,
+      {String fieldDelimiter = defaultFieldDelimiter,
+      String eol = defaultEol}) async {
     dataSet = <Array>[];
     var file = File(path);
     if (await file.exists() == false) {
       throw FileSystemException("File could not be found", path = path);
     }
-    file
+    await file
         .openRead()
         .transform(utf8.decoder)
-        .transform(const CsvToListConverter())
+        .transform(CsvToListConverter(fieldDelimiter: fieldDelimiter, eol: eol))
         .where((event) {
       return event.every((element) {
         try {
@@ -65,7 +74,7 @@ class ShotDataset {
 
   void normalize() {
     for (var array in dataSet) {
-      _normalizeArray(array);
+      normalizeInPlace(array);
     }
   }
 

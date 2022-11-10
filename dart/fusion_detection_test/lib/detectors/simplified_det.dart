@@ -3,6 +3,8 @@ import 'package:circular_buffer/circular_buffer.dart';
 import 'dart:math';
 import 'package:canik_lib/canik_lib.dart';
 
+//TODO: MAP NOT IN-PLACE
+
 //Circular-Buffer ataması
 var x_axis = CircularBuffer<double>(50);
 var y_axis = CircularBuffer<double>(50);

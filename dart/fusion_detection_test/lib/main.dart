@@ -217,7 +217,7 @@ class HomePage extends StatelessWidget {
                                 color: Colors.green),
                           ],
                         ),
-                        const Text("Time"),
+                        const Text("dT"),
                         SfCartesianChart(
                           series: <ChartSeries>[
                             LineSeries<Map<String, dynamic>, num>(

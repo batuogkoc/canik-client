@@ -2,6 +2,7 @@ import 'package:canik_lib/src/ahrs/ahrs.dart';
 
 import 'ahrs/madgwick_ahrs.dart';
 import 'ahrs/scf_ahrs.dart';
+import 'dart:math';
 import "package:vector_math/vector_math.dart";
 import "dart:async";
 import "dart:typed_data";
@@ -157,6 +158,10 @@ class BufferedRawDataToRawDataTransformer
     _stream = stream;
     return _controller.stream;
   }
+
+  void dispose() {
+    _controller.close();
+  }
 }
 
 class RawDataToProcessedDataTransformer<T extends Ahrs>
@@ -217,7 +222,8 @@ class RawDataToProcessedDataTransformer<T extends Ahrs>
     }
     final gyro = data.rateRad - gyroOffset;
     final accel = data.rawAccelG;
-    double dt = (canikTime - _lastCanikTime);
+    // double dt = min((canikTime - _lastCanikTime), 1 / 300); //TODO: clap dt?
+    double dt = (canikTime - _lastCanikTime); //TODO: clap dt?
     _ahrs.updateIMU(gyro, accel, dt);
     Vector3 gravitationalAccel =
         _ahrs.quaternion.rotate(Vector3(0, 0, gravitationalAccelG));
@@ -244,5 +250,9 @@ class RawDataToProcessedDataTransformer<T extends Ahrs>
 
   T get ahrs {
     return _ahrs;
+  }
+
+  void dispose() {
+    _controller.close();
   }
 }
