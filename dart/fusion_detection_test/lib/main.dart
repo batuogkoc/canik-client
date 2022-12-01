@@ -30,6 +30,16 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return FusionTestOldCsv("../../data/fusion_datasets/DATA.csv");
+  }
+}
+
+class FusionTestOldCsv extends StatelessWidget {
+  final String path;
+  const FusionTestOldCsv(this.path, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chart"),
@@ -38,7 +48,7 @@ class HomePage extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             FutureBuilder<List<Map<String, dynamic>>>(
-              future: csvToProccessedData("../../test_data/DATA.csv"),
+              future: csvReadOld(path),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Text("Error!");
@@ -82,7 +92,7 @@ class HomePage extends StatelessWidget {
                                   return datum[xAxisKey] as num;
                                 },
                                 yValueMapper: (datum, index) {
-                                  return (datum["euler"] as Vector3).x *
+                                  return (datum["eulerVal"] as Vector3).x *
                                       radians2Degrees;
                                 },
                                 color: Colors.blue),
@@ -123,7 +133,7 @@ class HomePage extends StatelessWidget {
                                   return datum[xAxisKey] as num;
                                 },
                                 yValueMapper: (datum, index) {
-                                  return (datum["euler"] as Vector3).y *
+                                  return (datum["eulerVal"] as Vector3).y *
                                       radians2Degrees;
                                 },
                                 color: Colors.blue),
@@ -164,7 +174,7 @@ class HomePage extends StatelessWidget {
                                   return datum[xAxisKey] as num;
                                 },
                                 yValueMapper: (datum, index) {
-                                  return (datum["euler"] as Vector3).z *
+                                  return (datum["eulerVal"] as Vector3).z *
                                       radians2Degrees;
                                 },
                                 color: Colors.blue),

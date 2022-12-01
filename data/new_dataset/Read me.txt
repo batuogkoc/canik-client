@@ -1,0 +1,11 @@
+Vector Description:
+- Acc  X
+- Acc  Y
+- Acc  Z
+- Gyro X (Uncalibrated)
+- Gyro Y (Uncalibrated)
+- Gyro Z (Uncalibrated)
+- Quaternion
+- dt
+
+Gyro calibration values = [0.00287;-0.00758;0.003].
