@@ -13,22 +13,37 @@ class ProcessedData {
   final Vector3 rawAccelG;
   final Vector3 deviceAccelG;
   final Vector3 rateRad;
+  final Vector3? magNorm;
 
   ProcessedData(Quaternion orientation, Vector3 rawAccelG, Vector3 deviceAccelG,
       Vector3 rateRad, this.time)
       : orientation = orientation.clone(),
         rawAccelG = rawAccelG.clone(),
         deviceAccelG = deviceAccelG.clone(),
-        rateRad = rateRad.clone();
-  ProcessedData.zero()
+        rateRad = rateRad.clone(),
+        magNorm = null;
+  ProcessedData.withMag(Quaternion orientation, Vector3 rawAccelG,
+      Vector3 deviceAccelG, Vector3 rateRad, Vector3 magNorm, this.time)
+      : orientation = orientation.clone(),
+        rawAccelG = rawAccelG.clone(),
+        deviceAccelG = deviceAccelG.clone(),
+        rateRad = rateRad.clone(),
+        magNorm = magNorm;
+  ProcessedData.zero({bool hasMag = false})
       : orientation = Quaternion.identity(),
         rawAccelG = Vector3.zero(),
         deviceAccelG = Vector3.zero(),
         rateRad = Vector3.zero(),
+        magNorm = hasMag ? Vector3.zero() : null,
         time = 0;
   ProcessedData copy() {
-    return ProcessedData(orientation.clone(), rawAccelG.clone(),
-        deviceAccelG.clone(), rateRad.clone(), time);
+    if (magNorm != null) {
+      return ProcessedData.withMag(orientation.clone(), rawAccelG.clone(),
+          deviceAccelG.clone(), rateRad.clone(), magNorm!.clone(), time);
+    } else {
+      return ProcessedData(orientation.clone(), rawAccelG.clone(),
+          deviceAccelG.clone(), rateRad.clone(), time);
+    }
   }
 }
 
@@ -36,15 +51,28 @@ class RawData {
   final double time;
   final Vector3 rawAccelG;
   final Vector3 rateRad;
+  final Vector3? magNorm;
   RawData(Vector3 rawAccelG, Vector3 rateRad, this.time)
       : rawAccelG = rawAccelG.clone(),
-        rateRad = rateRad.clone();
-  RawData.zero()
+        rateRad = rateRad.clone(),
+        magNorm = null;
+  RawData.withMag(
+      Vector3 rawAccelG, Vector3 rateRad, Vector3 magNorm, this.time)
+      : rawAccelG = rawAccelG.clone(),
+        rateRad = rateRad.clone(),
+        magNorm = magNorm.clone();
+  RawData.zero({bool hasMag = false})
       : rawAccelG = Vector3.zero(),
         rateRad = Vector3.zero(),
+        magNorm = hasMag ? Vector3.zero() : null,
         time = 0;
   RawData copy() {
-    return RawData(rawAccelG.clone(), rateRad.clone(), time);
+    if (magNorm != null) {
+      return RawData.withMag(
+          rawAccelG.clone(), rateRad.clone(), magNorm!.clone(), time);
+    } else {
+      return RawData(rawAccelG.clone(), rateRad.clone(), time);
+    }
   }
 }
 
@@ -222,17 +250,28 @@ class RawDataToProcessedDataTransformer<T extends Ahrs>
     }
     final gyro = data.rateRad - gyroOffset;
     final accel = data.rawAccelG;
-    // double dt = min((canikTime - _lastCanikTime), 1 / 300); //TODO: clap dt?
-    double dt = (canikTime - _lastCanikTime); //TODO: clap dt?
-    _ahrs.updateIMU(gyro, accel, dt);
+    // double dt = min((canikTime - _lastCanikTime), 1 / 300); //TODO: clamp dt?
+    double dt = (canikTime - _lastCanikTime); //TODO: clamp dt?
+    if (data.magNorm == null) {
+      _ahrs.updateIMU(gyro, accel, dt);
+    } else {
+      _ahrs.updateMag(gyro, accel, data.magNorm!, dt);
+    }
     Vector3 gravitationalAccel =
         _ahrs.quaternion.rotate(Vector3(0, 0, gravitationalAccelG));
-    ProcessedData processedData = ProcessedData(
-        _ahrs.quaternion.clone(),
-        accel.clone(),
-        (accel - gravitationalAccel).clone(),
-        gyro.clone(),
-        canikTime);
+    ProcessedData processedData;
+    if (data.magNorm == null) {
+      processedData = ProcessedData(_ahrs.quaternion.clone(), accel.clone(),
+          (accel - gravitationalAccel).clone(), gyro.clone(), canikTime);
+    } else {
+      processedData = ProcessedData.withMag(
+          _ahrs.quaternion.clone(),
+          accel.clone(),
+          (accel - gravitationalAccel).clone(),
+          gyro.clone(),
+          data.magNorm!.clone(),
+          canikTime);
+    }
 
     _lastCanikTime = canikTime;
     return processedData;

@@ -181,7 +181,7 @@ class ShotDetector {
   ShotDetector(this._shotConditions, this._shotDataset, {int windowSize = 50})
       : _movingAverage = MovingAverage<double>(
           averageType: AverageType.simple,
-          windowSize: 13,
+          windowSize: 5,
           partialStart: true,
           getValue: (double n) => n,
           add: (List<double> data, num value) => value.toDouble(),
@@ -197,10 +197,13 @@ class ShotDetector {
     }
   }
 
-  bool processNormalizedShotSignal(Array signalWithinWindow,
+  bool processFilteredShotSignal(Array rawSignalWithinWindow,
       ShotDataset dataset, ShotConditions conditions) {
-    var maxCorrelationArray = dataset.maxCorrelationList(signalWithinWindow);
-    return conditions.checkConditions(maxCorrelationArray, signalWithinWindow);
+    // var maxCorrelationArray =
+    //     dataset.maxCorrelationList(normalizeCopy(rawSignalWithinWindow));
+    var maxCorrelationArray = dataset.maxCorrelationList(rawSignalWithinWindow);
+    return conditions.checkConditions(
+        maxCorrelationArray, rawSignalWithinWindow);
   }
 
   void _shotDetected() {
@@ -210,10 +213,12 @@ class ShotDetector {
 
   void _calculator() {
     var windowSignals = _accelNormBuffer.toList(growable: false);
-    var filteredWindowSignals = Array(_movingAverage(windowSignals));
-    normalizeInPlace(filteredWindowSignals);
-    bool shotCandidateDetected = processNormalizedShotSignal(
-        filteredWindowSignals, _shotDataset, _shotConditions);
+    var filteredWindowSignal = Array(_movingAverage(windowSignals));
+    // var filteredWindowSignal = Array(windowSignals);
+    // print(windowSignals);
+    // print(filteredWindowSignal);
+    bool shotCandidateDetected = processFilteredShotSignal(
+        filteredWindowSignal, _shotDataset, _shotConditions);
     bool shotDetected = shotCandidateDetected && _lastWindowShotCandidate;
     _lastWindowShotCandidate = shotCandidateDetected;
 

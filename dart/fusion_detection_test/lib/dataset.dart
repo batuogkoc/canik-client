@@ -6,12 +6,16 @@ import 'package:csv/csv.dart';
 import 'dart:io';
 import 'package:collection/collection.dart';
 
-void normalizeInPlace(Array array) {
+Array normalizeCopy(Array array) {
+  Array ret = Array.fixed(array.length, initialValue: double.nan);
   //TODO: implement normalization
-  double scalar = 1 / array.max;
+  double max = array.max;
+  double min = array.min;
   for (int i = 0; i < array.length; i++) {
-    array[i] *= scalar;
+    ret[i] = (array[i] - min) / (max - min);
   }
+  return ret;
+  // return array.copy();
 }
 
 class ShotConditions {
@@ -34,10 +38,17 @@ class ShotConditions {
     double signalMax = signalWihthinWindow.max;
     bool cond4and5 =
         shotAccLowerThresh < signalMax && signalMax < shotAccUpperThresh;
-    print(cond1);
-    print(cond2);
-    print(cond3);
-    print(cond4and5);
+    if (cond1 || cond2 || cond3 || cond4and5) {
+      // if (cond1) {
+      // print(maxCorrelationArray);
+      print(
+          "minResemblanceCount: $cond1, ${maxCorrelationArray.average} > $minResemblanceCount");
+      print("maxResemblenceCount: $cond2, $count > $resemblance");
+      print(
+          "maxResemblence: $cond3, ${maxCorrelationArray.max} > $maxResemblance");
+      print(
+          "accThresh: $cond4and5, $shotAccLowerThresh < $signalMax < $shotAccUpperThresh");
+    }
     return cond1 && cond2 && cond3 && cond4and5;
   }
 }
@@ -74,11 +85,12 @@ class ShotDataset {
 
   void normalize() {
     for (var array in dataSet) {
-      normalizeInPlace(array);
+      array = normalizeCopy(array);
     }
   }
 
   List<Array> correlate(Array signal, {bool fast = false}) {
+    // print(signal.length);
     var ret = <Array>[];
     for (var sample in dataSet) {
       ret.add(scidart.correlate(sample, signal, fast: fast));

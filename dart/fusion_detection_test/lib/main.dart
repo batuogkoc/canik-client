@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'fusion_test.dart';
+import 'fusion_test.dart' as fusion_test;
 
 String xAxisKey = "time";
 
@@ -30,25 +31,56 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FusionTestOldCsv("../../data/fusion_datasets/DATA.csv");
+    return Scaffold(
+      appBar: AppBar(title: const Text("Select data format")),
+      body: Center(
+          child: Column(
+        children: [
+          ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  const String path = "../../data/fusion_datasets/DATA.csv";
+                  return FusionTestWidget(
+                      path, csvReadOld(path, Vector3.zero()));
+                }));
+              },
+              child: const Text("Old format")),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  const String path = "../../data/new_dataset/DataSet.csv";
+                  return FusionTestWidget(path, csvRead(path, Vector3.zero()));
+                }));
+              },
+              child: const Text("New format")),
+          ElevatedButton(
+              onPressed: () {
+                fusion_test.main([]);
+              },
+              child: const Text("Main")),
+        ],
+      )),
+    );
+    // return const FusionTestOldCsv("../../data/fusion_datasets/DATA.csv");
   }
 }
 
-class FusionTestOldCsv extends StatelessWidget {
+class FusionTestWidget extends StatelessWidget {
   final String path;
-  const FusionTestOldCsv(this.path, {super.key});
+  final Future<List<Map<String, dynamic>>> dataFuture;
+  const FusionTestWidget(this.path, this.dataFuture, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chart"),
+        title: Text("Chart: $path"),
       ),
       body: Center(
         child: SingleChildScrollView(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             FutureBuilder<List<Map<String, dynamic>>>(
-              future: csvReadOld(path),
+              future: dataFuture,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Text("Error!");
@@ -225,6 +257,20 @@ class FusionTestOldCsv extends StatelessWidget {
                                       .length;
                                 },
                                 color: Colors.green),
+                            LineSeries<Map<String, dynamic>, num>(
+                                dataSource: data,
+                                xValueMapper: (datum, index) {
+                                  return datum[xAxisKey] as num;
+                                },
+                                yValueMapper: (datum, index) {
+                                  if (datum.containsKey("deviceAccelVal")) {
+                                    return (datum["deviceAccelVal"] as Vector3)
+                                        .length;
+                                  } else {
+                                    return 0;
+                                  }
+                                },
+                                color: Colors.blue),
                           ],
                         ),
                         const Text("dT"),
