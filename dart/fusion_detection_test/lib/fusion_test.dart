@@ -68,7 +68,7 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
   var list = await File(path)
       .openRead()
       .transform(utf8.decoder)
-      .transform(const CsvToListConverter())
+      .transform(const CsvToListConverter(fieldDelimiter: ";"))
       .where((event) {
     return event.every((element) {
       try {
@@ -86,15 +86,17 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
     var quatVal = Quaternion(list[9], list[10], list[11], list[12]); //w x y z
     double time = list[13];
     return {
-      "rawData": RawData(accel, gyro, time),
+      "rawData": RawData.withMag(accel, gyro, mag, time),
       "quatVal": quatVal,
-      "mag": mag
     };
   }).toList();
-  bool firstTime = true;
-  double lastTime = 0;
+
   list.sort((a, b) =>
       (a["rawData"] as RawData).time.compareTo((b["rawData"] as RawData).time));
+
+  bool firstTime = true;
+  double lastTime = 0;
+
   return list.map((data) {
     RawData rawData = data["rawData"] as RawData;
     Quaternion quatVal = data["quatVal"] as Quaternion;
@@ -115,12 +117,9 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
         madgwickTransformer.proccessRawData(rawData.copy());
     ProcessedData scfProcessedData =
         scfTransformer.proccessRawData(rawData.copy());
-    double accelNorm = scfProcessedData.deviceAccelG.length;
     Vector3 gravitationalAccelVal = quatVal.rotate(Vector3(0, 0, 1));
     Vector3 deviceAccelVal = rawData.rawAccelG - gravitationalAccelVal;
-    dryFireDetector.onDataReceive(accelNorm);
-    liveFireDetector.onDataReceive(accelNorm);
-    paintFireDetector.onDataReceive(accelNorm);
+
     // if (dt > 0.002) {
     // }
     return <String, dynamic>{

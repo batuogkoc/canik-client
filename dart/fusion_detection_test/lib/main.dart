@@ -55,6 +55,15 @@ class HomePage extends StatelessWidget {
               child: const Text("New format")),
           ElevatedButton(
               onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  const String path =
+                      "../../data/fusion_github_dataset/Justa_dataset.csv";
+                  return FusionTestWidget(path, csvReadGithub(path));
+                }));
+              },
+              child: const Text("Github")),
+          ElevatedButton(
+              onPressed: () {
                 fusion_test.main([]);
               },
               child: const Text("Main")),
@@ -225,13 +234,6 @@ class FusionTestWidget extends StatelessWidget {
                             .map((e) =>
                                 [e[xAxisKey], (e["raw"] as RawData).rawAccelG])
                             .toList()),
-                        // const Text("Device Accel g scf"),
-                        // vector3ListToChart(data
-                        //     .map((e) => [
-                        //           e[xAxisKey],
-                        //           (e["scf"] as ProcessedData).deviceAccelG
-                        //         ])
-                        //     .toList()),
                         const Text("Device Accel Norm g"),
                         SfCartesianChart(
                           series: <ChartSeries>[
