@@ -1,0 +1,3 @@
+[submodule "documentation/AHRS_Filter"]
+	path = documentation/AHRS_Filter
+	url = git@github.com:Josef4Sci/AHRS_Filter.git

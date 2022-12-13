@@ -56,8 +56,10 @@ class HomePage extends StatelessWidget {
           ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  // const String path =
+                  //     "../../data/fusion_github_dataset/Justa_dataset.csv";
                   const String path =
-                      "../../data/fusion_github_dataset/Justa_dataset.csv";
+                      "../../data/fusion_github_dataset/Synthetic3.csv";
                   return FusionTestWidget(path, csvReadGithub(path));
                 }));
               },
@@ -98,6 +100,54 @@ class FusionTestWidget extends StatelessWidget {
                   return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        const Text("Deviation deg"),
+                        SfCartesianChart(series: <ChartSeries>[
+                          LineSeries<Map<String, dynamic>, num>(
+                            dataSource: data,
+                            xValueMapper: (datum, index) {
+                              return datum[xAxisKey] as num;
+                            },
+                            yValueMapper: (datum, index) {
+                              if (datum.containsKey("quatVal")) {
+                                Quaternion quatVal =
+                                    datum["quatVal"] as Quaternion;
+                                Quaternion quatEst =
+                                    (datum["madgwick"] as ProcessedData)
+                                        .orientation;
+                                Quaternion diff =
+                                    (quatVal * quatEst.inverted()).normalized();
+                                double ret = diff.radians * radians2Degrees;
+                                ret = ret > 180 ? 360 - ret : ret;
+                                return ret;
+                              } else {
+                                return 0;
+                              }
+                            },
+                            color: Colors.red,
+                          ),
+                          LineSeries<Map<String, dynamic>, num>(
+                            dataSource: data,
+                            xValueMapper: (datum, index) {
+                              return datum[xAxisKey] as num;
+                            },
+                            yValueMapper: (datum, index) {
+                              if (datum.containsKey("quatVal")) {
+                                Quaternion quatVal =
+                                    datum["quatVal"] as Quaternion;
+                                Quaternion quatEst =
+                                    (datum["scf"] as ProcessedData).orientation;
+                                Quaternion diff =
+                                    (quatVal * quatEst.inverted()).normalized();
+                                double ret = diff.radians * radians2Degrees;
+                                ret = ret > 180 ? 360 - ret : ret;
+                                return ret;
+                              } else {
+                                return 0;
+                              }
+                            },
+                            color: Colors.green,
+                          )
+                        ]),
                         const Text("X axis degrees"),
                         SfCartesianChart(
                           series: <ChartSeries>[

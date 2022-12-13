@@ -6,10 +6,11 @@ import 'package:canik_lib/canik_lib.dart';
 import 'detectors/shot_det.dart';
 import 'dataset.dart';
 
-var madgwickTransformer = RawDataToProcessedDataTransformer(
-    ScfAhrs({"aLambda1": 0.0028, "aLambda2": 0.01}));
-var scfTransformer =
-    RawDataToProcessedDataTransformer(MadgwickAhrs({"beta": 0.5}));
+var scfAhrs = ScfAhrs(
+    {"aLambda1": 0.0028, "aLambda2": 0, "mLambda1": 0.0028, "mLambda2": 0});
+var madgwickAhrs = MadgwickAhrs({"beta": 0.05});
+var madgwickTransformer = RawDataToProcessedDataTransformer(madgwickAhrs);
+var scfTransformer = RawDataToProcessedDataTransformer(scfAhrs);
 void main(List<String> args) {
   String path;
   if (args.isEmpty) {
@@ -80,10 +81,10 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
     });
   }).map((dynamicList) {
     List<double> list = dynamicList.cast<double>();
-    var accel = Vector3(list[0], list[1], list[2]) * degrees2Radians;
+    var accel = Vector3(list[0], list[1], list[2]);
     var gyro = Vector3(list[3], list[4], list[5]);
     var mag = Vector3(list[6], list[7], list[8]);
-    var quatVal = Quaternion(list[9], list[10], list[11], list[12]); //w x y z
+    var quatVal = Quaternion(list[10], list[11], list[12], list[9]); //x y z w
     double time = list[13];
     return {
       "rawData": RawData.withMag(accel, gyro, mag, time),
@@ -117,17 +118,24 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
         madgwickTransformer.proccessRawData(rawData.copy());
     ProcessedData scfProcessedData =
         scfTransformer.proccessRawData(rawData.copy());
+    // scfAhrs.updateMag(rawData.rateRad, rawData.rawAccelG, rawData.magNorm!, dt);
+    // madgwickAhrs.updateMag(
+    //     rawData.rateRad, rawData.rawAccelG, rawData.magNorm!, dt);
+    // ProcessedData madgwickProcessedData = ProcessedData(madgwickAhrs.quaternion,
+    //     Vector3.zero(), Vector3.zero(), Vector3.zero(), 0);
+    // ProcessedData scfProcessedData = ProcessedData(
+    //     scfAhrs.quaternion, Vector3.zero(), Vector3.zero(), Vector3.zero(), 0);
     Vector3 gravitationalAccelVal = quatVal.rotate(Vector3(0, 0, 1));
     Vector3 deviceAccelVal = rawData.rawAccelG - gravitationalAccelVal;
-
+    print("a");
     // if (dt > 0.002) {
     // }
     return <String, dynamic>{
       "index": index++,
       "time": rawData.time,
       "dt": dt,
-      "eulerVal": quaternionToEuler(quatVal),
-      "quatVal": quatVal.clone(),
+      "eulerVal": quaternionToEuler(quatVal.normalized()),
+      "quatVal": quatVal.normalized(),
       "deviceAccelVal": deviceAccelVal.clone(),
       "madgwick": madgwickProcessedData.copy(),
       "scf": scfProcessedData.copy(),

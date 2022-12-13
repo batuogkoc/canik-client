@@ -20,7 +20,7 @@ class ScfAhrs implements Ahrs {
   }
 
   double _fCor(double alpha, double tuningParam1, double tuningParam2) {
-    double alphaLambda1 = alpha * tuningParam1;
+    // double alphaLambda1 = alpha * tuningParam1;
     return tuningParam1;
     // return alphaLambda1;
     // if (alphaLambda1 < tuningParam2) {
@@ -49,7 +49,7 @@ class ScfAhrs implements Ahrs {
     Quaternion qPred = _quaternion + qDot.scaled(dt);
 
     Vector3 accelRef = Vector3(0, 0, 1);
-    Vector3 accelPred = qPred.rotated(accelRef);
+    Vector3 accelPred = qPred.rotated(accelRef).normalized();
 
     double alphaAccel = acos(accel.dot(accelPred).clamp(-1.0, 1.0));
 
@@ -88,9 +88,9 @@ class ScfAhrs implements Ahrs {
     Quaternion qPred = _quaternion + qDot.scaled(dt);
 
     Vector3 accelRef = Vector3(0, 0, 1);
-    Vector3 accelPred = qPred.rotated(accelRef);
+    Vector3 accelPred = qPred.rotated(accelRef).normalized();
     Vector3 magRef = Vector3(0, 0, accelPred.dot(mag));
-    magRef.x = sqrt(1 - (magRef.z) * (magRef.z));
+    magRef.x = sqrt((1 - (magRef.z) * (magRef.z)).clamp(0.0, 1.0));
     Vector3 magPred = qPred.rotated(magRef);
 
     double alphaAccel = acos(accel.dot(accelPred).clamp(-1.0, 1.0));

@@ -2,6 +2,7 @@ import 'package:vector_math/vector_math.dart';
 import 'dart:math';
 
 Vector3 quaternionToEuler(Quaternion q) {
+  q = q.normalized();
   double w = q.w;
   double x = q.x;
   double y = q.y;
@@ -15,11 +16,7 @@ Vector3 quaternionToEuler(Quaternion q) {
 
   //pitch (y-axis rotation)
   double sinp = 2 * (w * y - z * x);
-  if ((sinp).abs() >= 1) {
-    ret.y = copySign(pi / 2, sinp); // use 90 degrees if out of range
-  } else {
-    ret.y = asin(sinp);
-  }
+  ret.y = asin(sinp.clamp(-1.0, 1.0));
 
   // yaw (z-axis rotation)
   double siny_cosp = 2 * (w * z + x * y);

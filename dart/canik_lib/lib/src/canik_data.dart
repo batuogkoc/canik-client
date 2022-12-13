@@ -265,7 +265,7 @@ class RawDataToProcessedDataTransformer<T extends Ahrs>
           (accel - gravitationalAccel).clone(), gyro.clone(), canikTime);
     } else {
       processedData = ProcessedData.withMag(
-          _ahrs.quaternion.clone(),
+          _ahrs.quaternion.normalized(),
           accel.clone(),
           (accel - gravitationalAccel).clone(),
           gyro.clone(),
