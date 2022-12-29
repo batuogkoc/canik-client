@@ -56,11 +56,12 @@ class HomePage extends StatelessWidget {
           ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  // const String path =
-                  //     "../../data/fusion_github_dataset/Justa_dataset.csv";
                   const String path =
-                      "../../data/fusion_github_dataset/Synthetic3.csv";
-                  return FusionTestWidget(path, csvReadGithub(path));
+                      "../../data/fusion_github_dataset/Justa_dataset.csv";
+                  // const String path =
+                  //     "../../data/fusion_github_dataset/Synthetic3.csv";
+                  return FusionTestWidget(
+                      path, csvReadGithub(path, outPath: ""));
                 }));
               },
               child: const Text("Github")),
@@ -76,22 +77,38 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class FusionTestWidget extends StatelessWidget {
+class FusionTestWidget extends StatefulWidget {
   final String path;
   final Future<List<Map<String, dynamic>>> dataFuture;
   const FusionTestWidget(this.path, this.dataFuture, {super.key});
 
   @override
+  State<FusionTestWidget> createState() => _FusionTestWidgetState();
+}
+
+class _FusionTestWidgetState extends State<FusionTestWidget> {
+  late ZoomPanBehavior _zoomPanBehavior;
+  @override
+  void initState() {
+    _zoomPanBehavior = ZoomPanBehavior(
+        zoomMode: ZoomMode.x,
+        enableMouseWheelZooming: true,
+        enableSelectionZooming: false,
+        enablePanning: false);
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Chart: $path"),
+        title: Text("Chart: ${widget.path}"),
       ),
       body: Center(
         child: SingleChildScrollView(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             FutureBuilder<List<Map<String, dynamic>>>(
-              future: dataFuture,
+              future: widget.dataFuture,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Text("Error!");
@@ -147,198 +164,194 @@ class FusionTestWidget extends StatelessWidget {
                             },
                             color: Colors.green,
                           )
-                        ]),
+                        ], zoomPanBehavior: _zoomPanBehavior),
                         const Text("X axis degrees"),
-                        SfCartesianChart(
-                          series: <ChartSeries>[
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return quaternionToEuler((datum["madgwick"]
-                                                  as ProcessedData)
-                                              .orientation)
-                                          .x *
-                                      radians2Degrees;
-                                },
-                                color: Colors.red),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return quaternionToEuler(
-                                              (datum["scf"] as ProcessedData)
-                                                  .orientation)
-                                          .x *
-                                      radians2Degrees;
-                                },
-                                color: Colors.green),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return (datum["eulerVal"] as Vector3).x *
-                                      radians2Degrees;
-                                },
-                                color: Colors.blue),
-                          ],
-                        ),
+                        SfCartesianChart(series: <ChartSeries>[
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return quaternionToEuler(
+                                            (datum["madgwick"] as ProcessedData)
+                                                .orientation)
+                                        .x *
+                                    radians2Degrees;
+                              },
+                              color: Colors.red),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return quaternionToEuler(
+                                            (datum["scf"] as ProcessedData)
+                                                .orientation)
+                                        .x *
+                                    radians2Degrees;
+                              },
+                              color: Colors.green),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return (datum["eulerVal"] as Vector3).x *
+                                    radians2Degrees;
+                              },
+                              color: Colors.blue),
+                        ], zoomPanBehavior: _zoomPanBehavior),
                         const Text("Y axis degrees"),
-                        SfCartesianChart(
-                          series: <ChartSeries>[
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return quaternionToEuler((datum["madgwick"]
-                                                  as ProcessedData)
-                                              .orientation)
-                                          .y *
-                                      radians2Degrees;
-                                },
-                                color: Colors.red),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return quaternionToEuler(
-                                              (datum["scf"] as ProcessedData)
-                                                  .orientation)
-                                          .y *
-                                      radians2Degrees;
-                                },
-                                color: Colors.green),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return (datum["eulerVal"] as Vector3).y *
-                                      radians2Degrees;
-                                },
-                                color: Colors.blue),
-                          ],
-                        ),
+                        SfCartesianChart(series: <ChartSeries>[
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return quaternionToEuler(
+                                            (datum["madgwick"] as ProcessedData)
+                                                .orientation)
+                                        .y *
+                                    radians2Degrees;
+                              },
+                              color: Colors.red),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return quaternionToEuler(
+                                            (datum["scf"] as ProcessedData)
+                                                .orientation)
+                                        .y *
+                                    radians2Degrees;
+                              },
+                              color: Colors.green),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return (datum["eulerVal"] as Vector3).y *
+                                    radians2Degrees;
+                              },
+                              color: Colors.blue),
+                        ], zoomPanBehavior: _zoomPanBehavior),
                         const Text("Z axis degrees"),
-                        SfCartesianChart(
-                          series: <ChartSeries>[
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return quaternionToEuler((datum["madgwick"]
-                                                  as ProcessedData)
-                                              .orientation)
-                                          .z *
-                                      radians2Degrees;
-                                },
-                                color: Colors.red),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return quaternionToEuler(
-                                              (datum["scf"] as ProcessedData)
-                                                  .orientation)
-                                          .z *
-                                      radians2Degrees;
-                                },
-                                color: Colors.green),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return (datum["eulerVal"] as Vector3).z *
-                                      radians2Degrees;
-                                },
-                                color: Colors.blue),
-                          ],
-                        ),
+                        SfCartesianChart(series: <ChartSeries>[
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return quaternionToEuler(
+                                            (datum["madgwick"] as ProcessedData)
+                                                .orientation)
+                                        .z *
+                                    radians2Degrees;
+                              },
+                              color: Colors.red),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return quaternionToEuler(
+                                            (datum["scf"] as ProcessedData)
+                                                .orientation)
+                                        .z *
+                                    radians2Degrees;
+                              },
+                              color: Colors.green),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return (datum["eulerVal"] as Vector3).z *
+                                    radians2Degrees;
+                              },
+                              color: Colors.blue),
+                        ], zoomPanBehavior: _zoomPanBehavior),
                         const Text("Gyro deg/s"),
-                        vector3ListToChart(data
-                            .map((e) => [
-                                  e[xAxisKey],
-                                  (e["raw"] as RawData).rateRad *
-                                      radians2Degrees
-                                ])
-                            .toList()),
+                        vector3ListToChart(
+                            data
+                                .map((e) => [
+                                      e[xAxisKey],
+                                      (e["raw"] as RawData).rateRad *
+                                          radians2Degrees
+                                    ])
+                                .toList(),
+                            zoomPanBehavior: _zoomPanBehavior),
                         const Text("Accel g"),
-                        vector3ListToChart(data
-                            .map((e) =>
-                                [e[xAxisKey], (e["raw"] as RawData).rawAccelG])
-                            .toList()),
+                        vector3ListToChart(
+                            data
+                                .map((e) => [
+                                      e[xAxisKey],
+                                      (e["raw"] as RawData).rawAccelG
+                                    ])
+                                .toList(),
+                            zoomPanBehavior: _zoomPanBehavior),
                         const Text("Device Accel Norm g"),
-                        SfCartesianChart(
-                          series: <ChartSeries>[
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return (datum["madgwick"] as ProcessedData)
-                                      .deviceAccelG
+                        SfCartesianChart(series: <ChartSeries>[
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return (datum["madgwick"] as ProcessedData)
+                                    .deviceAccelG
+                                    .length;
+                              },
+                              color: Colors.red),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return (datum["scf"] as ProcessedData)
+                                    .deviceAccelG
+                                    .length;
+                              },
+                              color: Colors.green),
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum[xAxisKey] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                if (datum.containsKey("deviceAccelVal")) {
+                                  return (datum["deviceAccelVal"] as Vector3)
                                       .length;
-                                },
-                                color: Colors.red),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return (datum["scf"] as ProcessedData)
-                                      .deviceAccelG
-                                      .length;
-                                },
-                                color: Colors.green),
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum[xAxisKey] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  if (datum.containsKey("deviceAccelVal")) {
-                                    return (datum["deviceAccelVal"] as Vector3)
-                                        .length;
-                                  } else {
-                                    return 0;
-                                  }
-                                },
-                                color: Colors.blue),
-                          ],
-                        ),
+                                } else {
+                                  return 0;
+                                }
+                              },
+                              color: Colors.blue),
+                        ], zoomPanBehavior: _zoomPanBehavior),
                         const Text("dT"),
-                        SfCartesianChart(
-                          series: <ChartSeries>[
-                            LineSeries<Map<String, dynamic>, num>(
-                                dataSource: data,
-                                xValueMapper: (datum, index) {
-                                  return datum["time"] as num;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return datum["dt"] as num;
-                                },
-                                color: Colors.blue),
-                          ],
-                        ),
+                        SfCartesianChart(series: <ChartSeries>[
+                          LineSeries<Map<String, dynamic>, num>(
+                              dataSource: data,
+                              xValueMapper: (datum, index) {
+                                return datum["time"] as num;
+                              },
+                              yValueMapper: (datum, index) {
+                                return datum["dt"] as num;
+                              },
+                              color: Colors.blue),
+                        ], zoomPanBehavior: _zoomPanBehavior),
                       ]);
                 } else {
                   return const Text("Calculating");
@@ -352,7 +365,8 @@ class FusionTestWidget extends StatelessWidget {
   }
 }
 
-SfCartesianChart vector3ListToChart(List<List<dynamic>> list) {
+SfCartesianChart vector3ListToChart(List<List<dynamic>> list,
+    {ZoomPanBehavior? zoomPanBehavior}) {
   return SfCartesianChart(
     series: <ChartSeries>[
       LineSeries<List<dynamic>, num>(
@@ -383,5 +397,6 @@ SfCartesianChart vector3ListToChart(List<List<dynamic>> list) {
           },
           color: Colors.blue),
     ],
+    zoomPanBehavior: zoomPanBehavior,
   );
 }

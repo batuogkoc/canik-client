@@ -1,4 +1,5 @@
 import 'package:csv/csv.dart';
+import 'package:scidart/numdart.dart';
 import 'package:vector_math/vector_math.dart';
 import "dart:io";
 import 'dart:convert';
@@ -6,9 +7,12 @@ import 'package:canik_lib/canik_lib.dart';
 import 'detectors/shot_det.dart';
 import 'dataset.dart';
 
-var scfAhrs = ScfAhrs(
-    {"aLambda1": 0.0028, "aLambda2": 0, "mLambda1": 0.0028, "mLambda2": 0});
-var madgwickAhrs = MadgwickAhrs({"beta": 0.05});
+// var scfAhrs = ScfAhrs(
+//     {"aLambda1": 0.0017, "aLambda2": 0, "mLambda1": 0.0001, "mLambda2": 0});
+var scfAhrs = FscfCcAhrs({"aLambda1": 0.0017, "mLambda1": 0.0001});
+
+var madgwickAhrs = MadgwickAhrs({"beta": 0.011});
+
 var madgwickTransformer = RawDataToProcessedDataTransformer(madgwickAhrs);
 var scfTransformer = RawDataToProcessedDataTransformer(scfAhrs);
 void main(List<String> args) {
@@ -59,7 +63,8 @@ void testDetector() async {
   }
 }
 
-Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
+Future<List<Map<String, dynamic>>> csvReadGithub(String path,
+    {String outPath = "out.csv"}) async {
   if (!FileSystemEntity.isFileSync(path)) {
     stderr.write("No file at $path \n");
     throw Exception("File not found");
@@ -98,7 +103,7 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
   bool firstTime = true;
   double lastTime = 0;
 
-  return list.map((data) {
+  final ret = list.map((data) {
     RawData rawData = data["rawData"] as RawData;
     Quaternion quatVal = data["quatVal"] as Quaternion;
     double dt;
@@ -106,8 +111,8 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
       firstTime = false;
       lastTime = rawData.time;
       dt = 0;
-      madgwickTransformer.ahrs.quaternion = quatVal;
-      scfTransformer.ahrs.quaternion = quatVal;
+      // madgwickTransformer.ahrs.quaternion = quatVal;
+      // scfTransformer.ahrs.quaternion = quatVal;
     } else {
       dt = rawData.time - lastTime;
       lastTime = rawData.time;
@@ -142,6 +147,28 @@ Future<List<Map<String, dynamic>>> csvReadGithub(String path) async {
       "raw": rawData.copy()
     };
   }).toList();
+  String csvOut = ListToCsvConverter().convert(ret.map((e) {
+    final index = e["index"];
+    final rawData = e["raw"];
+    final eulerVal = e["eulerVal"];
+    final scfEulerRads =
+        quaternionToEuler((e["scf"] as ProcessedData).orientation);
+    return <num>[
+      index,
+      rawData.time,
+      eulerVal.x,
+      eulerVal.y,
+      eulerVal.z,
+      scfEulerRads.x,
+      scfEulerRads.y,
+      scfEulerRads.z
+    ];
+  }).toList());
+  if (outPath != "") {
+    File(outPath).openWrite().write(csvOut);
+  }
+  // ret.map((e) => e["dt"]).reduce(max);
+  return ret;
 }
 
 Future<List<Map<String, dynamic>>> csvRead(
