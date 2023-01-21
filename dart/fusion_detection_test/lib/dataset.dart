@@ -21,33 +21,42 @@ Array normalizeCopy(Array array) {
 class ShotConditions {
   double maxResemblance;
   double minResemblanceCount;
-  double resemblance;
+  int resemblance;
   double shotAccLowerThresh;
   double shotAccUpperThresh;
+  Map<String, num> debug;
 
   ShotConditions(this.maxResemblance, this.minResemblanceCount,
-      this.resemblance, this.shotAccLowerThresh, this.shotAccUpperThresh);
+      this.resemblance, this.shotAccLowerThresh, this.shotAccUpperThresh)
+      : debug = <String, num>{};
 
   bool checkConditions(
-      List<double> maxCorrelationArray, Array signalWihthinWindow) {
+      List<double> maxCorrelationArray, Array signalWithinWindow) {
     bool cond1 = maxCorrelationArray.average > minResemblanceCount;
     int count =
         maxCorrelationArray.where((element) => element > maxResemblance).length;
     bool cond2 = count > resemblance;
     bool cond3 = maxCorrelationArray.max > maxResemblance;
-    double signalMax = signalWihthinWindow.max;
+    double signalMax = signalWithinWindow.max;
     bool cond4and5 =
         shotAccLowerThresh < signalMax && signalMax < shotAccUpperThresh;
+
+    debug["maxCorrelationAverage"] = maxCorrelationArray.average;
+    // debug["maxResemblenceCount"] = count;
+    debug["maxResemblenceCount"] =
+        maxCorrelationArray.sorted((a, b) => b.compareTo(a))[resemblance];
+    debug["maxCorrelationMax"] = maxCorrelationArray.max;
+    debug["signalMax"] = signalMax;
     if (cond1 || cond2 || cond3 || cond4and5) {
       // if (cond1) {
       // print(maxCorrelationArray);
-      print(
-          "minResemblanceCount: $cond1, ${maxCorrelationArray.average} > $minResemblanceCount");
-      print("maxResemblenceCount: $cond2, $count > $resemblance");
-      print(
-          "maxResemblence: $cond3, ${maxCorrelationArray.max} > $maxResemblance");
-      print(
-          "accThresh: $cond4and5, $shotAccLowerThresh < $signalMax < $shotAccUpperThresh");
+      // print(
+      //     "minResemblanceCount: $cond1, ${maxCorrelationArray.average} > $minResemblanceCount");
+      // print("maxResemblenceCount: $cond2, $count > $resemblance");
+      // print(
+      //     "maxResemblence: $cond3, ${maxCorrelationArray.max} > $maxResemblance");
+      // print(
+      //     "accThresh: $cond4and5, $shotAccLowerThresh < $signalMax < $shotAccUpperThresh");
     }
     return cond1 && cond2 && cond3 && cond4and5;
   }

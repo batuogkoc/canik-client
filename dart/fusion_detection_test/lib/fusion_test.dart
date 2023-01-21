@@ -22,14 +22,13 @@ void main(List<String> args) {
   } else {
     path = args[0];
   }
-  testDetector();
 }
 
-void testDetector() async {
+Future<List<Map<String, dynamic>>> shotDetector(String path) async {
   ShotConditions liveFireConditions = ShotConditions(85, 70, 5, 2, 15);
   ShotDataset liveFireDataset = ShotDataset();
   await liveFireDataset.fillFromCsv(
-      "../../data/shot_det_datasets/Live_Fire_set.csv",
+      "../../data/shot_det_validation/Live_Fire_set.csv",
       fieldDelimiter: ";",
       eol: "\n");
   ShotDetector liveFireDetector =
@@ -38,7 +37,7 @@ void testDetector() async {
   ShotConditions dryFireConditions = ShotConditions(75, 70, 10, 1, 3.8);
   ShotDataset dryFireDataset = ShotDataset();
   await dryFireDataset.fillFromCsv(
-      "../../data/shot_det_datasets/Dry_Fire_set.csv",
+      "../../data/shot_det_validation/Dry_Fire_set.csv",
       fieldDelimiter: ";",
       eol: "\n");
   ShotDetector dryFireDetector =
@@ -47,20 +46,92 @@ void testDetector() async {
   ShotConditions paintFireConditions = ShotConditions(85, 70, 5, 2.3, 15);
   ShotDataset paintFireDataset = ShotDataset();
   await paintFireDataset.fillFromCsv(
-      "../../data/shot_det_datasets/Paint_Fire_set.csv",
+      "../../data/shot_det_validation/Paint_Fire_set.csv",
       fieldDelimiter: ",",
       eol: "\n");
   ShotDetector paintFireDetector =
-      ShotDetector(dryFireConditions, dryFireDataset);
+      ShotDetector(paintFireConditions, paintFireDataset);
 
-  int datasetNum = 0;
-  for (var dataset in paintFireDataset.dataSet) {
-    print("$datasetNum: ");
-    for (var data in dataset) {
-      paintFireDetector.onDataReceive(data);
-    }
-    datasetNum++;
+  if (!FileSystemEntity.isFileSync(path)) {
+    stderr.write("No file at $path \n");
+    throw Exception("File not found");
   }
+
+  int index = 0;
+  double time = 0;
+  var list = await File(path)
+      .openRead()
+      .transform(utf8.decoder)
+      .transform(const CsvToListConverter(fieldDelimiter: ","))
+      .where((event) {
+    return event.every((element) {
+      try {
+        element as double;
+      } catch (e) {
+        return false;
+      }
+      return true;
+    });
+  }).map((dynamicList) {
+    List<double> list = dynamicList.cast<double>();
+    double deviceAccelNorm = list[0];
+    Vector2 nozzleAccel = Vector2(list[1], list[2]);
+    Vector3 deviceAccel = Vector3(list[3], list[4], list[5]);
+    Vector3 accel = Vector3(list[6], list[7], list[8]) / 1000;
+    Vector3 gyro = Vector3(list[9], list[10], list[11]);
+    double dt = list[12];
+
+    return {
+      "nozzleAccel": nozzleAccel,
+      "deviceAccelNorm": deviceAccelNorm,
+      "dt": dt,
+      "deviceAccel": deviceAccel,
+      "accel": accel,
+      "gyro": gyro
+    };
+  }).where((element) {
+    if (element["dt"] as double > 0.03) {
+      return false;
+    }
+    if ((element["deviceAccel"] as Vector3).length > 100) {
+      print(element);
+      return false;
+    }
+    return true;
+  }).map((map) {
+    double deviceAccelNorm = map["deviceAccelNorm"] as double;
+    Vector2 nozzleAccel = map["nozzleAccel"] as Vector2;
+    Vector3 deviceAccel = map["deviceAccel"] as Vector3;
+    Vector3 accel = map["accel"] as Vector3;
+    Vector3 gyro = map["gyro"] as Vector3;
+    double dt = map["dt"] as double;
+    time += dt;
+
+    RawData rawData = RawData(accel, gyro, time);
+    ProcessedData processedData =
+        ProcessedData(Quaternion.identity(), accel, deviceAccel, gyro, time);
+
+    liveFireDetector.onDataReceive(deviceAccelNorm);
+    paintFireDetector.onDataReceive(deviceAccelNorm);
+    dryFireDetector.onDataReceive(deviceAccelNorm);
+    return {
+      "nozzleAccel": nozzleAccel,
+      "rawData": rawData,
+      "processedData": processedData,
+      "dt": dt,
+      "time": time,
+      "index": index++,
+      "liveFire": liveFireDetector.shotCounter,
+      "paintFire": paintFireDetector.shotCounter,
+      "dryFire": dryFireDetector.shotCounter,
+      "paintFireDebug": Map<String, num>.from(paintFireConditions.debug)
+    };
+  }).toList();
+
+  list.sort((a, b) =>
+      (a["rawData"] as RawData).time.compareTo((b["rawData"] as RawData).time));
+
+  return list;
 }
 
 Future<List<Map<String, dynamic>>> csvReadGithub(String path,

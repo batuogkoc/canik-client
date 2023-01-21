@@ -213,6 +213,7 @@ class ShotDetector {
 
   void _calculator() {
     var windowSignals = _accelNormBuffer.toList(growable: false);
+    print(windowSignals.length);
     var filteredWindowSignal = Array(_movingAverage(windowSignals));
     // var filteredWindowSignal = Array(windowSignals);
     // print(windowSignals);
@@ -220,6 +221,7 @@ class ShotDetector {
     bool shotCandidateDetected = processFilteredShotSignal(
         filteredWindowSignal, _shotDataset, _shotConditions);
     bool shotDetected = shotCandidateDetected && _lastWindowShotCandidate;
+    // bool shotDetected = shotCandidateDetected;
     _lastWindowShotCandidate = shotCandidateDetected;
 
     if (shotDetected) {

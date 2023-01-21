@@ -45,6 +45,7 @@ dependencies:
   circular_buffer: ^0.11.0
   moving_average: ^0.3.0
   scidart: ^0.0.2-dev.12
+  extended_math: ^0.0.29+1
 
 dev_dependencies:
   flutter_test:

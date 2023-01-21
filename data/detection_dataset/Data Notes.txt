@@ -1,0 +1,14 @@
+The Provided data contains shot instances of a paint gun (Cool Fire) .
+ 1- Linear Acc
+ 2- Nozzle_X
+ 3- Nozzle_Y
+ 4- Linear_Acc_X
+ 5- Linear_Acc_Y
+ 6- Linear_Acc_Z
+ 7- Acc_X
+ 8- Acc_Y
+ 9- Acc_Z
+ 10- Gyro_X
+ 11-Gyro_Y
+ 12-Gyro_Z
+ 13-dt

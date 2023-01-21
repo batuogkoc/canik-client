@@ -5,7 +5,8 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 import 'fusion_test.dart';
 import 'fusion_test.dart' as fusion_test;
 
-String xAxisKey = "time";
+// String xAxisKey = "time";
+String xAxisKey = "index";
 
 void main() {
   runApp(const App());
@@ -16,6 +17,7 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("--------------");
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -26,45 +28,85 @@ class App extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final oldFormatTextController = TextEditingController();
+  final newFormatTextController = TextEditingController();
+  final githubTextController = TextEditingController();
+  final detectionTextController = TextEditingController();
+  @override
+  void dispose() {
+    oldFormatTextController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    oldFormatTextController.text = "../../data/fusion_datasets/DATA.csv";
+    newFormatTextController.text = "../../data/fusion_new_dataset/DataSet.csv";
+    githubTextController.text =
+        "../../data/fusion_github_dataset/Justa_dataset.csv";
+    detectionTextController.text = "../../data/detection_dataset/Set 3.csv";
+
     return Scaffold(
       appBar: AppBar(title: const Text("Select data format")),
       body: Center(
           child: Column(
         children: [
+          TextFormField(
+            decoration: const InputDecoration(),
+            controller: oldFormatTextController,
+          ),
           ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
                   const String path = "../../data/fusion_datasets/DATA.csv";
-                  return FusionTestWidget(
-                      path, csvReadOld(path, Vector3.zero()));
+                  return FusionTestWidget(path,
+                      csvReadOld(oldFormatTextController.text, Vector3.zero()));
                 }));
               },
               child: const Text("Old format")),
+          TextFormField(
+            decoration: const InputDecoration(),
+            controller: newFormatTextController,
+          ),
           ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  const String path = "../../data/new_dataset/DataSet.csv";
-                  return FusionTestWidget(path, csvRead(path, Vector3.zero()));
+                  return FusionTestWidget(newFormatTextController.text,
+                      csvRead(newFormatTextController.text, Vector3.zero()));
                 }));
               },
               child: const Text("New format")),
+          TextFormField(
+            decoration: const InputDecoration(),
+            controller: githubTextController,
+          ),
           ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  const String path =
-                      "../../data/fusion_github_dataset/Justa_dataset.csv";
-                  // const String path =
-                  //     "../../data/fusion_github_dataset/Synthetic3.csv";
-                  return FusionTestWidget(
-                      path, csvReadGithub(path, outPath: ""));
+                  return FusionTestWidget(githubTextController.text,
+                      csvReadGithub(githubTextController.text, outPath: ""));
                 }));
               },
               child: const Text("Github")),
+          TextFormField(
+            decoration: const InputDecoration(),
+            controller: detectionTextController,
+          ),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return DetectionTestWidget(detectionTextController.text);
+                }));
+              },
+              child: const Text("Detection")),
           ElevatedButton(
               onPressed: () {
                 fusion_test.main([]);
@@ -74,6 +116,167 @@ class HomePage extends StatelessWidget {
       )),
     );
     // return const FusionTestOldCsv("../../data/fusion_datasets/DATA.csv");
+  }
+}
+
+class DetectionTestWidget extends StatelessWidget {
+  final String path;
+  const DetectionTestWidget(this.path, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Chart: $path"),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+            child: FutureBuilder(
+          future: shotDetector(path),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              var data = snapshot.data!;
+              return Column(
+                children: [
+                  const Text("Max Corr Avg"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          var debug =
+                              (datum["paintFireDebug"] as Map<String, num>);
+                          return debug["maxCorrelationAverage"];
+                        },
+                        color: Colors.red),
+                  ]),
+                  const Text("Max Res Count"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          var debug =
+                              (datum["paintFireDebug"] as Map<String, num>);
+                          return debug["maxResemblenceCount"];
+                        },
+                        color: Colors.red),
+                  ]),
+                  const Text("Max Corr Max"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          var debug =
+                              (datum["paintFireDebug"] as Map<String, num>);
+                          return debug["maxCorrelationMax"];
+                        },
+                        color: Colors.red),
+                  ]),
+                  const Text("Signal Max"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          var debug =
+                              (datum["paintFireDebug"] as Map<String, num>);
+                          return debug["signalMax"];
+                        },
+                        color: Colors.red),
+                  ]),
+                  const Text("Shot count"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          return (datum["liveFire"] as int);
+                        },
+                        color: Colors.red),
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          return (datum["paintFire"] as int);
+                        },
+                        color: Colors.green),
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          return (datum["dryFire"] as int);
+                        },
+                        color: Colors.blue),
+                  ]),
+                  const Text("Device Accel Norm g"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          if (datum.containsKey("processedData")) {
+                            return (datum["processedData"] as ProcessedData)
+                                .deviceAccelG
+                                .length;
+                          } else {
+                            return 0;
+                          }
+                        },
+                        color: Colors.red),
+                  ]),
+                  const Text("Gyro deg/s"),
+                  vector3ListToChart(data
+                      .map((e) => [
+                            e[xAxisKey],
+                            (e["rawData"] as RawData).rateRad * radians2Degrees
+                          ])
+                      .toList()),
+                  const Text("Accel g"),
+                  vector3ListToChart(data
+                      .map((e) =>
+                          [e[xAxisKey], (e["rawData"] as RawData).rawAccelG])
+                      .toList()),
+                  const Text("dT"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum["time"] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          return datum["dt"] as num;
+                        },
+                        color: Colors.blue),
+                  ]),
+                ],
+              );
+            } else if (snapshot.hasError) {
+              return Text("Error: ${snapshot.error}");
+            } else {
+              return const Text("Calculating...");
+            }
+          },
+        )),
+      ),
+    );
   }
 }
 
