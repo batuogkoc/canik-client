@@ -5,8 +5,8 @@ import 'package:vector_math/vector_math.dart' hide Colors;
 import 'fusion_test.dart';
 import 'fusion_test.dart' as fusion_test;
 
-// String xAxisKey = "time";
-String xAxisKey = "index";
+String xAxisKey = "time";
+// String xAxisKey = "index";
 
 void main() {
   runApp(const App());
@@ -223,6 +223,40 @@ class DetectionTestWidget extends StatelessWidget {
                           return (datum["dryFire"] as int);
                         },
                         color: Colors.blue),
+                  ]),
+                  const Text("Nozzle Accel g"),
+                  SfCartesianChart(series: <ChartSeries>[
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          return (datum["nozzleAccel"] as Vector2).x;
+                        },
+                        color: Colors.red),
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          return (datum["nozzleAccel"] as Vector2).y;
+                        },
+                        color: Colors.green),
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          if (datum.containsKey("deviceAccelVal")) {
+                            return (datum["nozzleAccel"] as Vector2).length;
+                          } else {
+                            return 0;
+                          }
+                        },
+                        color: Colors.black),
                   ]),
                   const Text("Device Accel Norm g"),
                   SfCartesianChart(series: <ChartSeries>[

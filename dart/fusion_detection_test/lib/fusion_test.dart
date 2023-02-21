@@ -1,5 +1,4 @@
 import 'package:csv/csv.dart';
-import 'package:scidart/numdart.dart';
 import 'package:vector_math/vector_math.dart';
 import "dart:io";
 import 'dart:convert';
@@ -25,6 +24,7 @@ void main(List<String> args) {
 }
 
 Future<List<Map<String, dynamic>>> shotDetector(String path) async {
+  var startTime = DateTime.now();
   ShotConditions liveFireConditions = ShotConditions(85, 70, 5, 2, 15);
   ShotDataset liveFireDataset = ShotDataset();
   await liveFireDataset.fillFromCsv(
@@ -43,7 +43,7 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
   ShotDetector dryFireDetector =
       ShotDetector(dryFireConditions, dryFireDataset);
 
-  ShotConditions paintFireConditions = ShotConditions(85, 70, 5, 2.3, 15);
+  ShotConditions paintFireConditions = ShotConditions(50, 50, 10, 2, 15);
   ShotDataset paintFireDataset = ShotDataset();
   await paintFireDataset.fillFromCsv(
       "../../data/shot_det_validation/Paint_Fire_set.csv",
@@ -114,6 +114,7 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
     liveFireDetector.onDataReceive(deviceAccelNorm);
     paintFireDetector.onDataReceive(deviceAccelNorm);
     dryFireDetector.onDataReceive(deviceAccelNorm);
+    // print("a");
     return {
       "nozzleAccel": nozzleAccel,
       "rawData": rawData,
@@ -131,6 +132,7 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
   list.sort((a, b) =>
       (a["rawData"] as RawData).time.compareTo((b["rawData"] as RawData).time));
 
+  print(DateTime.now().difference(startTime));
   return list;
 }
 

@@ -5,14 +5,18 @@ import 'package:scidart/numdart.dart';
 import 'package:csv/csv.dart';
 import 'dart:io';
 import 'package:collection/collection.dart';
+import 'package:canik_lib/canik_lib.dart';
+import 'dart:math';
 
 Array normalizeCopy(Array array) {
   Array ret = Array.fixed(array.length, initialValue: double.nan);
-  //TODO: implement normalization
-  double max = array.max;
-  double min = array.min;
+  double norm = 0;
+  for (var element in array) {
+    norm += element * element;
+  }
+  norm = sqrt(norm);
   for (int i = 0; i < array.length; i++) {
-    ret[i] = (array[i] - min) / (max - min);
+    ret[i] = array[i] / norm;
   }
   return ret;
   // return array.copy();
@@ -43,8 +47,14 @@ class ShotConditions {
 
     debug["maxCorrelationAverage"] = maxCorrelationArray.average;
     // debug["maxResemblenceCount"] = count;
-    debug["maxResemblenceCount"] =
-        maxCorrelationArray.sorted((a, b) => b.compareTo(a))[resemblance];
+    int i = 0;
+    for (var element in maxCorrelationArray.sorted((a, b) => b.compareTo(a))) {
+      if (element < maxResemblance) {
+        break;
+      }
+      i++;
+    }
+    debug["maxResemblenceCount"] = i;
     debug["maxCorrelationMax"] = maxCorrelationArray.max;
     debug["signalMax"] = signalMax;
     if (cond1 || cond2 || cond3 || cond4and5) {
@@ -58,7 +68,8 @@ class ShotConditions {
       // print(
       //     "accThresh: $cond4and5, $shotAccLowerThresh < $signalMax < $shotAccUpperThresh");
     }
-    return cond1 && cond2 && cond3 && cond4and5;
+    // return cond1 && cond2 && cond3 && cond4and5;
+    return cond2;
   }
 }
 
@@ -68,6 +79,8 @@ class ShotDataset {
   Future<void> fillFromCsv(String path,
       {String fieldDelimiter = defaultFieldDelimiter,
       String eol = defaultEol}) async {
+    var filter = SavitzkyGolayFilter(13, 3);
+
     dataSet = <Array>[];
     var file = File(path);
     if (await file.exists() == false) {
@@ -87,27 +100,26 @@ class ShotDataset {
         return true;
       });
     }).forEach((dynamicList) {
-      dataSet.add(Array(dynamicList.cast()));
+      // dataSet.add(Array(dynamicList.cast<double>()));
+      var rawArray = Array(dynamicList.cast<double>());
+      var filteredArray = filter.filter(rawArray);
+      // print("@@-----------------@@");
+      // print(rawArray);
+      // print(filteredArray);
+      // dataSet.add(filteredArray);
+      // var normalizedArray = normalizeCopy(rawArray);
+      var normalizedArray = normalizeCopy(filteredArray);
+      print(filteredArray);
+      print(normalizedArray);
+      dataSet.add(rawArray);
     });
-    normalize();
-  }
-
-  void normalize() {
-    for (var array in dataSet) {
-      array = normalizeCopy(array);
-    }
-  }
-
-  List<Array> correlate(Array signal, {bool fast = false}) {
-    // print(signal.length);
-    var ret = <Array>[];
-    for (var sample in dataSet) {
-      ret.add(scidart.correlate(sample, signal, fast: fast));
-    }
-    return ret;
   }
 
   List<double> maxCorrelationList(Array signal, {bool fast = false}) {
-    return correlate(signal).map((e) => e.max).toList();
+    var ret = <double>[];
+    for (var sample in dataSet) {
+      ret.add(scidart.correlate(sample, signal, fast: fast).max);
+    }
+    return ret;
   }
 }
