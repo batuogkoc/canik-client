@@ -1,3 +1,4 @@
+import 'package:canik_lib/src/stream_transformer_helpers.dart';
 import 'package:scidart/numdart.dart';
 import 'package:circular_buffer/circular_buffer.dart';
 
@@ -160,57 +161,20 @@ class ShotDetector {
   }
 }
 
-class ShotDetectorTransformer extends StreamTransformerBase<double, int> {
-  late StreamController<int> _controller;
-  StreamSubscription<double>? _subscription;
-  Stream<double>? _stream;
-  bool cancelOnError;
-
+class ShotDetectorTransformer
+    extends PersistentStreamTransformerTemplate<double, int> {
   ShotDetector shotDetector;
 
   ShotDetectorTransformer(this.shotDetector,
-      {bool sync = false, this.cancelOnError = false}) {
-    _controller = StreamController<int>(
-        onListen: _onListen,
-        onCancel: _onCancel,
-        onPause: () {
-          _subscription?.pause();
-        },
-        onResume: () {
-          _subscription?.resume();
-        },
-        sync: sync);
-  }
+      {bool sync = false, bool cancelOnError = false})
+      : super(cancelOnError: cancelOnError, sync: sync);
   ShotDetectorTransformer.broadcast(this.shotDetector,
-      {bool sync = false, this.cancelOnError = true}) {
-    _controller = StreamController<int>.broadcast(
-        onListen: _onListen, onCancel: _onCancel, sync: sync);
-  }
-  void _onCancel() {
-    _subscription?.cancel();
-    _subscription = null;
-  }
-
-  void _onListen() {
-    _subscription = _stream?.listen(onData,
-        onError: _controller.addError,
-        onDone: _controller.close,
-        cancelOnError: cancelOnError);
-  }
+      {bool sync = false, bool cancelOnError = true})
+      : super.broadcast(cancelOnError: cancelOnError, sync: sync);
 
   void onData(double data) {
     if (shotDetector.onDataReceive(data)) {
-      _controller.add(shotDetector.shotCounter);
+      publishData(shotDetector.shotCounter);
     }
-  }
-
-  @override
-  Stream<int> bind(Stream<double> stream) {
-    _stream = stream;
-    return _controller.stream;
-  }
-
-  void dispose() {
-    _controller.close();
   }
 }

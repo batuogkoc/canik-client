@@ -13,8 +13,10 @@ abstract class StreamTransformerTemplate<S, T>
         onCancel: _onCancel,
         onPause: () {
           _subscription?.pause();
+          onStop();
         },
         onResume: () {
+          onStart();
           _subscription?.resume();
         },
         sync: sync);
@@ -27,14 +29,19 @@ abstract class StreamTransformerTemplate<S, T>
   void _onCancel() {
     _subscription?.cancel();
     _subscription = null;
+    onStop();
   }
 
   void _onListen() {
+    onStart();
     _subscription = _stream?.listen(_onDataReceive,
         onError: _controller.addError,
         onDone: _controller.close,
         cancelOnError: cancelOnError);
   }
+
+  void onStop() {}
+  void onStart() {}
 
   void _onDataReceive(S data) {
     try {

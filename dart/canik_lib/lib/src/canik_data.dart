@@ -1,4 +1,5 @@
 import 'package:canik_lib/src/ahrs/ahrs.dart';
+import "package:canik_lib/src/stream_transformer_helpers.dart";
 
 import "package:vector_math/vector_math.dart";
 import "dart:async";
@@ -74,12 +75,7 @@ class RawData {
 }
 
 class BufferedRawDataToRawDataTransformer
-    extends StreamTransformerBase<List<int>, RawData> {
-  late StreamController<RawData> _controller;
-  StreamSubscription<List<int>>? _subscription;
-  Stream<List<int>>? _stream;
-  bool cancelOnError;
-
+    extends StreamTransformerTemplate<List<int>, RawData> {
   double _lastCanikTime;
   final double gyroRadsScale;
   final double accGScale;
@@ -88,39 +84,17 @@ class BufferedRawDataToRawDataTransformer
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
       this.accGScale = 0.000061035,
       bool sync = false,
-      this.cancelOnError = false})
-      : _lastCanikTime = 0 {
-    _controller = StreamController<RawData>(
-        onListen: _onListen,
-        onCancel: _onCancel,
-        onPause: () {
-          _subscription?.pause();
-        },
-        onResume: () {
-          _subscription?.resume();
-        },
-        sync: sync);
-  }
+      bool cancelOnError = false})
+      : _lastCanikTime = 0,
+        super(cancelOnError: cancelOnError, sync: sync);
+
   BufferedRawDataToRawDataTransformer.broadcast(
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
       this.accGScale = 0.000061035,
       bool sync = false,
-      this.cancelOnError = true})
-      : _lastCanikTime = 0 {
-    _controller = StreamController<RawData>.broadcast(
-        onListen: _onListen, onCancel: _onCancel, sync: sync);
-  }
-  void _onCancel() {
-    _subscription?.cancel();
-    _subscription = null;
-  }
-
-  void _onListen() {
-    _subscription = _stream?.listen(onData,
-        onError: _controller.addError,
-        onDone: _controller.close,
-        cancelOnError: cancelOnError);
-  }
+      bool cancelOnError = true})
+      : _lastCanikTime = 0,
+        super.broadcast(cancelOnError: cancelOnError, sync: sync);
 
   List<RawData> _proccessBufferedRawData(List<int> data) {
     if (data.isEmpty) {
@@ -174,31 +148,22 @@ class BufferedRawDataToRawDataTransformer
     return ret;
   }
 
+  @override
   void onData(List<int> data) {
     var rawDataList = _proccessBufferedRawData(data);
     for (var rawData in rawDataList) {
-      _controller.add(rawData);
+      publishData(rawData);
     }
   }
 
   @override
-  Stream<RawData> bind(Stream<List<int>> stream) {
-    _stream = stream;
-    return _controller.stream;
-  }
-
-  void dispose() {
-    _controller.close();
+  void onStart() {
+    _lastCanikTime = 0;
   }
 }
 
 class RawDataToProcessedDataTransformer<T extends Ahrs>
-    extends StreamTransformerBase<RawData, ProcessedData> {
-  late StreamController<ProcessedData> _controller;
-  StreamSubscription<RawData>? _subscription;
-  Stream<RawData>? _stream;
-  bool cancelOnError;
-
+    extends PersistentStreamTransformerTemplate<RawData, ProcessedData> {
   double _lastCanikTime;
   final T _ahrs;
   double gravitationalAccelG;
@@ -207,41 +172,15 @@ class RawDataToProcessedDataTransformer<T extends Ahrs>
   RawDataToProcessedDataTransformer(this._ahrs,
       {this.gravitationalAccelG = 1,
       bool sync = false,
-      this.cancelOnError = false})
+      bool cancelOnError = false})
       : _lastCanikTime = 0,
-        gyroOffset = Vector3.zero() {
-    _controller = StreamController<ProcessedData>(
-        onListen: _onListen,
-        onCancel: _onCancel,
-        onPause: () {
-          _subscription?.pause();
-        },
-        onResume: () {
-          _subscription?.resume();
-        },
-        sync: sync);
-  }
+        gyroOffset = Vector3.zero(),
+        super(cancelOnError: cancelOnError, sync: sync);
   RawDataToProcessedDataTransformer.broadcast(this._ahrs,
-      {this.gravitationalAccelG = 1, sync = false, this.cancelOnError = false})
+      {this.gravitationalAccelG = 1, sync = false, bool cancelOnError = false})
       : _lastCanikTime = 0,
-        gyroOffset = Vector3.zero() {
-    _controller = StreamController<ProcessedData>.broadcast(
-        onListen: _onListen, onCancel: _onCancel, sync: sync);
-  }
-  void _onCancel() {
-    _subscription?.cancel();
-    _subscription = null;
-  }
-
-  void _onListen() {
-    if (_stream == null) {
-      throw Exception("BufferedRawData stream is null");
-    }
-    _subscription = _stream?.listen(onData,
-        onError: _controller.addError,
-        onDone: _controller.close,
-        cancelOnError: cancelOnError);
-  }
+        gyroOffset = Vector3.zero(),
+        super.broadcast(cancelOnError: cancelOnError, sync: sync);
 
   ProcessedData proccessRawData(RawData data) {
     final double canikTime = data.time;
@@ -280,21 +219,12 @@ class RawDataToProcessedDataTransformer<T extends Ahrs>
     return processedData;
   }
 
-  void onData(RawData data) {
-    _controller.add(proccessRawData(data));
-  }
-
   @override
-  Stream<ProcessedData> bind(Stream<RawData> stream) {
-    _stream = stream;
-    return _controller.stream;
+  void onData(RawData data) {
+    publishData(proccessRawData(data));
   }
 
   T get ahrs {
     return _ahrs;
-  }
-
-  void dispose() {
-    _controller.close();
   }
 }
