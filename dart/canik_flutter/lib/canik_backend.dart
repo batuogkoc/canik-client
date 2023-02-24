@@ -3,6 +3,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "dart:async";
 import "package:vector_math/vector_math.dart";
 import 'package:canik_lib/canik_lib.dart';
+import 'shot_det_datasets/shot_det_datasets.dart';
 
 //TODO: Device configuration
 //TODO: Connection logic for other characteristics
@@ -100,10 +101,13 @@ class CanikDevice {
 
   late List<BluetoothService> services;
 
-  final _processedDataStreamController = StreamController<ProcessedData>();
+  // final _processedDataStreamController = StreamController<ProcessedData>();
   late Stream<ProcessedData> _processedDataBroadcastStream;
   final _stateStreamController = StreamController<BluetoothDeviceState>();
   final RawDataToProcessedDataTransformer _rawDataToProcessedDataTransformer;
+
+  final ShotDetectorTransformer _shotDetectorTransformer;
+  late Stream<int> _shotCountStream;
 
   final double gyroRadsScale;
   final double accGScale;
@@ -115,12 +119,19 @@ class CanikDevice {
       double drawThresholdG = 0.2,
       double rotatingAngularRateThreshDegS = 50,
       bool startHolsterDrawSM = false})
-      : _rawDataToProcessedDataTransformer = RawDataToProcessedDataTransformer(
-            ScfAhrs({"aLambda1": 0.01, "aLambda2": 1000})) {
-    _processedDataBroadcastStream =
-        _processedDataStreamController.stream.asBroadcastStream();
-    _holsterDrawSM = HolsterDrawSM(
-        processedDataStream, drawThresholdG, rotatingAngularRateThreshDegS);
+      : _rawDataToProcessedDataTransformer =
+            RawDataToProcessedDataTransformer.broadcast(
+                FscfCcAhrs({"aLambda1": 0.0017, "mLambda1": 0.0001})),
+        _shotDetectorTransformer = ShotDetectorTransformer(ShotDetector(
+            ShotConditions(50, 50, 10, 2, 15),
+            ShotDataset()..fillFromList(paintFireSetList))) {
+    // _processedDataBroadcastStream =
+    //     _processedDataStreamController.stream.asBroadcastStream();
+    _holsterDrawSM = HolsterDrawSM(Stream<ProcessedData>.empty(),
+        drawThresholdG, rotatingAngularRateThreshDegS);
+
+    // _holsterDrawSM = HolsterDrawSM(
+    //     processedDataStream, drawThresholdG, rotatingAngularRateThreshDegS);
     if (startHolsterDrawSM) {
       _holsterDrawSM.start();
     }
@@ -150,9 +161,15 @@ class CanikDevice {
         services, CanikCharacteristics.bufferedRawData);
     await bufferedRawData!.setNotifyValue(true);
 
-    _processedDataStreamController.sink.addStream(bufferedRawData.value
+    // _processedDataStreamController.sink.addStream(bufferedRawData.value
+    //     .transform(BufferedRawDataToRawDataTransformer())
+    //     .transform(_rawDataToProcessedDataTransformer));
+    _processedDataBroadcastStream = bufferedRawData.value
         .transform(BufferedRawDataToRawDataTransformer())
-        .transform(_rawDataToProcessedDataTransformer));
+        .transform(_rawDataToProcessedDataTransformer);
+    _shotCountStream = processedDataStream
+        .map((event) => event.deviceAccelG.length)
+        .transform(_shotDetectorTransformer);
   }
 
   Future<void> calibrateGyro(
@@ -201,6 +218,10 @@ class CanikDevice {
 
   Stream<ProcessedData> get processedDataStream {
     return _processedDataBroadcastStream;
+  }
+
+  Stream<int> get shotCount {
+    return _shotCountStream;
   }
 
   get id {

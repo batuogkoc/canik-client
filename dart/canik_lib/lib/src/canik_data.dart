@@ -1,8 +1,5 @@
 import 'package:canik_lib/src/ahrs/ahrs.dart';
 
-import 'ahrs/madgwick_ahrs.dart';
-import 'ahrs/scf_ahrs.dart';
-import 'dart:math';
 import "package:vector_math/vector_math.dart";
 import "dart:async";
 import "dart:typed_data";
@@ -126,6 +123,9 @@ class BufferedRawDataToRawDataTransformer
   }
 
   List<RawData> _proccessBufferedRawData(List<int> data) {
+    if (data.isEmpty) {
+      return [];
+    }
     List<RawData> ret = List<RawData>.filled(20, RawData.zero());
     final byteBuffer = ByteData.sublistView(Uint8List.fromList(data));
     final int messageCounter = byteBuffer.getUint16(0, Endian.little);
@@ -234,6 +234,9 @@ class RawDataToProcessedDataTransformer<T extends Ahrs>
   }
 
   void _onListen() {
+    if (_stream == null) {
+      throw Exception("BufferedRawData stream is null");
+    }
     _subscription = _stream?.listen(onData,
         onError: _controller.addError,
         onDone: _controller.close,

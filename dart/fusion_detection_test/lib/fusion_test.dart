@@ -3,8 +3,7 @@ import 'package:vector_math/vector_math.dart';
 import "dart:io";
 import 'dart:convert';
 import 'package:canik_lib/canik_lib.dart';
-import 'detectors/shot_det.dart';
-import 'dataset.dart';
+import 'dart:async';
 
 // var scfAhrs = ScfAhrs(
 //     {"aLambda1": 0.0017, "aLambda2": 0, "mLambda1": 0.0001, "mLambda2": 0});
@@ -21,6 +20,17 @@ void main(List<String> args) {
   } else {
     path = args[0];
   }
+
+  var controller = StreamController<int>.broadcast();
+  var stream = controller.stream;
+  stream.listen((event) {
+    print(event);
+  });
+  stream.listen((event) {
+    print(event * 2);
+  });
+  controller.sink.add(1);
+  controller.sink.add(10);
 }
 
 Future<List<Map<String, dynamic>>> shotDetector(String path) async {
@@ -43,7 +53,8 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
   ShotDetector dryFireDetector =
       ShotDetector(dryFireConditions, dryFireDataset);
 
-  ShotConditions paintFireConditions = ShotConditions(50, 50, 10, 2, 15);
+  ShotConditions paintFireConditions =
+      ShotConditions(50, 50, 10, 2, 15, debugEnabled: true);
   ShotDataset paintFireDataset = ShotDataset();
   await paintFireDataset.fillFromCsv(
       "../../data/shot_det_validation/Paint_Fire_set.csv",

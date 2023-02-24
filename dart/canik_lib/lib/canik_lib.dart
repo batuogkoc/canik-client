@@ -9,3 +9,4 @@ export 'src/ahrs/fscf_cc_ahrs.dart';
 export 'src/ahrs/ahrs.dart';
 export 'src/canik_viz.dart';
 export 'src/savitzky_golay_filter.dart';
+export 'src/shot_det.dart';

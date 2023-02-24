@@ -301,37 +301,44 @@ class DevicePage extends StatelessWidget {
                             "HolsterDrawSM state: ${snapshot.data!.name}");
                       },
                     ),
-                    StreamBuilder<List<Vector2>>(
-                      stream: canikDevice.processedDataStream.transform(
-                          YawPitchVisualiser(400 * 3,
-                              dataCaptureFraction: 10 / 400)),
+                    StreamBuilder<int>(
+                      stream: canikDevice.shotCount,
+                      initialData: 0,
                       builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          print("a");
-                          return SfCartesianChart(
-                            primaryXAxis:
-                                NumericAxis(minimum: -180, maximum: 180),
-                            primaryYAxis:
-                                NumericAxis(minimum: -90, maximum: 90),
-                            series: <ChartSeries>[
-                              LineSeries<Vector2, double>(
-                                dataSource: snapshot.data!,
-                                xValueMapper: (datum, index) {
-                                  return datum.x;
-                                },
-                                yValueMapper: (datum, index) {
-                                  return datum.y;
-                                },
-                              )
-                            ],
-                          );
-                        } else if (snapshot.hasError) {
-                          return const Text("Graph Error");
-                        } else {
-                          return const Text("Waiting graph data");
-                        }
+                        return Text("Shot count: ${snapshot.data!}");
                       },
-                    )
+                    ),
+                    // StreamBuilder<List<Vector2>>(
+                    //   stream: canikDevice.processedDataStream.transform(
+                    //       YawPitchVisualiser(400 * 3,
+                    //           dataCaptureFraction: 10 / 400)),
+                    //   builder: (context, snapshot) {
+                    //     if (snapshot.hasData) {
+                    //       print("a");
+                    //       return SfCartesianChart(
+                    //         primaryXAxis:
+                    //             NumericAxis(minimum: -180, maximum: 180),
+                    //         primaryYAxis:
+                    //             NumericAxis(minimum: -90, maximum: 90),
+                    //         series: <ChartSeries>[
+                    //           LineSeries<Vector2, double>(
+                    //             dataSource: snapshot.data!,
+                    //             xValueMapper: (datum, index) {
+                    //               return datum.x;
+                    //             },
+                    //             yValueMapper: (datum, index) {
+                    //               return datum.y;
+                    //             },
+                    //           )
+                    //         ],
+                    //       );
+                    //     } else if (snapshot.hasError) {
+                    //       return const Text("Graph Error");
+                    //     } else {
+                    //       return const Text("Waiting graph data");
+                    //     }
+                    //   },
+                    // )
                   ],
                 ),
               ),

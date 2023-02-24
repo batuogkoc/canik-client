@@ -35,7 +35,7 @@ class HolsterDrawSM {
   }
 
   void _startStreamListen() {
-    _processedDataStream.forEach(_update);
+    _processedDataStream.listen(_update);
   }
 
   bool start() {
