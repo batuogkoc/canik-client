@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:canik_lib/src/stream_transformer_helpers.dart';
 import 'package:vector_math/vector_math.dart';
 import 'canik_data.dart';
 import 'utils.dart';
@@ -6,9 +6,9 @@ import 'utils.dart';
 enum HolsterDrawState { idle, withdrawGun, rotating, targeting, shot, stop }
 
 class HolsterDrawSM {
-  bool updateStateStreamOnChange;
+  bool stateCallbackOnChange;
   HolsterDrawState _state;
-  final Stream<ProcessedData> _processedDataStream;
+  // final Stream<ProcessedData> _processedDataStream;
   bool _firstIdle;
   bool _firstWithdrawGun;
   late DateTime _withdrawGunStart;
@@ -19,23 +19,14 @@ class HolsterDrawSM {
   double drawThresholdG;
   double rotatingAngularRateThreshDegS;
   late Quaternion _initialOrientation;
+  void Function(HolsterDrawState)? onStateUpdate;
 
-  final StreamController<HolsterDrawState> _stateStreamController =
-      StreamController<HolsterDrawState>();
-  late Stream<HolsterDrawState> _stateBroadcastStream;
-  HolsterDrawSM(this._processedDataStream, this.drawThresholdG,
-      this.rotatingAngularRateThreshDegS,
-      {this.updateStateStreamOnChange = true})
+  HolsterDrawSM(this.drawThresholdG, this.rotatingAngularRateThreshDegS,
+      {this.onStateUpdate, this.stateCallbackOnChange = true})
       : _state = HolsterDrawState.stop,
         _firstIdle = true,
         _firstWithdrawGun = true {
-    _stateBroadcastStream = _stateStreamController.stream.asBroadcastStream();
     _updateState(HolsterDrawState.stop);
-    _startStreamListen();
-  }
-
-  void _startStreamListen() {
-    _processedDataStream.listen(_update);
   }
 
   bool start() {
@@ -58,7 +49,7 @@ class HolsterDrawSM {
     }
   }
 
-  void _update(ProcessedData data) {
+  void onData(ProcessedData data) {
     switch (state) {
       case HolsterDrawState.idle:
         if (_firstIdle) {
@@ -67,7 +58,7 @@ class HolsterDrawSM {
         }
         if (data.deviceAccelG.length > drawThresholdG) {
           _updateState(HolsterDrawState.withdrawGun,
-              updateStream: updateStateStreamOnChange);
+              callback: stateCallbackOnChange);
         }
         break;
       case HolsterDrawState.withdrawGun:
@@ -97,57 +88,53 @@ class HolsterDrawSM {
         if (angularDifferenceDeg.abs() < 3 &&
             angularRateDeg.abs() > rotatingAngularRateThreshDegS) {
           _updateState(HolsterDrawState.rotating,
-              updateStream: updateStateStreamOnChange);
+              callback: stateCallbackOnChange);
           _rotatingStart = DateTime.now();
         }
         break;
       case HolsterDrawState.rotating:
         var euler = quaternionToEuler(data.orientation) * radians2Degrees;
         if (DateTime.now().difference(_rotatingStart).inMilliseconds > 2000) {
-          _updateState(HolsterDrawState.stop,
-              updateStream: updateStateStreamOnChange);
+          _updateState(HolsterDrawState.stop, callback: stateCallbackOnChange);
         } else if (euler.y.abs() < 3) {
           _targetingStart = DateTime.now();
           _updateState(HolsterDrawState.targeting,
-              updateStream: updateStateStreamOnChange);
+              callback: stateCallbackOnChange);
         }
         break;
       case HolsterDrawState.targeting:
         bool shotDetected = shotDetection();
         var timeDifference = DateTime.now().difference(_targetingStart);
         if (shotDetected || timeDifference.inMilliseconds > 2000) {
-          _updateState(HolsterDrawState.stop,
-              updateStream: updateStateStreamOnChange);
+          _updateState(HolsterDrawState.stop, callback: stateCallbackOnChange);
         } else if (data.deviceAccelG.length < 0.04) {
           _shotStart = DateTime.now();
-          _updateState(HolsterDrawState.shot,
-              updateStream: updateStateStreamOnChange);
+          _updateState(HolsterDrawState.shot, callback: stateCallbackOnChange);
         }
         break;
       case HolsterDrawState.shot:
         bool shotDetected = shotDetection();
         if (shotDetected ||
             DateTime.now().difference(_shotStart).inMilliseconds > 2000) {
-          _updateState(HolsterDrawState.stop,
-              updateStream: updateStateStreamOnChange);
+          _updateState(HolsterDrawState.stop, callback: stateCallbackOnChange);
         }
         break;
       default:
     }
-    if (!updateStateStreamOnChange) {
-      _updateStateStream();
+    if (!stateCallbackOnChange) {
+      _updateStateCallback();
     }
   }
 
-  void _updateStateStream() {
-    _stateStreamController.sink.add(state);
+  void _updateStateCallback() {
+    onStateUpdate?.call(state);
   }
 
-  void _updateState(HolsterDrawState state, {bool updateStream = true}) {
+  void _updateState(HolsterDrawState state, {bool callback = true}) {
     _state = state;
-    if (updateStream) {
+    if (callback) {
       print(state);
-      _updateStateStream();
+      _updateStateCallback();
     }
   }
 
@@ -159,8 +146,30 @@ class HolsterDrawSM {
   get state {
     return _state;
   }
+}
 
-  get stateStream {
-    return _stateBroadcastStream;
+class HolsterDrawSMTransformer extends PersistentStreamTransformerTemplate<
+    ProcessedData, HolsterDrawState> {
+  final HolsterDrawSM _holsterDrawSM;
+
+  HolsterDrawSMTransformer(this._holsterDrawSM,
+      {bool cancelOnError = false, bool sync = false})
+      : super(cancelOnError: cancelOnError, sync: sync) {
+    _holsterDrawSM.onStateUpdate = publishData;
+  }
+
+  HolsterDrawSMTransformer.broadcast(this._holsterDrawSM,
+      {bool cancelOnError = false, bool sync = false})
+      : super.broadcast(cancelOnError: cancelOnError, sync: sync) {
+    _holsterDrawSM.onStateUpdate = publishData;
+  }
+
+  @override
+  void onData(ProcessedData data) {
+    _holsterDrawSM.onData(data);
+  }
+
+  HolsterDrawSM get holsterDrawSM {
+    return _holsterDrawSM;
   }
 }

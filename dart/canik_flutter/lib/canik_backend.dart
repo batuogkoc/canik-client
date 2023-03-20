@@ -97,8 +97,6 @@ class CanikUtilities {
 class CanikDevice {
   final BluetoothDevice _device;
 
-  late HolsterDrawSM _holsterDrawSM;
-
   late List<BluetoothService> services;
 
   // final _processedDataStreamController = StreamController<ProcessedData>();
@@ -108,6 +106,9 @@ class CanikDevice {
 
   final ShotDetectorTransformer _shotDetectorTransformer;
   late Stream<int> _shotCountStream;
+
+  final HolsterDrawSMTransformer _holsterDrawSMTransformer;
+  late Stream<HolsterDrawState> _holsterDrawStateStream;
 
   final double gyroRadsScale;
   final double accGScale;
@@ -123,17 +124,17 @@ class CanikDevice {
             RawDataToProcessedDataTransformer.broadcast(
                 FscfCcAhrs({"aLambda1": 0.0017, "mLambda1": 0.0001})),
         _shotDetectorTransformer = ShotDetectorTransformer(ShotDetector(
-            ShotConditions(50, 50, 10, 2, 15),
-            ShotDataset()..fillFromList(paintFireSetList))) {
+            ShotConditions(50, 50, 10, 2, 15, debugEnabled: true),
+            ShotDataset()..fillFromList(paintFireSetList))),
+        _holsterDrawSMTransformer = HolsterDrawSMTransformer.broadcast(
+            HolsterDrawSM(drawThresholdG, rotatingAngularRateThreshDegS)) {
     // _processedDataBroadcastStream =
     //     _processedDataStreamController.stream.asBroadcastStream();
-    _holsterDrawSM = HolsterDrawSM(Stream<ProcessedData>.empty(),
-        drawThresholdG, rotatingAngularRateThreshDegS);
 
     // _holsterDrawSM = HolsterDrawSM(
     //     processedDataStream, drawThresholdG, rotatingAngularRateThreshDegS);
     if (startHolsterDrawSM) {
-      _holsterDrawSM.start();
+      _holsterDrawSMTransformer.holsterDrawSM.start();
     }
   }
   Future<void> connect({
@@ -170,6 +171,8 @@ class CanikDevice {
     _shotCountStream = processedDataStream
         .map((event) => event.deviceAccelG.length)
         .transform(_shotDetectorTransformer);
+    _holsterDrawStateStream =
+        processedDataStream.transform(_holsterDrawSMTransformer);
   }
 
   Future<void> calibrateGyro(
@@ -244,8 +247,12 @@ class CanikDevice {
     return _rawDataToProcessedDataTransformer.gyroOffset;
   }
 
-  HolsterDrawSM get holsterDrawSM {
-    return _holsterDrawSM;
+  Stream<HolsterDrawState> get holsterDrawStateStream {
+    return _holsterDrawStateStream;
+  }
+
+  HolsterDrawSMTransformer get holsterDrawSMTransformer {
+    return _holsterDrawSMTransformer;
   }
 
   getRssi() {

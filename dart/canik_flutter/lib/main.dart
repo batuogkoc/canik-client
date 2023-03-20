@@ -5,6 +5,9 @@ import "package:flutter/foundation.dart";
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:canik_lib/canik_lib.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'stream_logger.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 void main() {
   runApp(const CanikApp());
@@ -216,6 +219,37 @@ class DevicePage extends StatelessWidget {
                 ),
               );
             }
+            // 1- Linear Acc
+            // 2- Nozzle_X
+            // 3- Nozzle_Y
+            // 4- Linear_Acc_X
+            // 5- Linear_Acc_Y
+            // 6- Linear_Acc_Z
+            // 7- Acc_X
+            // 8- Acc_Y
+            // 9- Acc_Z
+            // 10- Gyro_X
+            // 11-Gyro_Y
+            // 12-Gyro_Z
+            // 13-time
+            var _streamLogger = StreamLogger<ProcessedData>(
+                canikDevice.processedDataStream,
+                (e) => [
+                      e.deviceAccelG.length,
+                      0,
+                      0,
+                      e.deviceAccelG.x,
+                      e.deviceAccelG.y,
+                      e.deviceAccelG.z,
+                      e.rawAccelG.x,
+                      e.rawAccelG.y,
+                      e.rawAccelG.z,
+                      e.rateRad.x,
+                      e.rateRad.y,
+                      e.rateRad.z,
+                      e.time
+                    ],
+                Directory("/storage/emulated/0/Documents/"));
             return Center(
               child: SingleChildScrollView(
                 child: Column(
@@ -238,21 +272,45 @@ class DevicePage extends StatelessWidget {
                       },
                     ),
                     StreamBuilder(
-                      stream: canikDevice.holsterDrawSM.stateStream,
-                      initialData: canikDevice.holsterDrawSM.state,
+                      stream: canikDevice.holsterDrawStateStream,
+                      initialData: canikDevice
+                          .holsterDrawSMTransformer.holsterDrawSM.state,
                       builder: (context, snapshot) {
                         if (snapshot.data! == HolsterDrawState.stop) {
                           return ElevatedButton(
                             child: const Text("Start SM"),
                             onPressed: () {
-                              canikDevice.holsterDrawSM.start();
+                              canikDevice.holsterDrawSMTransformer.holsterDrawSM
+                                  .start();
                             },
                           );
                         } else {
                           return ElevatedButton(
                             child: const Text("Stop SM"),
                             onPressed: () {
-                              canikDevice.holsterDrawSM.stop();
+                              canikDevice.holsterDrawSMTransformer.holsterDrawSM
+                                  .stop();
+                            },
+                          );
+                        }
+                      },
+                    ),
+                    StreamBuilder(
+                      stream: _streamLogger.isActive,
+                      initialData: false,
+                      builder: (context, snapshot) {
+                        if (snapshot.data! == false) {
+                          return ElevatedButton(
+                            child: const Text("Start Logger"),
+                            onPressed: () async {
+                              await _streamLogger.start();
+                            },
+                          );
+                        } else {
+                          return ElevatedButton(
+                            child: const Text("Stop Logger"),
+                            onPressed: () async {
+                              await _streamLogger.stop();
                             },
                           );
                         }
@@ -294,8 +352,8 @@ class DevicePage extends StatelessWidget {
                       },
                     ),
                     StreamBuilder<HolsterDrawState>(
-                      stream: canikDevice.holsterDrawSM.stateStream,
-                      initialData: canikDevice.holsterDrawSM.state,
+                      stream: canikDevice.holsterDrawStateStream,
+                      initialData: HolsterDrawState.idle,
                       builder: (context, snapshot) {
                         return Text(
                             "HolsterDrawSM state: ${snapshot.data!.name}");

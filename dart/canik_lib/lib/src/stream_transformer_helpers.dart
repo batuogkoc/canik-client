@@ -85,6 +85,7 @@ abstract class PersistentStreamTransformerTemplate<S, T>
   }
 
   void _listen() {
+    onStart();
     _subscription = _stream?.listen(_onDataReceive,
         onError: _controller.addError,
         onDone: _controller.close,
@@ -104,6 +105,8 @@ abstract class PersistentStreamTransformerTemplate<S, T>
   void publishData(T data) {
     _controller.add(data);
   }
+
+  void onStart() {}
 
   @override
   Stream<T> bind(Stream<S> stream) {

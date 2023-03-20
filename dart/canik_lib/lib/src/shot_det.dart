@@ -27,13 +27,14 @@ class ShotConditions {
 
   bool checkConditions(
       List<double> maxCorrelationArray, Array signalWithinWindow) {
-    bool cond1 = maxCorrelationArray.average > corrAvgThresh;
+    bool corrAvgThreshCond = maxCorrelationArray.average > corrAvgThresh;
     int count = maxCorrelationArray
         .where((element) => element > resemblenceThresh)
         .length;
-    bool cond2 = count > minResemblanceCount;
+    bool resemblenceCountCond = count > minResemblanceCount;
     double signalMax = signalWithinWindow.max;
-    bool cond4and5 = accLowerThresh < signalMax && signalMax < accUpperThresh;
+    bool accThreshCond =
+        accLowerThresh < signalMax && signalMax < accUpperThresh;
 
     if (debugEnabled) {
       debug["maxCorrelationAverage"] = maxCorrelationArray.average;
@@ -52,7 +53,7 @@ class ShotConditions {
     }
 
     // return cond1 && cond2 && cond3 && cond4and5;
-    return cond2;
+    return resemblenceCountCond && accThreshCond;
   }
 }
 
@@ -149,7 +150,12 @@ class ShotDetector {
     if (shotDetected) {
       shotCounter++;
       print("Shot detected");
-      print(windowSignal);
+      String out = "";
+      for (double element in windowSignal) {
+        out += element.toStringAsPrecision(3) + ", ";
+      }
+      print(out);
+      print(conditions.debug);
       return true;
     }
     return false;
@@ -158,6 +164,14 @@ class ShotDetector {
   void reset() {
     shotCounter = 0;
     _dataCounter = 0;
+  }
+
+  ShotConditions get conditions {
+    return _shotConditions;
+  }
+
+  ShotDataset get dataset {
+    return _shotDataset;
   }
 }
 

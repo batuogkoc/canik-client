@@ -1,21 +1,21 @@
 import 'dart:async';
-import 'package:dart_test/dart_test.dart';
+import 'dart:io';
+import 'package:canik_lib/src/stream_logger.dart';
 
-void main(List<String> arguments) {
-  var streamController = StreamController<int>();
-  var transformer = TestTransformer.broadcast();
-  var stream = transformer.outStream;
-
-  // stream.listen((event) {
-  //   print(event);
-  // });
-
-  var stream2 = streamController.stream.transform(transformer);
-  print(stream == stream2);
-  stream.listen((event) {
-    print(event * 2);
+void main(List<String> arguments) async {
+  StreamController<List<int>> controller =
+      StreamController<List<int>>.broadcast();
+  controller.stream.listen((event) {
+    print(event);
   });
-  streamController.add(1);
-  streamController.add(10);
-  streamController.add(100);
+  // var sl = StreamLogger(controller.stream, (element) => element.cast());
+  // sl.start();
+  print("a");
+  controller.sink.add([1, 1]);
+  sleep(Duration(seconds: 1));
+  print("b");
+  controller.sink.add([2, 2]);
+  sleep(Duration(seconds: 1));
+  print("c");
+  // await sl.stop();
 }

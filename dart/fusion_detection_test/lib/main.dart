@@ -1,4 +1,5 @@
 import 'package:canik_lib/canik_lib.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
@@ -121,6 +122,7 @@ class _HomePageState extends State<HomePage> {
 
 class DetectionTestWidget extends StatelessWidget {
   final String path;
+  final String debugName = "paintFireDebug";
   const DetectionTestWidget(this.path, {super.key});
 
   @override
@@ -138,6 +140,23 @@ class DetectionTestWidget extends StatelessWidget {
               var data = snapshot.data!;
               return Column(
                 children: [
+                  Row(
+                      children: (data[0]["debugNames"] as List<String>)
+                          .mapIndexed((i, element) {
+                    return Text(
+                      element,
+                      style: TextStyle(
+                          backgroundColor: HSVColor.fromAHSV(
+                                  1,
+                                  i /
+                                      (data[0]["debugNames"] as List).length *
+                                      360.0,
+                                  1,
+                                  0.7)
+                              .toColor(),
+                          color: Colors.white),
+                    );
+                  }).toList()),
                   const Text("Max Corr Avg"),
                   SfCartesianChart(series: <ChartSeries>[
                     LineSeries<Map<String, dynamic>, num>(
@@ -146,8 +165,7 @@ class DetectionTestWidget extends StatelessWidget {
                           return datum[xAxisKey] as num;
                         },
                         yValueMapper: (datum, index) {
-                          var debug =
-                              (datum["paintFireDebug"] as Map<String, num>);
+                          var debug = (datum[debugName] as Map<String, num>);
                           return debug["maxCorrelationAverage"];
                         },
                         color: Colors.red),
@@ -160,8 +178,7 @@ class DetectionTestWidget extends StatelessWidget {
                           return datum[xAxisKey] as num;
                         },
                         yValueMapper: (datum, index) {
-                          var debug =
-                              (datum["paintFireDebug"] as Map<String, num>);
+                          var debug = (datum[debugName] as Map<String, num>);
                           return debug["maxResemblenceCount"];
                         },
                         color: Colors.red),
@@ -174,8 +191,7 @@ class DetectionTestWidget extends StatelessWidget {
                           return datum[xAxisKey] as num;
                         },
                         yValueMapper: (datum, index) {
-                          var debug =
-                              (datum["paintFireDebug"] as Map<String, num>);
+                          var debug = (datum[debugName] as Map<String, num>);
                           return debug["maxCorrelationMax"];
                         },
                         color: Colors.red),
@@ -188,12 +204,34 @@ class DetectionTestWidget extends StatelessWidget {
                           return datum[xAxisKey] as num;
                         },
                         yValueMapper: (datum, index) {
-                          var debug =
-                              (datum["paintFireDebug"] as Map<String, num>);
+                          var debug = (datum[debugName] as Map<String, num>);
                           return debug["signalMax"];
                         },
                         color: Colors.red),
                   ]),
+                  // SfCartesianChart(
+                  //     series: (data[0]["shotDetectorDebugs"]
+                  //             as List<Map<String, num>>)
+                  //         .mapIndexed((i, element) {
+                  //   return LineSeries<Map<String, dynamic>, num>(
+                  //       dataSource: data,
+                  //       xValueMapper: (datum, index) {
+                  //         return datum[xAxisKey] as num;
+                  //       },
+                  //       yValueMapper: (datum, index) {
+                  //         return (datum["shotDetectorDebugs"][i]
+                  //             as Map<String, num>)["maxResemblenceCount"];
+                  //       },
+                  //       color: HSVColor.fromAHSV(
+                  //               1,
+                  //               i /
+                  //                   (data[0]["shotDetectorDebugs"] as List)
+                  //                       .length *
+                  //                   360.0,
+                  //               0.7,
+                  //               1)
+                  //           .toColor());
+                  // }).toList()),
                   const Text("Shot count"),
                   SfCartesianChart(series: <ChartSeries>[
                     LineSeries<Map<String, dynamic>, num>(
@@ -202,7 +240,7 @@ class DetectionTestWidget extends StatelessWidget {
                           return datum[xAxisKey] as num;
                         },
                         yValueMapper: (datum, index) {
-                          return (datum["liveFire"] as int);
+                          return datum["liveFire"];
                         },
                         color: Colors.red),
                     LineSeries<Map<String, dynamic>, num>(
@@ -211,7 +249,7 @@ class DetectionTestWidget extends StatelessWidget {
                           return datum[xAxisKey] as num;
                         },
                         yValueMapper: (datum, index) {
-                          return (datum["paintFire"] as int);
+                          return datum["paintFire"];
                         },
                         color: Colors.green),
                     LineSeries<Map<String, dynamic>, num>(
@@ -220,9 +258,18 @@ class DetectionTestWidget extends StatelessWidget {
                           return datum[xAxisKey] as num;
                         },
                         yValueMapper: (datum, index) {
-                          return (datum["dryFire"] as int);
+                          return datum["dryFire"];
                         },
                         color: Colors.blue),
+                    LineSeries<Map<String, dynamic>, num>(
+                        dataSource: data,
+                        xValueMapper: (datum, index) {
+                          return datum[xAxisKey] as num;
+                        },
+                        yValueMapper: (datum, index) {
+                          return datum["coolFire"];
+                        },
+                        color: Colors.deepPurple),
                   ]),
                   const Text("Nozzle Accel g"),
                   SfCartesianChart(series: <ChartSeries>[

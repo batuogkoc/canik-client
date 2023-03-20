@@ -35,7 +35,8 @@ void main(List<String> args) {
 
 Future<List<Map<String, dynamic>>> shotDetector(String path) async {
   var startTime = DateTime.now();
-  ShotConditions liveFireConditions = ShotConditions(85, 70, 5, 2, 15);
+  ShotConditions liveFireConditions =
+      ShotConditions(85, 70, 5, 2, 15, debugEnabled: true);
   ShotDataset liveFireDataset = ShotDataset();
   await liveFireDataset.fillFromCsv(
       "../../data/shot_det_validation/Live_Fire_set.csv",
@@ -44,7 +45,8 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
   ShotDetector liveFireDetector =
       ShotDetector(liveFireConditions, liveFireDataset);
 
-  ShotConditions dryFireConditions = ShotConditions(75, 70, 10, 1, 3.8);
+  ShotConditions dryFireConditions =
+      ShotConditions(75, 70, 10, 1, 3.8, debugEnabled: true);
   ShotDataset dryFireDataset = ShotDataset();
   await dryFireDataset.fillFromCsv(
       "../../data/shot_det_validation/Dry_Fire_set.csv",
@@ -54,7 +56,7 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
       ShotDetector(dryFireConditions, dryFireDataset);
 
   ShotConditions paintFireConditions =
-      ShotConditions(50, 50, 10, 2, 15, debugEnabled: true);
+      ShotConditions(55, 50, 10, 2, 15, debugEnabled: true);
   ShotDataset paintFireDataset = ShotDataset();
   await paintFireDataset.fillFromCsv(
       "../../data/shot_det_validation/Paint_Fire_set.csv",
@@ -62,6 +64,16 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
       eol: "\n");
   ShotDetector paintFireDetector =
       ShotDetector(paintFireConditions, paintFireDataset);
+
+  ShotConditions coolFireConditions = ShotConditions(85, 78, 7, 2.5, 15,
+      debugEnabled: true); //85			78				7		2.5				15
+  ShotDataset coolFireDataset = ShotDataset();
+  await coolFireDataset.fillFromCsv(
+      "../../data/shot_det_validation/Cool_Fire_set.csv",
+      fieldDelimiter: ",",
+      eol: "\n");
+  ShotDetector coolFireDetector =
+      ShotDetector(coolFireConditions, coolFireDataset);
 
   if (!FileSystemEntity.isFileSync(path)) {
     stderr.write("No file at $path \n");
@@ -136,7 +148,18 @@ Future<List<Map<String, dynamic>>> shotDetector(String path) async {
       "liveFire": liveFireDetector.shotCounter,
       "paintFire": paintFireDetector.shotCounter,
       "dryFire": dryFireDetector.shotCounter,
-      "paintFireDebug": Map<String, num>.from(paintFireConditions.debug)
+      "coolFire": coolFireDetector.shotCounter,
+      "debugNames": <String>["live", "paint", "dry", "cool"],
+      "shotDetectorDebugs": <Map<String, num>>[
+        Map<String, num>.from(liveFireConditions.debug),
+        Map<String, num>.from(paintFireConditions.debug),
+        Map<String, num>.from(dryFireConditions.debug),
+        Map<String, num>.from(coolFireConditions.debug)
+      ],
+      "liveFireDebug": Map<String, num>.from(liveFireConditions.debug),
+      "paintFireDebug": Map<String, num>.from(paintFireConditions.debug),
+      "dryFireDebug": Map<String, num>.from(dryFireConditions.debug),
+      "coolFireDebug": Map<String, num>.from(coolFireConditions.debug),
     };
   }).toList();
 
