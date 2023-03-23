@@ -5,8 +5,8 @@ import "package:flutter/foundation.dart";
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:canik_lib/canik_lib.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'stream_logger.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'stream_logger.dart';
+// import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 void main() {
@@ -171,6 +171,7 @@ class HomePage extends StatelessWidget {
                 builder: (context, snapshot) {
                   List<TextButton> children = [];
                   for (var result in snapshot.data!) {
+                    print(snapshot.data!);
                     if (result.device.name != "") {
                       var textButton = TextButton(
                         child: Text(
@@ -232,24 +233,24 @@ class DevicePage extends StatelessWidget {
             // 11-Gyro_Y
             // 12-Gyro_Z
             // 13-time
-            var _streamLogger = StreamLogger<ProcessedData>(
-                canikDevice.processedDataStream,
-                (e) => [
-                      e.deviceAccelG.length,
-                      0,
-                      0,
-                      e.deviceAccelG.x,
-                      e.deviceAccelG.y,
-                      e.deviceAccelG.z,
-                      e.rawAccelG.x,
-                      e.rawAccelG.y,
-                      e.rawAccelG.z,
-                      e.rateRad.x,
-                      e.rateRad.y,
-                      e.rateRad.z,
-                      e.time
-                    ],
-                Directory("/storage/emulated/0/Documents/"));
+            // var _streamLogger = StreamLogger<ProcessedData>(
+            //     canikDevice.processedDataStream,
+            //     (e) => [
+            //           e.deviceAccelG.length,
+            //           0,
+            //           0,
+            //           e.deviceAccelG.x,
+            //           e.deviceAccelG.y,
+            //           e.deviceAccelG.z,
+            //           e.rawAccelG.x,
+            //           e.rawAccelG.y,
+            //           e.rawAccelG.z,
+            //           e.rateRad.x,
+            //           e.rateRad.y,
+            //           e.rateRad.z,
+            //           e.time
+            //         ],
+            //     Directory("/storage/emulated/0/Documents/"));
             return Center(
               child: SingleChildScrollView(
                 child: Column(
@@ -273,49 +274,46 @@ class DevicePage extends StatelessWidget {
                     ),
                     StreamBuilder(
                       stream: canikDevice.holsterDrawStateStream,
-                      initialData: canikDevice
-                          .holsterDrawSMTransformer.holsterDrawSM.state,
+                      initialData: canikDevice.holsterDrawSM.state,
                       builder: (context, snapshot) {
                         if (snapshot.data! == HolsterDrawState.stop) {
                           return ElevatedButton(
                             child: const Text("Start SM"),
                             onPressed: () {
-                              canikDevice.holsterDrawSMTransformer.holsterDrawSM
-                                  .start();
+                              canikDevice.holsterDrawSM.start();
                             },
                           );
                         } else {
                           return ElevatedButton(
                             child: const Text("Stop SM"),
                             onPressed: () {
-                              canikDevice.holsterDrawSMTransformer.holsterDrawSM
-                                  .stop();
+                              canikDevice.holsterDrawSM.stop();
                             },
                           );
                         }
                       },
                     ),
-                    StreamBuilder(
-                      stream: _streamLogger.isActive,
-                      initialData: false,
-                      builder: (context, snapshot) {
-                        if (snapshot.data! == false) {
-                          return ElevatedButton(
-                            child: const Text("Start Logger"),
-                            onPressed: () async {
-                              await _streamLogger.start();
-                            },
-                          );
-                        } else {
-                          return ElevatedButton(
-                            child: const Text("Stop Logger"),
-                            onPressed: () async {
-                              await _streamLogger.stop();
-                            },
-                          );
-                        }
-                      },
-                    ),
+                    // StreamBuilder(
+                    //   stream: _streamLogger.isActive,
+                    //   initialData: false,
+                    //   builder: (context, snapshot) {
+                    //     if (snapshot.data! == false) {
+                    //       return ElevatedButton(
+                    //         child: const Text("Start Logger"),
+                    //         onPressed: () async {
+                    //           await _streamLogger.start();
+                    //         },
+                    //       );
+                    //     } else {
+                    //       return ElevatedButton(
+                    //         child: const Text("Stop Logger"),
+                    //         onPressed: () async {
+                    //           await _streamLogger.stop();
+                    //         },
+                    //       );
+                    //     }
+                    //   },
+                    // ),
                     const Text("Services:"),
                     Column(
                         children: canikDevice.services.map((e) {
@@ -357,6 +355,21 @@ class DevicePage extends StatelessWidget {
                       builder: (context, snapshot) {
                         return Text(
                             "HolsterDrawSM state: ${snapshot.data!.name}");
+                      },
+                    ),
+                    StreamBuilder<HolsterDrawResult>(
+                      stream: canikDevice.holsterDrawResultStream,
+                      initialData: HolsterDrawResult.notBegun(DateTime.now()),
+                      builder: (context, snapshot) {
+                        return Text('''
+HolsterDrawSM result: ${snapshot.data!.state.name} 
+start:       ${snapshot.data!.startTime} 
+grip:        ${snapshot.data!.gripTime} 
+withdrawGun: ${snapshot.data!.withdrawGunTime}
+rotating:    ${snapshot.data!.rotatingTime}
+targeting:   ${snapshot.data!.targetingTime}
+shot:        ${snapshot.data!.shotTime}
+                                    ''');
                       },
                     ),
                     StreamBuilder<int>(

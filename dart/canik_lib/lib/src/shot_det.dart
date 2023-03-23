@@ -150,12 +150,12 @@ class ShotDetector {
     if (shotDetected) {
       shotCounter++;
       print("Shot detected");
-      String out = "";
-      for (double element in windowSignal) {
-        out += element.toStringAsPrecision(3) + ", ";
-      }
-      print(out);
-      print(conditions.debug);
+      // String out = "";
+      // for (double element in windowSignal) {
+      //   out += element.toStringAsPrecision(3) + ", ";
+      // }
+      // print(out);
+      // print(conditions.debug);
       return true;
     }
     return false;

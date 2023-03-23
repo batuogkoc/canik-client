@@ -1,3 +1,6 @@
+import 'dart:ffi';
+
+import 'package:canik_lib/src/shot_det.dart';
 import 'package:canik_lib/src/stream_transformer_helpers.dart';
 import 'package:vector_math/vector_math.dart';
 import 'canik_data.dart';
@@ -5,32 +8,121 @@ import 'utils.dart';
 
 enum HolsterDrawState { idle, withdrawGun, rotating, targeting, shot, stop }
 
+enum HolsterDrawResultState {
+  notBegun,
+  rotatingTimeout,
+  targetingTimeout,
+  shotWhileTargeting,
+  shotTimeout,
+  shot
+}
+
+class HolsterDrawResult {
+  final DateTime startTime;
+  final double? gripTime;
+  final double? withdrawGunTime;
+  final double? rotatingTime;
+  final double? targetingTime;
+  final double? shotTime;
+  final HolsterDrawResultState state;
+
+  HolsterDrawResult.notBegun(this.startTime)
+      : state = HolsterDrawResultState.notBegun,
+        gripTime = null,
+        withdrawGunTime = null,
+        rotatingTime = null,
+        targetingTime = null,
+        shotTime = null;
+
+  HolsterDrawResult.rotatingTimeout(this.startTime, double gripTime,
+      double withdrawGunTime, double rotatingTime)
+      : state = HolsterDrawResultState.rotatingTimeout,
+        gripTime = gripTime,
+        withdrawGunTime = withdrawGunTime,
+        rotatingTime = rotatingTime,
+        targetingTime = null,
+        shotTime = null;
+
+  HolsterDrawResult.targetingTimeout(this.startTime, double gripTime,
+      double withdrawGunTime, double rotatingTime, double targetingTime)
+      : state = HolsterDrawResultState.targetingTimeout,
+        gripTime = gripTime,
+        withdrawGunTime = withdrawGunTime,
+        rotatingTime = rotatingTime,
+        targetingTime = targetingTime,
+        shotTime = null;
+
+  HolsterDrawResult.shotWhileTargeting(this.startTime, double gripTime,
+      double withdrawGunTime, double rotatingTime, double targetingTime)
+      : state = HolsterDrawResultState.shotWhileTargeting,
+        gripTime = gripTime,
+        withdrawGunTime = withdrawGunTime,
+        rotatingTime = rotatingTime,
+        targetingTime = targetingTime,
+        shotTime = null;
+  HolsterDrawResult.shotTimeout(
+      this.startTime,
+      double gripTime,
+      double withdrawGunTime,
+      double rotatingTime,
+      double targetingTime,
+      double shotTime)
+      : state = HolsterDrawResultState.shotTimeout,
+        gripTime = gripTime,
+        withdrawGunTime = withdrawGunTime,
+        rotatingTime = rotatingTime,
+        targetingTime = targetingTime,
+        shotTime = shotTime;
+  HolsterDrawResult.shot(
+      this.startTime,
+      double gripTime,
+      double withdrawGunTime,
+      double rotatingTime,
+      double targetingTime,
+      double shotTime)
+      : state = HolsterDrawResultState.shot,
+        gripTime = gripTime,
+        withdrawGunTime = withdrawGunTime,
+        rotatingTime = rotatingTime,
+        targetingTime = targetingTime,
+        shotTime = shotTime;
+}
+
 class HolsterDrawSM {
   bool stateCallbackOnChange;
   HolsterDrawState _state;
-  // final Stream<ProcessedData> _processedDataStream;
-  bool _firstIdle;
-  bool _firstWithdrawGun;
-  late DateTime _withdrawGunStart;
-  late DateTime _rotatingStart;
-  late DateTime _targetingStart;
-  late DateTime _shotStart;
+  final Stopwatch _gripStopwatch = Stopwatch();
+  final Stopwatch _withdrawGunStopwatch = Stopwatch();
+  final Stopwatch _rotatingStopwatch = Stopwatch();
+  final Stopwatch _targetingStopwatch = Stopwatch();
+  final Stopwatch _shotStopwatch = Stopwatch();
+  ShotDetector shotDetector;
   late DateTime _startTime;
   double drawThresholdG;
   double rotatingAngularRateThreshDegS;
   late Quaternion _initialOrientation;
   void Function(HolsterDrawState)? onStateUpdate;
+  void Function(HolsterDrawResult)? onResult;
 
   HolsterDrawSM(this.drawThresholdG, this.rotatingAngularRateThreshDegS,
-      {this.onStateUpdate, this.stateCallbackOnChange = true})
-      : _state = HolsterDrawState.stop,
-        _firstIdle = true,
-        _firstWithdrawGun = true {
+      this.shotDetector,
+      {this.onStateUpdate, this.onResult, this.stateCallbackOnChange = true})
+      : _state = HolsterDrawState.stop {
     _updateState(HolsterDrawState.stop);
   }
 
   bool start() {
     if (state == HolsterDrawState.stop) {
+      _gripStopwatch.stop();
+      _withdrawGunStopwatch.stop();
+      _rotatingStopwatch.stop();
+      _targetingStopwatch.stop();
+      _shotStopwatch.stop();
+      _gripStopwatch.reset();
+      _withdrawGunStopwatch.reset();
+      _rotatingStopwatch.reset();
+      _targetingStopwatch.reset();
+      _shotStopwatch.reset();
       _updateState(HolsterDrawState.idle);
       return true;
     } else {
@@ -40,9 +132,12 @@ class HolsterDrawSM {
 
   bool stop() {
     if (state != HolsterDrawState.stop) {
+      _gripStopwatch.stop();
+      _withdrawGunStopwatch.stop();
+      _rotatingStopwatch.stop();
+      _targetingStopwatch.stop();
+      _shotStopwatch.stop();
       _updateState(HolsterDrawState.stop);
-      _firstIdle = true;
-      _firstWithdrawGun = true;
       return true;
     } else {
       return false;
@@ -52,20 +147,20 @@ class HolsterDrawSM {
   void onData(ProcessedData data) {
     switch (state) {
       case HolsterDrawState.idle:
-        if (_firstIdle) {
-          _firstIdle = false;
+        if (_gripStopwatch.isRunning == false) {
           _startTime = DateTime.now();
+          _gripStopwatch.start();
         }
         if (data.deviceAccelG.length > drawThresholdG) {
+          _gripStopwatch.stop();
           _updateState(HolsterDrawState.withdrawGun,
               callback: stateCallbackOnChange);
         }
         break;
       case HolsterDrawState.withdrawGun:
-        if (_firstWithdrawGun) {
-          _firstWithdrawGun = false;
+        if (_withdrawGunStopwatch.isRunning == false) {
+          _withdrawGunStopwatch.start();
           _initialOrientation = data.orientation.clone();
-          _withdrawGunStart = DateTime.now();
         }
         Quaternion difference =
             _initialOrientation.inverted() * data.orientation;
@@ -87,35 +182,82 @@ class HolsterDrawSM {
         print("${degrees(difference.radians).abs()} ${angularDifferenceDeg}");
         if (angularDifferenceDeg.abs() < 3 &&
             angularRateDeg.abs() > rotatingAngularRateThreshDegS) {
+          _withdrawGunStopwatch.stop();
           _updateState(HolsterDrawState.rotating,
               callback: stateCallbackOnChange);
-          _rotatingStart = DateTime.now();
         }
         break;
       case HolsterDrawState.rotating:
+        if (_rotatingStopwatch.isRunning == false) {
+          _rotatingStopwatch.start();
+        }
         var euler = quaternionToEuler(data.orientation) * radians2Degrees;
-        if (DateTime.now().difference(_rotatingStart).inMilliseconds > 2000) {
+        if (_rotatingStopwatch.elapsedMilliseconds > 2000) {
+          _rotatingStopwatch.stop();
+          _onResult(HolsterDrawResult.rotatingTimeout(
+              _startTime,
+              _gripStopwatch.elapsedMilliseconds.toDouble() / 1000,
+              _withdrawGunStopwatch.elapsedMilliseconds.toDouble() / 1000,
+              _rotatingStopwatch.elapsedMilliseconds.toDouble() / 1000));
           _updateState(HolsterDrawState.stop, callback: stateCallbackOnChange);
         } else if (euler.y.abs() < 3) {
-          _targetingStart = DateTime.now();
+          _rotatingStopwatch.stop();
           _updateState(HolsterDrawState.targeting,
               callback: stateCallbackOnChange);
         }
         break;
       case HolsterDrawState.targeting:
-        bool shotDetected = shotDetection();
-        var timeDifference = DateTime.now().difference(_targetingStart);
-        if (shotDetected || timeDifference.inMilliseconds > 2000) {
+        if (_targetingStopwatch.isRunning == false) {
+          _targetingStopwatch.start();
+        }
+        bool shotDetected = shotDetection(data);
+        if (shotDetected || _targetingStopwatch.elapsedMilliseconds > 2000) {
+          _targetingStopwatch.stop();
+          if (shotDetected) {
+            _onResult(HolsterDrawResult.shotWhileTargeting(
+                _startTime,
+                _gripStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _withdrawGunStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _rotatingStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _targetingStopwatch.elapsedMilliseconds.toDouble() / 1000));
+          } else {
+            _onResult(HolsterDrawResult.targetingTimeout(
+                _startTime,
+                _gripStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _withdrawGunStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _rotatingStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _targetingStopwatch.elapsedMilliseconds.toDouble() / 1000));
+          }
           _updateState(HolsterDrawState.stop, callback: stateCallbackOnChange);
         } else if (data.deviceAccelG.length < 0.04) {
-          _shotStart = DateTime.now();
+          _targetingStopwatch.stop();
           _updateState(HolsterDrawState.shot, callback: stateCallbackOnChange);
         }
         break;
       case HolsterDrawState.shot:
-        bool shotDetected = shotDetection();
-        if (shotDetected ||
-            DateTime.now().difference(_shotStart).inMilliseconds > 2000) {
+        if (_shotStopwatch.isRunning == false) {
+          _shotStopwatch.start();
+        }
+        bool shotDetected = shotDetection(data);
+        if (shotDetected || _shotStopwatch.elapsedMilliseconds > 2000) {
+          _shotStopwatch.stop();
+          if (shotDetected) {
+            _onResult(HolsterDrawResult.shot(
+                _startTime,
+                _gripStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _withdrawGunStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _rotatingStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _targetingStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _shotStopwatch.elapsedMilliseconds.toDouble() / 1000));
+          } else {
+            _onResult(HolsterDrawResult.shotTimeout(
+                _startTime,
+                _gripStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _withdrawGunStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _rotatingStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _targetingStopwatch.elapsedMilliseconds.toDouble() / 1000,
+                _shotStopwatch.elapsedMilliseconds.toDouble() / 1000));
+          }
           _updateState(HolsterDrawState.stop, callback: stateCallbackOnChange);
         }
         break;
@@ -138,9 +280,13 @@ class HolsterDrawSM {
     }
   }
 
-  //TODO: Shot detection
-  bool shotDetection() {
-    return true;
+  void _onResult(HolsterDrawResult result) {
+    print(result.state.name);
+    onResult?.call(result);
+  }
+
+  bool shotDetection(ProcessedData data) {
+    return shotDetector.onDataReceive(data.deviceAccelG.length);
   }
 
   get state {
@@ -148,28 +294,28 @@ class HolsterDrawSM {
   }
 }
 
-class HolsterDrawSMTransformer extends PersistentStreamTransformerTemplate<
-    ProcessedData, HolsterDrawState> {
-  final HolsterDrawSM _holsterDrawSM;
+// class HolsterDrawSMTransformer extends PersistentStreamTransformerTemplate<
+//     ProcessedData, HolsterDrawState> {
+//   final HolsterDrawSM _holsterDrawSM;
 
-  HolsterDrawSMTransformer(this._holsterDrawSM,
-      {bool cancelOnError = false, bool sync = false})
-      : super(cancelOnError: cancelOnError, sync: sync) {
-    _holsterDrawSM.onStateUpdate = publishData;
-  }
+//   HolsterDrawSMTransformer(this._holsterDrawSM,
+//       {bool cancelOnError = false, bool sync = false})
+//       : super(cancelOnError: cancelOnError, sync: sync) {
+//     _holsterDrawSM.onStateUpdate = publishData;
+//   }
 
-  HolsterDrawSMTransformer.broadcast(this._holsterDrawSM,
-      {bool cancelOnError = false, bool sync = false})
-      : super.broadcast(cancelOnError: cancelOnError, sync: sync) {
-    _holsterDrawSM.onStateUpdate = publishData;
-  }
+//   HolsterDrawSMTransformer.broadcast(this._holsterDrawSM,
+//       {bool cancelOnError = false, bool sync = false})
+//       : super.broadcast(cancelOnError: cancelOnError, sync: sync) {
+//     _holsterDrawSM.onStateUpdate = publishData;
+//   }
 
-  @override
-  void onData(ProcessedData data) {
-    _holsterDrawSM.onData(data);
-  }
+//   @override
+//   void onData(ProcessedData data) {
+//     _holsterDrawSM.onData(data);
+//   }
 
-  HolsterDrawSM get holsterDrawSM {
-    return _holsterDrawSM;
-  }
-}
+//   HolsterDrawSM get holsterDrawSM {
+//     return _holsterDrawSM;
+//   }
+// }

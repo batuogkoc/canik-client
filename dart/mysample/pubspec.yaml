@@ -163,7 +163,7 @@ flutter:
     - family: Akhand
       fonts:
         - asset: assets/fonts/Akhand/Akhand.woff
-        - asset: assets/fonts/Akhand/Akhand-light.woff
+        - asset: assets/fonts/Akhand/Akhand-Light.woff
         - asset: assets/fonts/Akhand/AkhandBold.woff
         - asset: assets/fonts/Akhand/AkhandExtrabold.woff
         - asset: assets/fonts/Akhand/AkhandExtralight.woff
