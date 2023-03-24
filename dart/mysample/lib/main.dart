@@ -94,7 +94,7 @@ class _LoginRegisterState extends State<Main> {
     SystemChrome.setPreferredOrientations(
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     return MultiBlocProvider(
-      providers: ProductInit().providers,
+      providers: ProductInit().providers.cast(),
       child: BlocBuilder<LanguageFormBloc, LanguageFormState>(
         builder: (context, state) {
           return FutureBuilder<bool>(

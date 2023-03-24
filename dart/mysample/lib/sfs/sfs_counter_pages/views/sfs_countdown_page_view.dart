@@ -10,6 +10,9 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../widgets/app_bar_sfs_only_icon.dart';
+// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
+import "package:canik_flutter/canik_backend.dart";
+import 'package:canik_lib/canik_lib.dart';
 
 class SfsCountDownPage extends StatefulWidget {
   const SfsCountDownPage({Key? key}) : super(key: key);
@@ -29,7 +32,8 @@ class _SfsCountDownPageState extends State<SfsCountDownPage> {
       final seconds = duration.inSeconds - reduceSecondsBy;
       if (seconds < 0) {
         countdownTimer!.cancel();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const SfsShootBipView()));
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const SfsShootBipView()));
       } else {
         duration = Duration(seconds: seconds);
       }
@@ -37,7 +41,8 @@ class _SfsCountDownPageState extends State<SfsCountDownPage> {
   }
 
   void startTimer() {
-    countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) => setCountDown());
+    countdownTimer =
+        Timer.periodic(const Duration(seconds: 1), (_) => setCountDown());
   }
 
   @override
@@ -81,7 +86,8 @@ class _SfsCountDownPageState extends State<SfsCountDownPage> {
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(AppLocalizations.of(context)!.starting_in, style: _SfsCountDownTextStyles.akhand14),
+                    Text(AppLocalizations.of(context)!.starting_in,
+                        style: _SfsCountDownTextStyles.akhand14),
                     Padding(
                       padding: EdgeInsets.only(bottom: 10.h),
                       child: Text(
@@ -93,14 +99,32 @@ class _SfsCountDownPageState extends State<SfsCountDownPage> {
                         style: ElevatedButton.styleFrom(
                             primary: const Color(0xff686F76),
                             shape: RoundedRectangleBorder(
-                                borderRadius: context.normalBorderRadius, side: const BorderSide(color: Colors.white))),
+                                borderRadius: context.normalBorderRadius,
+                                side: const BorderSide(color: Colors.white))),
                         onPressed: () {
                           countdownTimer!.cancel();
-                          context.navigateToPage(const SfsHolsterDrawPageView());
+                          List<HolsterDrawResult> hdResults =
+                              <HolsterDrawResult>[
+                            HolsterDrawResult.notBegun(DateTime.now()),
+                            HolsterDrawResult.rotatingTimeout(
+                                DateTime.now(), 1, 1, 1),
+                            HolsterDrawResult.targetingTimeout(
+                                DateTime.now(), 1, 1, 1, 1),
+                            HolsterDrawResult.shotWhileTargeting(
+                                DateTime.now(), 1, 1, 1, 1),
+                            HolsterDrawResult.shotTimeout(
+                                DateTime.now(), 1, 1, 1, 1, 1),
+                            HolsterDrawResult.shot(
+                                DateTime.now(), 1, 1, 1, 1, 1)
+                          ];
+                          context.navigateToPage(
+                              SfsHolsterDrawPageView(results: hdResults));
                         },
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 2.h),
-                          child: Text(AppLocalizations.of(context)!.cancel, textAlign: TextAlign.center),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 30.w, vertical: 2.h),
+                          child: Text(AppLocalizations.of(context)!.cancel,
+                              textAlign: TextAlign.center),
                         )),
                   ],
                 )
@@ -114,6 +138,8 @@ class _SfsCountDownPageState extends State<SfsCountDownPage> {
 }
 
 class _SfsCountDownTextStyles {
-  static const TextStyle akhand57 = TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
-  static const TextStyle akhand14 = TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: Colors.white);
+  static const TextStyle akhand57 =
+      TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
+  static const TextStyle akhand14 =
+      TextStyle(fontSize: 14, fontWeight: FontWeight.w300, color: Colors.white);
 }

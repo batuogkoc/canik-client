@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:kartal/kartal.dart';
-import 'package:mysample/sfs/sfs_core/canik_backend.dart';
-import 'package:mysample/sfs/sfs_counter_pages/views/sfs_waiting_page_view.dart';
 import 'package:mysample/sfs/sfs_home_page/model/sfs_home_model.dart';
 import 'package:mysample/sfs/sfs_home_page/viewmodel/sfs_home_page_view_model.dart';
 import 'package:mysample/sfs/sfs_rapid_fire/view/sfs_rapid_fire_page_view.dart';
@@ -14,7 +12,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../../constants/color_constants.dart';
 
 class SfsHomeTestPage extends StatefulWidget {
-  
   const SfsHomeTestPage({Key? key}) : super(key: key);
 
   @override
@@ -50,17 +47,24 @@ class _SfsHomePageState extends State<SfsHomeTestPage> {
                   height: 60.h,
                   child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, mainAxisSpacing: 15, crossAxisSpacing: 15, mainAxisExtent: 28.h),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 15,
+                        crossAxisSpacing: 15,
+                        mainAxisExtent: 28.h),
                     itemCount: homeCardList.length,
                     itemBuilder: (BuildContext context, int index) {
                       return _CustomCard(
                           isVisible: allIndex[index] == true ? true : false,
-                          borderColor: allIndex[index] == false ? _borderColor : ProjectColors().blue,
+                          borderColor: allIndex[index] == false
+                              ? _borderColor
+                              : ProjectColors().blue,
                           function: () {
                             setState(() {
-                              allIndex = List<bool>.filled(homeCardList.length, false);
-                              _currentIndex =
-                                  SfsHomePageViewModel().findToCurrentIndexHomePage(homeCardList[index].title);
+                              allIndex =
+                                  List<bool>.filled(homeCardList.length, false);
+                              _currentIndex = SfsHomePageViewModel()
+                                  .findToCurrentIndexHomePage(
+                                      homeCardList[index].title);
                               allIndex[_currentIndex] = true;
                             });
                           },
@@ -71,7 +75,7 @@ class _SfsHomePageState extends State<SfsHomeTestPage> {
                     },
                   ),
                 ),
-                 _ContinueButton()
+                _ContinueButton()
               ],
             ),
           ),
@@ -82,7 +86,8 @@ class _SfsHomePageState extends State<SfsHomeTestPage> {
 }
 
 class _CustomShareCard extends StatefulWidget {
-  const _CustomShareCard({Key? key, required this.borderCOlor}) : super(key: key);
+  const _CustomShareCard({Key? key, required this.borderCOlor})
+      : super(key: key);
   final Color borderCOlor;
 
   @override
@@ -96,7 +101,9 @@ class _CustomShareCardState extends State<_CustomShareCard> {
       height: 25.h,
       width: 40.w,
       decoration: BoxDecoration(
-          image: const DecorationImage(image: AssetImage('assets/images/share_sfs.png'), fit: BoxFit.cover),
+          image: const DecorationImage(
+              image: AssetImage('assets/images/share_sfs.png'),
+              fit: BoxFit.cover),
           borderRadius: context.normalBorderRadius,
           color: ProjectColors().black,
           border: Border.all(width: 2, color: widget.borderCOlor)),
@@ -116,7 +123,9 @@ class _ContinueButton extends StatelessWidget {
           context.navigateToPage(const SfsWaitingTestPageView());
         },
         style: ElevatedButton.styleFrom(
-            primary: ProjectColors().blue, shape: RoundedRectangleBorder(borderRadius: context.normalBorderRadius)),
+            primary: ProjectColors().blue,
+            shape: RoundedRectangleBorder(
+                borderRadius: context.normalBorderRadius)),
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 2.h),
           child: Row(
@@ -177,12 +186,15 @@ class _CustomCardState extends State<_CustomCard> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle_outlined, color: ProjectColors().blue).toVisible(widget.isVisible),
+                    Icon(Icons.check_circle_outlined,
+                            color: ProjectColors().blue)
+                        .toVisible(widget.isVisible),
                     Text(
                       widget.title,
                       style: _SfsHomePageTextStyles.built30,
                     ),
-                    Text(widget.subtitle, style: _SfsHomePageTextStyles.akhandBold),
+                    Text(widget.subtitle,
+                        style: _SfsHomePageTextStyles.akhandBold),
                     Text(widget.explanation,
                         style: widget.index == 2
                             ? _SfsHomePageTextStyles.akhand12Normal
@@ -217,11 +229,18 @@ class _CustomTextTraining extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.pushReplacement(
-                            context, MaterialPageRoute(builder: (context) => const SfsRapidFirePageView()));
+            context,
+            MaterialPageRoute(
+                builder: (context) => const SfsRapidFirePageView()));
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [_CustomText(chooseYourTraining:AppLocalizations.of(context)!.choose_your_training), Container()],
+        children: [
+          _CustomText(
+              chooseYourTraining:
+                  AppLocalizations.of(context)!.choose_your_training),
+          Container()
+        ],
       ),
     );
   }
@@ -254,17 +273,38 @@ class SfsHomePagePadding extends EdgeInsets {
 }
 
 class _SfsHomePageTextStyles {
-  static const built32 = TextStyle(color: Colors.white, fontFamily: 'Built', fontSize: 32, fontWeight: FontWeight.w600);
-  static const builtw600 =
-      TextStyle(color: Colors.white, fontFamily: 'Built', fontSize: 17, fontWeight: FontWeight.w600);
+  static const built32 = TextStyle(
+      color: Colors.white,
+      fontFamily: 'Built',
+      fontSize: 32,
+      fontWeight: FontWeight.w600);
+  static const builtw600 = TextStyle(
+      color: Colors.white,
+      fontFamily: 'Built',
+      fontSize: 17,
+      fontWeight: FontWeight.w600);
   static final akhand17 = TextStyle(
-      decoration: TextDecoration.underline, color: ProjectColors().blue, fontSize: 17, fontWeight: FontWeight.normal);
-  static const built30 = TextStyle(color: Colors.white, fontFamily: 'Built', fontSize: 30, fontWeight: FontWeight.w400);
-  static const akhandBold = TextStyle(color: SfsHomePageColors.seaMariner, fontSize: 10, fontWeight: FontWeight.bold);
-  static const akhand17Normal =
-      TextStyle(color: SfsHomePageColors.zenBlue, fontSize: 17, fontWeight: FontWeight.normal);
-  static const akhand12Normal =
-      TextStyle(color: SfsHomePageColors.zenBlue, fontSize: 12, fontWeight: FontWeight.normal);
+      decoration: TextDecoration.underline,
+      color: ProjectColors().blue,
+      fontSize: 17,
+      fontWeight: FontWeight.normal);
+  static const built30 = TextStyle(
+      color: Colors.white,
+      fontFamily: 'Built',
+      fontSize: 30,
+      fontWeight: FontWeight.w400);
+  static const akhandBold = TextStyle(
+      color: SfsHomePageColors.seaMariner,
+      fontSize: 10,
+      fontWeight: FontWeight.bold);
+  static const akhand17Normal = TextStyle(
+      color: SfsHomePageColors.zenBlue,
+      fontSize: 17,
+      fontWeight: FontWeight.normal);
+  static const akhand12Normal = TextStyle(
+      color: SfsHomePageColors.zenBlue,
+      fontSize: 12,
+      fontWeight: FontWeight.normal);
 }
 
 class SfsHomePageColors {

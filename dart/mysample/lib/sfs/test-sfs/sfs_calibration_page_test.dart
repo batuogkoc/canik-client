@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mysample/sfs/sfs_core/canik_backend.dart';
-import 'package:mysample/sfs/sfs_home_page/view/sfs_home_page_view.dart';
 import 'package:mysample/sfs/test-sfs/sfs_home_page_test.dart';
 import 'package:mysample/widgets/background_image_sfs_calibration.dart';
 import 'package:mysample/widgets/background_image_sfs_widget.dart';
@@ -35,28 +33,28 @@ class _SfsCalibrationPageState extends State<SfsCalibrationTestPage> {
                 const BackgroundImageForSfsCalibration2(),
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
-                  child: Text(AppLocalizations.of(context)!.calibration_questioning,
+                  child: Text(
+                      AppLocalizations.of(context)!.calibration_questioning,
                       style: _SfsCalibrationTextStyles.built32),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
                   child: Opacity(
                       opacity: 0.6,
-                      child: Text(
-                          AppLocalizations.of(context)!.calibration_ins,
+                      child: Text(AppLocalizations.of(context)!.calibration_ins,
                           style: _SfsCalibrationTextStyles.akhand16)),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
                   child: ElevatedButton(
                       onPressed: () {
-                 Navigator.push(context, MaterialPageRoute(
-                        builder: (context) {
-                          return const SfsHomeTestPage();}));
-                 
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return const SfsHomeTestPage();
+                        }));
                       },
                       style: ElevatedButton.styleFrom(
-                        fixedSize:const Size(315, 54),
+                          fixedSize: const Size(315, 54),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(40)),
                           primary: ProjectColors().blue),
@@ -67,16 +65,18 @@ class _SfsCalibrationPageState extends State<SfsCalibrationTestPage> {
                 ),
               ],
             )),
-              Positioned(
+        Positioned(
           top: 40.h,
           left: 45.w,
           child: SizedBox(
             width: 13.w,
             height: 6.h,
             child: Container(
-          
-              child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(decoration: TextDecoration.underline,color: Colors.white),)
-            ),
+                child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: TextStyle(
+                  decoration: TextDecoration.underline, color: Colors.white),
+            )),
           ),
         ),
       ],

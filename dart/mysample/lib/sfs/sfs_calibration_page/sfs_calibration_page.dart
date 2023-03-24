@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mysample/sfs/sfs_core/canik_backend.dart';
 import 'package:mysample/sfs/sfs_home_page/view/sfs_home_page_view.dart';
 import 'package:mysample/widgets/background_image_sfs_calibration.dart';
 import 'package:mysample/widgets/background_image_sfs_widget.dart';
@@ -8,9 +7,15 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../constants/color_constants.dart';
 import '../../widgets/app_bar_sfs.dart';
 
+// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
+// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+import "package:canik_flutter/canik_backend.dart";
+import 'package:canik_lib/canik_lib.dart';
+
 class SfsCalibrationPage extends StatefulWidget {
   final CanikDevice canikdevice;
-  const SfsCalibrationPage({ required this.canikdevice,Key? key}) : super(key: key);
+  const SfsCalibrationPage({required this.canikdevice, Key? key})
+      : super(key: key);
   @override
   State<SfsCalibrationPage> createState() => _SfsCalibrationPageState();
 }
@@ -35,49 +40,51 @@ class _SfsCalibrationPageState extends State<SfsCalibrationPage> {
                 const BackgroundImageForSfsCalibration2(),
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
-                  child: Text(AppLocalizations.of(context)!.calibration_questioning,
+                  child: Text(
+                      AppLocalizations.of(context)!.calibration_questioning,
                       style: _SfsCalibrationTextStyles.built32),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
                   child: Opacity(
                       opacity: 0.6,
-                      child: Text(
-                          AppLocalizations.of(context)!.calibration_ins,
+                      child: Text(AppLocalizations.of(context)!.calibration_ins,
                           style: _SfsCalibrationTextStyles.akhand16)),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 20.0),
                   child: ElevatedButton(
                       onPressed: () {
-                  // FutureBuilder<void>(
-                  // future: widget.canikdevice.calibrateGyro(),
-                  // builder: (context, snapshot) {
-                  //   print(snapshot);
-                  //   if (snapshot.hasError) {
-                  //     return Text(snapshot.error!.toString());
-                  //   } else if (snapshot.connectionState == ConnectionState.done) {
-                      //      Navigator.push(context, MaterialPageRoute(
-                      //   builder: (context) {
-                      //     return SfsHomePage(canikDevice: widget.canikdevice,);
-                      //   },
-                      // ));
-                  //     return const Text("Successful calibration");
-                  //   } else {
-                  //     return const Text("Calibrating gyro...");
-                  //   }
-                  // },
-                  //   );
+                        // FutureBuilder<void>(
+                        // future: widget.canikdevice.calibrateGyro(),
+                        // builder: (context, snapshot) {
+                        //   print(snapshot);
+                        //   if (snapshot.hasError) {
+                        //     return Text(snapshot.error!.toString());
+                        //   } else if (snapshot.connectionState == ConnectionState.done) {
+                        //      Navigator.push(context, MaterialPageRoute(
+                        //   builder: (context) {
+                        //     return SfsHomePage(canikDevice: widget.canikdevice,);
+                        //   },
+                        // ));
+                        //     return const Text("Successful calibration");
+                        //   } else {
+                        //     return const Text("Calibrating gyro...");
+                        //   }
+                        // },
+                        //   );
 
-                  widget.canikdevice.calibrateGyro().then((value) => Navigator.push(context, MaterialPageRoute(
-                        builder: (context) {
-                          return SfsHomePage(canikDevice: widget.canikdevice,);
-                      },
-                  )));
-                 
+                        widget.canikdevice.calibrateGyro().then((value) =>
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (context) {
+                                return SfsHomePage(
+                                  canikDevice: widget.canikdevice,
+                                );
+                              },
+                            )));
                       },
                       style: ElevatedButton.styleFrom(
-                        fixedSize:const Size(315, 54),
+                          fixedSize: const Size(315, 54),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(40)),
                           primary: ProjectColors().blue),
@@ -88,16 +95,18 @@ class _SfsCalibrationPageState extends State<SfsCalibrationPage> {
                 ),
               ],
             )),
-              Positioned(
+        Positioned(
           top: 40.h,
           left: 45.w,
           child: SizedBox(
             width: 13.w,
             height: 6.h,
             child: Container(
-          
-              child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(decoration: TextDecoration.underline,color: Colors.white),)
-            ),
+                child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: TextStyle(
+                  decoration: TextDecoration.underline, color: Colors.white),
+            )),
           ),
         ),
       ],

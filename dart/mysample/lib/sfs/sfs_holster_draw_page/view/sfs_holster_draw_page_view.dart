@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:draggable_bottom_sheet_nullsafety/draggable_bottom_sheet_nullsafety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -10,9 +11,14 @@ import 'package:mysample/widgets/custom_bottom_bar_play.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../../constants/color_constants.dart';
+// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
+import "package:canik_flutter/canik_backend.dart";
+import 'package:canik_lib/canik_lib.dart';
 
 class SfsHolsterDrawPageView extends StatefulWidget {
-  const SfsHolsterDrawPageView({Key? key}) : super(key: key);
+  final List<HolsterDrawResult> results;
+  const SfsHolsterDrawPageView({Key? key, required this.results})
+      : super(key: key);
 
   @override
   State<SfsHolsterDrawPageView> createState() => _SfsHolsterDrawPageViewState();
@@ -29,46 +35,93 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
   int touchedIndex = -1;
   Color clickedColor = Colors.transparent;
   final double _chartWidth = 5;
-  BarChartGroupData generateGroupData(int x, double grip, double pull, double horizontal, double aim, double shot) {
+  BarChartGroupData generateGroupData(int x, double grip, double pull,
+      double horizontal, double aim, double shot) {
     final isTouched = touchedIndex == x;
-    return BarChartGroupData(x: x, groupVertically: true, showingTooltipIndicators: isTouched ? [0] : [], barRods: [
-      BarChartRodData(
-          fromY: 0,
-          toY: grip,
-          color: _gripColor,
-          width: _chartWidth,
-          backDrawRodData: BackgroundBarChartRodData(
-            color: clickedColor,
-            show: true,
-            fromY: 0,
-            toY: grip,
-          ),
-          borderSide: BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
-      BarChartRodData(
-          fromY: grip + betweenSpace,
-          toY: grip + betweenSpace + pull,
-          color: _pullColor,
-          width: _chartWidth,
-          borderSide: BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
-      BarChartRodData(
-          fromY: grip + betweenSpace + pull + betweenSpace,
-          toY: grip + betweenSpace + pull + betweenSpace + horizontal,
-          color: _horizColor,
-          width: _chartWidth,
-          borderSide: BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
-      BarChartRodData(
-          fromY: grip + betweenSpace + pull + betweenSpace + horizontal + betweenSpace,
-          toY: grip + betweenSpace + pull + betweenSpace + horizontal + betweenSpace + aim,
-          color: _aimColor,
-          width: _chartWidth,
-          borderSide: BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
-      BarChartRodData(
-          fromY: grip + betweenSpace + pull + betweenSpace + horizontal + betweenSpace + aim + betweenSpace,
-          toY: grip + betweenSpace + pull + betweenSpace + horizontal + betweenSpace + aim + betweenSpace + shot,
-          color: _shotColor,
-          width: _chartWidth,
-          borderSide: BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
-    ]);
+    return BarChartGroupData(
+        x: x,
+        groupVertically: true,
+        showingTooltipIndicators: isTouched ? [0] : [],
+        barRods: [
+          BarChartRodData(
+              fromY: 0,
+              toY: grip,
+              color: _gripColor,
+              width: _chartWidth,
+              backDrawRodData: BackgroundBarChartRodData(
+                color: clickedColor,
+                show: true,
+                fromY: 0,
+                toY: grip,
+              ),
+              borderSide:
+                  BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
+          BarChartRodData(
+              fromY: grip + betweenSpace,
+              toY: grip + betweenSpace + pull,
+              color: _pullColor,
+              width: _chartWidth,
+              borderSide:
+                  BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
+          BarChartRodData(
+              fromY: grip + betweenSpace + pull + betweenSpace,
+              toY: grip + betweenSpace + pull + betweenSpace + horizontal,
+              color: _horizColor,
+              width: _chartWidth,
+              borderSide:
+                  BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
+          BarChartRodData(
+              fromY: grip +
+                  betweenSpace +
+                  pull +
+                  betweenSpace +
+                  horizontal +
+                  betweenSpace,
+              toY: grip +
+                  betweenSpace +
+                  pull +
+                  betweenSpace +
+                  horizontal +
+                  betweenSpace +
+                  aim,
+              color: _aimColor,
+              width: _chartWidth,
+              borderSide:
+                  BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
+          BarChartRodData(
+              fromY: grip +
+                  betweenSpace +
+                  pull +
+                  betweenSpace +
+                  horizontal +
+                  betweenSpace +
+                  aim +
+                  betweenSpace,
+              toY: grip +
+                  betweenSpace +
+                  pull +
+                  betweenSpace +
+                  horizontal +
+                  betweenSpace +
+                  aim +
+                  betweenSpace +
+                  shot,
+              color: _shotColor,
+              width: _chartWidth,
+              borderSide:
+                  BorderSide(color: Colors.white, width: isTouched ? 1 : 0)),
+        ]);
+  }
+
+  BarChartGroupData generateGroupDataHolsterDrawResult(
+      x, HolsterDrawResult result) {
+    return generateGroupData(
+        x,
+        result.gripTime ?? 0,
+        result.withdrawGunTime ?? 0,
+        result.rotatingTime ?? 0,
+        result.targetingTime ?? 0,
+        result.shotTime ?? 0);
   }
 
   @override
@@ -99,65 +152,75 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
                             height: 30.h,
                             width: 150.w,
                             child: BarChart(BarChartData(
-                              backgroundColor: Colors.transparent,
-                              alignment: BarChartAlignment.spaceBetween,
-                              titlesData: FlTitlesData(
-                                  leftTitles: AxisTitles(),
-                                  rightTitles: AxisTitles(),
-                                  topTitles: AxisTitles(),
-                                  bottomTitles: AxisTitles(
-                                      axisNameSize: 20,
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        reservedSize: 22,
-                                        getTitlesWidget: (value, meta) {
-                                          return Text(
-                                            value.toStringAsFixed(0),
-                                            style: _SfsHolsterDrawTextStyles.akhand17,
-                                          );
-                                        },
-                                      ))),
-                              barTouchData: BarTouchData(
-                                touchTooltipData: BarTouchTooltipData(
-                                    tooltipBgColor: Colors.transparent,
-                                    fitInsideVertically: true,
-                                    direction: TooltipDirection.top),
-                                enabled: true,
-                                touchCallback: (FlTouchEvent event, barTouchResponse) {
-                                  if (!event.isInterestedForInteractions ||
-                                      barTouchResponse == null ||
-                                      barTouchResponse.spot == null) {
+                                backgroundColor: Colors.transparent,
+                                alignment: BarChartAlignment.spaceBetween,
+                                titlesData: FlTitlesData(
+                                    leftTitles: AxisTitles(),
+                                    rightTitles: AxisTitles(),
+                                    topTitles: AxisTitles(),
+                                    bottomTitles: AxisTitles(
+                                        axisNameSize: 20,
+                                        sideTitles: SideTitles(
+                                          showTitles: true,
+                                          reservedSize: 22,
+                                          getTitlesWidget: (value, meta) {
+                                            return Text(
+                                              value.toStringAsFixed(0),
+                                              style: _SfsHolsterDrawTextStyles
+                                                  .akhand17,
+                                            );
+                                          },
+                                        ))),
+                                barTouchData: BarTouchData(
+                                  touchTooltipData: BarTouchTooltipData(
+                                      tooltipBgColor: Colors.transparent,
+                                      fitInsideVertically: true,
+                                      direction: TooltipDirection.top),
+                                  enabled: true,
+                                  touchCallback:
+                                      (FlTouchEvent event, barTouchResponse) {
+                                    if (!event.isInterestedForInteractions ||
+                                        barTouchResponse == null ||
+                                        barTouchResponse.spot == null) {
+                                      setState(() {
+                                        touchedIndex = -1;
+                                      });
+                                      return;
+                                    }
+                                    final rodIndex = barTouchResponse
+                                        .spot!.touchedRodDataIndex;
+                                    if (isShadowBar(rodIndex)) {
+                                      setState(() {
+                                        touchedIndex = -1;
+                                      });
+                                      return;
+                                    }
                                     setState(() {
-                                      touchedIndex = -1;
+                                      touchedIndex = barTouchResponse
+                                              .spot!.touchedBarGroupIndex +
+                                          1;
                                     });
-                                    return;
-                                  }
-                                  final rodIndex = barTouchResponse.spot!.touchedRodDataIndex;
-                                  if (isShadowBar(rodIndex)) {
-                                    setState(() {
-                                      touchedIndex = -1;
-                                    });
-                                    return;
-                                  }
-                                  setState(() {
-                                    touchedIndex = barTouchResponse.spot!.touchedBarGroupIndex + 1;
-                                  });
-                                },
-                              ),
-                              borderData: FlBorderData(show: false),
-                              gridData: FlGridData(show: false),
-                              barGroups: [
-                                generateGroupData(1, 10, 20, 30, 20, 10),
-                                generateGroupData(2, 20, 50, 10, 10, 20),
-                                generateGroupData(3, 30, 20, 30, 50, 30),
-                                generateGroupData(4, 20, 30, 40, 30, 10),
-                                generateGroupData(5, 10, 10, 50, 40, 40),
-                                generateGroupData(6, 30, 10, 40, 50, 50),
-                                generateGroupData(7, 40, 20, 50, 30, 20),
-                                generateGroupData(8, 50, 40, 20, 10, 30),
-                                generateGroupData(9, 20, 30, 30, 10, 10),
-                              ],
-                            )),
+                                  },
+                                ),
+                                borderData: FlBorderData(show: false),
+                                gridData: FlGridData(show: false),
+                                barGroups: widget.results
+                                    .mapIndexed((index, element) =>
+                                        generateGroupDataHolsterDrawResult(
+                                            index, element))
+                                    .toList()
+                                // [
+                                //   generateGroupData(1, 10, 20, 30, 20, 10),
+                                //   generateGroupData(2, 20, 50, 10, 10, 20),
+                                //   generateGroupData(3, 30, 20, 30, 50, 30),
+                                //   generateGroupData(4, 20, 30, 40, 30, 10),
+                                //   generateGroupData(5, 10, 10, 50, 40, 40),
+                                //   generateGroupData(6, 30, 10, 40, 50, 50),
+                                //   generateGroupData(7, 40, 20, 50, 30, 20),
+                                //   generateGroupData(8, 50, 40, 20, 10, 30),
+                                //   generateGroupData(9, 20, 30, 30, 10, 10),
+                                // ],
+                                )),
                           ),
                         ),
                       ],
@@ -167,16 +230,28 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
                     padding: const EdgeInsets.only(top: 20.0),
                     child: Container(
                         height: 5.h,
-                        decoration:
-                            BoxDecoration(borderRadius: BorderRadius.circular(40), color: ProjectColors().black),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(40),
+                            color: ProjectColors().black),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            LegendWidget(name: AppLocalizations.of(context)!.sfs_grip, color: _gripColor),
-                            LegendWidget(name: AppLocalizations.of(context)!.sfs_pull, color: _pullColor),
-                            LegendWidget(name: AppLocalizations.of(context)!.sfs_horizontal, color: _horizColor),
-                            LegendWidget(name: AppLocalizations.of(context)!.sfs_aim, color: _aimColor),
-                            LegendWidget(name: AppLocalizations.of(context)!.sfs_shot, color: _shotColor),
+                            LegendWidget(
+                                name: AppLocalizations.of(context)!.sfs_grip,
+                                color: _gripColor),
+                            LegendWidget(
+                                name: AppLocalizations.of(context)!.sfs_pull,
+                                color: _pullColor),
+                            LegendWidget(
+                                name: AppLocalizations.of(context)!
+                                    .sfs_horizontal,
+                                color: _horizColor),
+                            LegendWidget(
+                                name: AppLocalizations.of(context)!.sfs_aim,
+                                color: _aimColor),
+                            LegendWidget(
+                                name: AppLocalizations.of(context)!.sfs_shot,
+                                color: _shotColor),
                           ],
                         )),
                   ),
@@ -289,7 +364,8 @@ class _CustomListViewBuilder extends StatelessWidget {
                   width: 30.w,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      image: DecorationImage(image: AssetImage(improve.imgPath))),
+                      image:
+                          DecorationImage(image: AssetImage(improve.imgPath))),
                 ),
                 SizedBox(
                   width: 20.w,
@@ -316,7 +392,9 @@ class _MedalContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 10.h,
-      decoration: BoxDecoration(color: const Color(0xff393E46), borderRadius: BorderRadius.circular(15)),
+      decoration: BoxDecoration(
+          color: const Color(0xff393E46),
+          borderRadius: BorderRadius.circular(15)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -332,7 +410,8 @@ class _MedalContainer extends StatelessWidget {
                     style: _SfsHolsterDrawTextStyles.built17,
                   ),
                 ),
-                Text(AppLocalizations.of(context)!.badges, style: _SfsHolsterDrawTextStyles.built17Grey),
+                Text(AppLocalizations.of(context)!.badges,
+                    style: _SfsHolsterDrawTextStyles.built17Grey),
               ],
             ),
           ),
@@ -354,7 +433,9 @@ class _CustomContainerTotalShot extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 5.h),
       child: Container(
         height: 10.h,
-        decoration: BoxDecoration(color: const Color(0xff393E46), borderRadius: BorderRadius.circular(15)),
+        decoration: BoxDecoration(
+            color: const Color(0xff393E46),
+            borderRadius: BorderRadius.circular(15)),
         child: Padding(
           padding: const EdgeInsets.all(15.0),
           child: Row(
@@ -363,7 +444,8 @@ class _CustomContainerTotalShot extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.total, style: _SfsHolsterDrawTextStyles.built14),
+                  Text(AppLocalizations.of(context)!.total,
+                      style: _SfsHolsterDrawTextStyles.built14),
                   const Text('1,1527', style: _SfsHolsterDrawTextStyles.built17)
                 ],
               ),
@@ -371,7 +453,8 @@ class _CustomContainerTotalShot extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('%12,2', style: _SfsHolsterDrawTextStyles.built14),
-                  Text(AppLocalizations.of(context)!.better_than_avg, style: _SfsHolsterDrawTextStyles.built17)
+                  Text(AppLocalizations.of(context)!.better_than_avg,
+                      style: _SfsHolsterDrawTextStyles.built17)
                 ],
               ),
             ],
@@ -497,7 +580,8 @@ class _CustomRowForBottomState extends State<_CustomRowForBottom> {
   }
 }
 
-class _CustomHolsterDrawAppBar extends StatelessWidget implements PreferredSizeWidget {
+class _CustomHolsterDrawAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   const _CustomHolsterDrawAppBar({
     Key? key,
   }) : super(key: key);
@@ -508,7 +592,10 @@ class _CustomHolsterDrawAppBar extends StatelessWidget implements PreferredSizeW
       backgroundColor: Colors.transparent,
       centerTitle: true,
       title: Image.asset('assets/images/holster_draw_app_bar_icon.png'),
-      actions: [InkWell(onTap: () {}, child: Image.asset('assets/images/close_icon.png'))],
+      actions: [
+        InkWell(
+            onTap: () {}, child: Image.asset('assets/images/close_icon.png'))
+      ],
     );
   }
 
@@ -517,21 +604,35 @@ class _CustomHolsterDrawAppBar extends StatelessWidget implements PreferredSizeW
 }
 
 class _SfsHolsterDrawTextStyles {
-  static const TextStyle akhand57 = TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
-  static const TextStyle akhand17 = TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
-  static const TextStyle akhand14 = TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white);
-  static const TextStyle akhand12 = TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.white);
-  static const TextStyle akhand10 = TextStyle(fontSize: 10, fontWeight: FontWeight.w400, color: Colors.white);
-  static const TextStyle built17 =
-      TextStyle(fontFamily: 'Built', fontSize: 17, fontWeight: FontWeight.w600, color: Colors.white);
-  static const TextStyle built17w400 =
-      TextStyle(fontFamily: 'Built', fontSize: 17, fontWeight: FontWeight.w400, color: Colors.white);
+  static const TextStyle akhand57 =
+      TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
+  static const TextStyle akhand17 =
+      TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
+  static const TextStyle akhand14 =
+      TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white);
+  static const TextStyle akhand12 =
+      TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.white);
+  static const TextStyle akhand10 =
+      TextStyle(fontSize: 10, fontWeight: FontWeight.w400, color: Colors.white);
+  static const TextStyle built17 = TextStyle(
+      fontFamily: 'Built',
+      fontSize: 17,
+      fontWeight: FontWeight.w600,
+      color: Colors.white);
+  static const TextStyle built17w400 = TextStyle(
+      fontFamily: 'Built',
+      fontSize: 17,
+      fontWeight: FontWeight.w400,
+      color: Colors.white);
   static const TextStyle built17Grey = TextStyle(
       decoration: TextDecoration.underline,
       fontFamily: 'Built',
       fontSize: 17,
       fontWeight: FontWeight.w600,
       color: Color(0xff66758D));
-  static const TextStyle built14 =
-      TextStyle(fontFamily: 'Built', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0Xff9CABC2));
+  static const TextStyle built14 = TextStyle(
+      fontFamily: 'Built',
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      color: Color(0Xff9CABC2));
 }

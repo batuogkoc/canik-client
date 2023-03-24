@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:kartal/kartal.dart';
 import 'package:mysample/constants/color_constants.dart';
-import 'package:mysample/sfs/sfs_core/canik_backend.dart';
 import 'package:mysample/sfs/sfs_counter_pages/views/sfs_countdown_page_view.dart';
 import 'package:mysample/widgets/app_bar_sfs.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import '../../../widgets/background_image_sfs_widget.dart';
 
-
 class SfsWaitingTestPageView extends StatefulWidget {
-
   const SfsWaitingTestPageView({Key? key}) : super(key: key);
 
   @override
@@ -43,12 +39,14 @@ class _SfsWaitingPageViewState extends State<SfsWaitingTestPageView> {
                     child: _CustomButton(
                       function: () {
                         Navigator.pushReplacement(
-                            context, MaterialPageRoute(builder: (context) => const SfsCountDownPage()));
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const SfsCountDownPage()));
                       },
                       buttonColor: ProjectColors().blue,
                       borderSideColor: Colors.transparent,
                       buttonText: AppLocalizations.of(context)!.start,
-                      
                     ),
                   ),
                 ),
@@ -59,11 +57,10 @@ class _SfsWaitingPageViewState extends State<SfsWaitingTestPageView> {
                     buttonColor: _SfsWaitingColor.panicColor,
                     borderSideColor: Colors.white,
                     buttonText: AppLocalizations.of(context)!.back,
-                    
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 40,left: 10 ),
+                  padding: const EdgeInsets.only(top: 40, left: 10),
                   child: Row(
                     children: [
                       Text(
@@ -116,7 +113,7 @@ class _SfsWaitingPageViewState extends State<SfsWaitingTestPageView> {
                 //         }
                 //       },
                 //     )
-               ],
+              ],
             ),
           ),
         )
@@ -126,19 +123,18 @@ class _SfsWaitingPageViewState extends State<SfsWaitingTestPageView> {
 }
 
 class _CustomButton extends StatefulWidget {
-  const _CustomButton(
-      {Key? key,
-      required this.buttonColor,
-      required this.function,
-      required this.borderSideColor,
-      required this.buttonText,
-      })
-      : super(key: key);
+  const _CustomButton({
+    Key? key,
+    required this.buttonColor,
+    required this.function,
+    required this.borderSideColor,
+    required this.buttonText,
+  }) : super(key: key);
   final Color buttonColor;
   final Function() function;
   final Color borderSideColor;
   final String buttonText;
-  
+
   @override
   State<_CustomButton> createState() => _CustomButtonState();
 }
@@ -150,7 +146,8 @@ class _CustomButtonState extends State<_CustomButton> {
         style: ElevatedButton.styleFrom(
             primary: widget.buttonColor,
             shape: RoundedRectangleBorder(
-                borderRadius: context.normalBorderRadius, side: BorderSide(color: widget.borderSideColor))),
+                borderRadius: context.normalBorderRadius,
+                side: BorderSide(color: widget.borderSideColor))),
         onPressed: widget.function,
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 2.h),
@@ -188,8 +185,10 @@ class _SfsWaitingPaddings {
 }
 
 class _SfsWaitingTextStyles {
-  static const TextStyle akhand57 = TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
-  static const TextStyle akhand17 = TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
+  static const TextStyle akhand57 =
+      TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
+  static const TextStyle akhand17 =
+      TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
 }
 
 class _SfsWaitingColor {
