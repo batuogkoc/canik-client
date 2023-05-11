@@ -10,12 +10,19 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../widgets/app_bar_sfs_only_icon.dart';
-// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
-import "package:canik_flutter/canik_backend.dart";
-import 'package:canik_lib/canik_lib.dart';
+import '../../sfs_core/canik_backend.dart';
+import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 
 class SfsCountDownPage extends StatefulWidget {
-  const SfsCountDownPage({Key? key}) : super(key: key);
+  final CanikDevice canikDevice;
+  final SfsTrainingMode trainingMode;
+  final SfsAllSettings allSettings;
+  const SfsCountDownPage(
+      {required this.allSettings,
+      required this.canikDevice,
+      required this.trainingMode,
+      Key? key})
+      : super(key: key);
 
   @override
   State<SfsCountDownPage> createState() => _SfsCountDownPageState();
@@ -32,8 +39,13 @@ class _SfsCountDownPageState extends State<SfsCountDownPage> {
       final seconds = duration.inSeconds - reduceSecondsBy;
       if (seconds < 0) {
         countdownTimer!.cancel();
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const SfsShootBipView()));
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => SfsShootBipView(
+                    allSettings: widget.allSettings,
+                    canikDevice: widget.canikDevice,
+                    trainingMode: widget.trainingMode)));
       } else {
         duration = Duration(seconds: seconds);
       }
@@ -103,22 +115,6 @@ class _SfsCountDownPageState extends State<SfsCountDownPage> {
                                 side: const BorderSide(color: Colors.white))),
                         onPressed: () {
                           countdownTimer!.cancel();
-                          List<HolsterDrawResult> hdResults =
-                              <HolsterDrawResult>[
-                            HolsterDrawResult.notBegun(DateTime.now()),
-                            HolsterDrawResult.rotatingTimeout(
-                                DateTime.now(), 1, 1, 1),
-                            HolsterDrawResult.targetingTimeout(
-                                DateTime.now(), 1, 1, 1, 1),
-                            HolsterDrawResult.shotWhileTargeting(
-                                DateTime.now(), 1, 1, 1, 1),
-                            HolsterDrawResult.shotTimeout(
-                                DateTime.now(), 1, 1, 1, 1, 1),
-                            HolsterDrawResult.shot(
-                                DateTime.now(), 1, 1, 1, 1, 1)
-                          ];
-                          context.navigateToPage(
-                              SfsHolsterDrawPageView(results: hdResults));
                         },
                         child: Padding(
                           padding: EdgeInsets.symmetric(

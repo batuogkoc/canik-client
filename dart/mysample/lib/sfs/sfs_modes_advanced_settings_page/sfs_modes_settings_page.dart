@@ -1,15 +1,25 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kartal/kartal.dart';
 import 'package:mysample/product/utility/image_paths/image_path.dart';
+import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+import 'package:mysample/sfs/sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 import 'package:mysample/views/add_gun_home.dart';
 import 'package:mysample/widgets/image_widget.dart';
 import 'package:sizer/sizer.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../../cubit/product_categories_by_weapons_cubit.dart';
+import '../../entities/response/product_categories_weapons_response.dart';
+
 class SfsModesSettingsPage extends StatefulWidget {
-  final String imageurl;
-  const SfsModesSettingsPage({required this.imageurl, Key? key}) : super(key: key);
+  final CanikDevice canikDevice;
+  final SfsGunsSettingsModal choosedGun;
+  const SfsModesSettingsPage(
+      {required this.canikDevice, required this.choosedGun, Key? key})
+      : super(key: key);
 
   @override
   State<SfsModesSettingsPage> createState() => _SfsModesSettingsPageState();
@@ -21,6 +31,31 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
   bool isClick1 = false;
   bool isClick2 = false;
   bool isClick3 = false;
+  List<SfsGunsSettingsModal> prodcatGuns = [];
+  getGuns() async {
+    List<SfsGunsSettingsModal> mappingdata = [];
+    var result = await context
+        .read<ProductCategoriesByWeaponsCubit>()
+        .getProductCategoriesByWeapons("en-us");
+    for (var data in result.productCategoriesByWeapons) {
+      for (var element in data.productSubCategory) {
+        mappingdata.add(SfsGunsSettingsModal(
+            categoryName: element.categoryName, imageUrl: element.imageUrl));
+      }
+    }
+
+    setState(() {
+      prodcatGuns = mappingdata;
+    });
+  }
+
+  @override
+  void initState() {
+    getGuns();
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -47,17 +82,17 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: widget.imageurl.isNullOrEmpty
-                          ? Image.asset(
-                              "assets/images/placeholdergun.png",
-                              fit: BoxFit.contain,
-                            )
-                          : Image.asset(
-                              widget.imageurl,
-                              fit: BoxFit.contain,
-                            ),
-                    ),
+                        padding: const EdgeInsets.all(40),
+                        child: widget.choosedGun.imageUrl.isNullOrEmpty
+                            ? Image.asset(
+                                "assets/images/placeholdergun.png",
+                                fit: BoxFit.contain,
+                              )
+                            : CachedNetworkImage(
+                                key: UniqueKey(),
+                                imageUrl: widget.choosedGun.imageUrl,
+                                fit: BoxFit.contain,
+                              )),
                   ),
                   const SizedBox(
                     height: 15,
@@ -65,7 +100,9 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                   GestureDetector(
                     onTap: () {
                       showModalBottomSheet(
-                          isScrollControlled: true, context: context, builder: (context) => buildSheet());
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => buildSheet());
                     },
                     child: SizedBox(
                       width: 80.w,
@@ -75,13 +112,17 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                           radius: const Radius.circular(25),
                           child: Container(
                             width: 80.w,
-                            decoration:
-                                BoxDecoration(borderRadius: BorderRadius.circular(25), color: projectColors.black),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(25),
+                                color: projectColors.black),
                             child: Padding(
                               padding: const EdgeInsets.all(15),
                               child: Text(
                                 AppLocalizations.of(context)!.choose_your_canik,
-                                style: TextStyle(color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                style: TextStyle(
+                                    color: projectColors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -102,14 +143,19 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                   ),
                   Text(
                     AppLocalizations.of(context)!.dominant_hand,
-                    style: TextStyle(color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 17),
+                    style: TextStyle(
+                        color: projectColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17),
                   ),
                   const SizedBox(
                     height: 10,
                   ),
                   Container(
                     width: 80.w,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(25), color: projectColors.black),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(25),
+                        color: projectColors.black),
                     child: Padding(
                       padding: const EdgeInsets.all(8),
                       child: Row(
@@ -118,10 +164,15 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                         children: [
                           !isRight
                               ? Container(
-                                  decoration:
-                                      BoxDecoration(color: projectColors.blue, borderRadius: BorderRadius.circular(25)),
+                                  decoration: BoxDecoration(
+                                      color: projectColors.blue,
+                                      borderRadius: BorderRadius.circular(25)),
                                   child: Padding(
-                                    padding: const EdgeInsets.only(top: 10, bottom: 10, left: 15, right: 45),
+                                    padding: const EdgeInsets.only(
+                                        top: 10,
+                                        bottom: 10,
+                                        left: 15,
+                                        right: 45),
                                     child: Row(
                                       children: [
                                         const Icon(
@@ -132,9 +183,12 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                           width: 10,
                                         ),
                                         Text(
-                                          AppLocalizations.of(context)!.left_hand,
+                                          AppLocalizations.of(context)!
+                                              .left_hand,
                                           style: TextStyle(
-                                              color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                              color: projectColors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16),
                                         )
                                       ],
                                     ),
@@ -158,23 +212,33 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                       Text(
                                         AppLocalizations.of(context)!.left_hand,
                                         style: TextStyle(
-                                            color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                            color: projectColors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
                                       )
                                     ],
                                   ),
                                 ),
                           isRight
                               ? Container(
-                                  decoration:
-                                      BoxDecoration(color: projectColors.blue, borderRadius: BorderRadius.circular(25)),
+                                  decoration: BoxDecoration(
+                                      color: projectColors.blue,
+                                      borderRadius: BorderRadius.circular(25)),
                                   child: Padding(
-                                    padding: const EdgeInsets.only(top: 10, bottom: 10, left: 45, right: 15),
+                                    padding: const EdgeInsets.only(
+                                        top: 10,
+                                        bottom: 10,
+                                        left: 45,
+                                        right: 15),
                                     child: Row(
                                       children: [
                                         Text(
-                                          AppLocalizations.of(context)!.right_hand,
+                                          AppLocalizations.of(context)!
+                                              .right_hand,
                                           style: TextStyle(
-                                              color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                              color: projectColors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16),
                                         ),
                                         const SizedBox(
                                           width: 10,
@@ -196,9 +260,12 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        AppLocalizations.of(context)!.right_hand,
+                                        AppLocalizations.of(context)!
+                                            .right_hand,
                                         style: TextStyle(
-                                            color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                            color: projectColors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
                                       ),
                                       const SizedBox(
                                         width: 10,
@@ -228,7 +295,10 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                   ),
                   Text(
                     AppLocalizations.of(context)!.level,
-                    style: TextStyle(color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 17),
+                    style: TextStyle(
+                        color: projectColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17),
                   ),
                   const SizedBox(
                     height: 10,
@@ -254,12 +324,16 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                   });
                                 },
                               ),
-                              data: ThemeData(primarySwatch: Colors.blue, unselectedWidgetColor: projectColors.white1),
+                              data: ThemeData(
+                                  primarySwatch: Colors.blue,
+                                  unselectedWidgetColor: projectColors.white1),
                             ),
                             Text(
                               AppLocalizations.of(context)!.beginner,
                               style: TextStyle(
-                                  color: isClick1 ? projectColors.white : projectColors.white1,
+                                  color: isClick1
+                                      ? projectColors.white
+                                      : projectColors.white1,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 18),
                             ),
@@ -280,12 +354,16 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                   });
                                 },
                               ),
-                              data: ThemeData(primarySwatch: Colors.blue, unselectedWidgetColor: projectColors.white1),
+                              data: ThemeData(
+                                  primarySwatch: Colors.blue,
+                                  unselectedWidgetColor: projectColors.white1),
                             ),
                             Text(
                               AppLocalizations.of(context)!.intermediate,
                               style: TextStyle(
-                                  color: isClick2 ? projectColors.white : projectColors.white1,
+                                  color: isClick2
+                                      ? projectColors.white
+                                      : projectColors.white1,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 18),
                             ),
@@ -306,12 +384,16 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                   });
                                 },
                               ),
-                              data: ThemeData(primarySwatch: Colors.blue, unselectedWidgetColor: projectColors.white1),
+                              data: ThemeData(
+                                  primarySwatch: Colors.blue,
+                                  unselectedWidgetColor: projectColors.white1),
                             ),
                             Text(
                               AppLocalizations.of(context)!.pro,
                               style: TextStyle(
-                                  color: isClick3 ? projectColors.white : projectColors.white1,
+                                  color: isClick3
+                                      ? projectColors.white
+                                      : projectColors.white1,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 18),
                             ),
@@ -333,22 +415,45 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
                                 side: BorderSide(color: projectColors.white1),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(40)),
                                 fixedSize: Size(30.w, 50),
                                 primary: projectColors.black2),
                             child: Text(
                               AppLocalizations.of(context)!.close,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18),
                             )),
                         const SizedBox(
                           width: 10,
                         ),
                         ElevatedButton(
                             onPressed: () {
-                              // showModalBottomSheet(isScrollControlled: true,context: context, builder: (context) => buildSheet());
+                              widget.choosedGun.categoryName == "" &&
+                                      widget.choosedGun.imageUrl == ""
+                                  ? null
+                                  : Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              SfsModesAdvancedSettings(
+                                                canikDevice: widget.canikDevice,
+                                                datas: SfsModesSettings(
+                                                    choosedGun:
+                                                        widget.choosedGun,
+                                                    dominanthand: isRight
+                                                        ? "RightHand"
+                                                        : "LeftHand",
+                                                    level: isClick1
+                                                        ? "1"
+                                                        : isClick2
+                                                            ? "2"
+                                                            : "3"),
+                                              )));
                             },
                             style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(40)),
                                 fixedSize: Size(45.w, 50),
                                 primary: projectColors.blue),
                             child: Row(
@@ -356,9 +461,12 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                               children: [
                                 Text(
                                   AppLocalizations.of(context)!.continue_button,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18),
                                 ),
-                                const AssetImageWidget(imagePath: ImagePath.icArrowRight)
+                                const AssetImageWidget(
+                                    imagePath: ImagePath.icArrowRight)
                               ],
                             )),
                       ],
@@ -373,94 +481,114 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
 
   StatefulBuilder buildSheet() => StatefulBuilder(
         builder: (context, setState) {
-          return Container(
-            color: projectColors.black,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Container(
-                    width: 75,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 25,
-                  ),
-                  Text(
-                    AppLocalizations.of(context)!.choose_your_training_gun,
-                    style: TextStyle(color: projectColors.white, fontWeight: FontWeight.bold, fontSize: 26),
-                  ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: GridView.builder(
-                          itemCount: 24,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 20,
+          return !prodcatGuns.isNullOrEmpty
+              ? Container(
+                  color: projectColors.black,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        Container(
+                          width: 75,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          itemBuilder: (BuildContext context, int index) {
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => const SfsModesSettingsPage(
-                                                imageurl: "assets/images/gun_details_1.png")));
-                                  },
-                                  child: Container(
-                                      decoration: BoxDecoration(
-                                        color: projectColors.white1,
-                                        borderRadius: BorderRadius.circular(10),
+                        ),
+                        const SizedBox(
+                          height: 25,
+                        ),
+                        Text(
+                          AppLocalizations.of(context)!
+                              .choose_your_training_gun,
+                          style: TextStyle(
+                              color: projectColors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 26),
+                        ),
+                        const SizedBox(
+                          height: 15,
+                        ),
+                        Flexible(
+                          child: Padding(
+                            padding: const EdgeInsets.all(5),
+                            child: GridView.builder(
+                                itemCount: prodcatGuns.length,
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 20,
+                                ),
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      SfsModesSettingsPage(
+                                                        canikDevice:
+                                                            widget.canikDevice,
+                                                        choosedGun:
+                                                            prodcatGuns[index],
+                                                      )));
+                                        },
+                                        child: Container(
+                                            decoration: BoxDecoration(
+                                              color: projectColors.white1,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Center(
+                                                child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(5),
+                                                    child: CachedNetworkImage(
+                                                      key: UniqueKey(),
+                                                      imageUrl:
+                                                          prodcatGuns[index]
+                                                              .imageUrl,
+                                                      height: 10.h,
+                                                      fit: BoxFit.contain,
+                                                    )))),
                                       ),
-                                      child: Center(
-                                          child: Padding(
-                                        padding: const EdgeInsets.all(10),
-                                        child: Image.asset(
-                                          "assets/images/gun_details_1.png",
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ))),
-                                ),
-                                const SizedBox(
-                                  height: 2,
-                                ),
-                                Text(
-                                  "TP9 SUB METE",
-                                  style:
-                                      TextStyle(color: projectColors.white, fontSize: 15, fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            );
-                          }),
+                                      Text(
+                                        prodcatGuns[index].categoryName,
+                                        style: TextStyle(
+                                            color: projectColors.white,
+                                            fontSize: 10.sp,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                          ),
+                        )
+                      ],
                     ),
-                  )
-                ],
-              ),
-            ),
-          );
+                  ),
+                )
+              : const Center(
+                  child: Text("No - Context"),
+                );
         },
       );
 }
 
-class _CustomAppBarRapidFire extends StatelessWidget implements PreferredSizeWidget {
+class _CustomAppBarRapidFire extends StatelessWidget
+    implements PreferredSizeWidget {
   const _CustomAppBarRapidFire({
     Key? key,
   }) : super(key: key);
@@ -488,4 +616,21 @@ class _CustomAppBarRapidFire extends StatelessWidget implements PreferredSizeWid
 
   @override
   Size get preferredSize => Size.fromHeight(10.h);
+}
+
+class SfsGunsSettingsModal {
+  String categoryName;
+  String imageUrl;
+  SfsGunsSettingsModal({required this.categoryName, required this.imageUrl});
+}
+
+class SfsModesSettings {
+  SfsGunsSettingsModal choosedGun;
+  String dominanthand;
+  String level;
+  SfsModesSettings({
+    required this.choosedGun,
+    required this.dominanthand,
+    required this.level,
+  });
 }

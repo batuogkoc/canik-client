@@ -43,7 +43,6 @@ import 'compare_guns_page.dart';
 
 class CanikHomePage extends StatefulWidget {
   AuthorizationTokenResponse? result;
- 
 
   CanikHomePage({Key? key, this.result}) : super(key: key);
 
@@ -93,11 +92,13 @@ class _CanikHomePageState extends State<CanikHomePage> {
     setState(() {
       language = prefs.getString('language')!.toCapitalized();
     });
-    var productCategoryRaw = await context.read<ProductCategoriesByWeaponsCubit>().getProductCategoriesByWeapons(language);
-    
+    var productCategoryRaw = await context
+        .read<ProductCategoriesByWeaponsCubit>()
+        .getProductCategoriesByWeapons(language);
+
     return productCategoryRaw.productCategoriesByWeapons;
   }
-      // 
+  //
 
   // Future<List<ProductCategoryAssignment>> getAllProductCategoryAssignments(
   //     String productCategoryCode) async {
@@ -138,16 +139,18 @@ class _CanikHomePageState extends State<CanikHomePage> {
 
     return prefs.getString('canikId');
   }
+
   Future<void> getMainPageProducts() async {
-  await context.read<MainPageProductCubit>().getMainPageProducts();
+    await context.read<MainPageProductCubit>().getMainPageProducts();
   }
+
   Future<void> getCampaigns() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       language = prefs.getString('language')!.toUpperCase();
     });
 
-   await context.read<CampaignCubit>().getCampaigns(language);
+    await context.read<CampaignCubit>().getCampaigns(language);
   }
 
   static final customTextStyleLIpad = TextStyle(
@@ -534,7 +537,11 @@ class _CanikHomePageState extends State<CanikHomePage> {
                                             const SizedBox(width: 5),
                                             GestureDetector(
                                               onTap: () {
-                                                 Navigator.push(context, MaterialPageRoute(builder: (context) => const SfsConnectPage()));
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const SfsConnectPage()));
                                               },
                                               child: Text(
                                                 name ?? '',
@@ -630,297 +637,339 @@ class _CanikHomePageState extends State<CanikHomePage> {
                     }
                     return Container(
                       height: 100.h < 1220 ? 50.h : 45.h,
-                      child: ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: state.mainPageProducts.length,
-                          itemBuilder: (context, index) {
-                            return 100.h < 1220
-                                ? Padding(
-                                    padding: const EdgeInsets.only(top: 40.0),
-                                    child: GestureDetector(
-                                      onTap: () {},
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 1,
-                                            ),
-                                            borderRadius: const BorderRadius.all(
-                                              Radius.circular(20),
-                                            ),
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [
-                                                projectColors.black2,
-                                                projectColors.black,
-                                              ],
-                                            )),
-                                        height: 50.h,
-                                        width: 85.w,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            Center(
-                                                child:
-                                                    state.mainPageProducts[index]
-                                                                .imageUrl ==
-                                                            ""
-                                                        ? Image.asset(
-                                                            'assets/images/shadowgun2.png',
-                                                            fit: BoxFit.contain,
-                                                            height: 35.h,
-                                                          )
-                                                        :  CachedNetworkImage(key:UniqueKey(),imageUrl: state
-                                                                .mainPageProducts[
-                                                                    index]
-                                                                .imageUrl,height: 35.h,fit: BoxFit.contain,)
+                      child: Center(
+                        child: ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: state.mainPageProducts.length,
+                            itemBuilder: (context, index) {
+                              return 100.h < 1220
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 40.0),
+                                      child: GestureDetector(
+                                        onTap: () {},
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 1,
+                                              ),
+                                              borderRadius:
+                                                  const BorderRadius.all(
+                                                Radius.circular(20),
+                                              ),
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  projectColors.black2,
+                                                  projectColors.black,
+                                                ],
+                                              )),
+                                          height: 50.h,
+                                          width: 84.w,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              Center(
+                                                  child: state
+                                                              .mainPageProducts[
+                                                                  index]
+                                                              .imageUrl ==
+                                                          ""
+                                                      ? Image.asset(
+                                                          'assets/images/shadowgun2.png',
+                                                          fit: BoxFit.contain,
+                                                          height: 35.h,
+                                                        )
+                                                      : CachedNetworkImage(
+                                                          key: UniqueKey(),
+                                                          imageUrl: state
+                                                              .mainPageProducts[
+                                                                  index]
+                                                              .imageUrl,
+                                                          height: 35.h,
+                                                          fit: BoxFit.contain,
+                                                        )),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 15.0),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              bottom: 6.0),
+                                                      child: Container(
+                                                        height: 20,
+                                                        color: projectColors
+                                                            .black3,
+                                                        child: Text(
+                                                          AppLocalizations.of(
+                                                                  context)!
+                                                              .newKeyword,
+                                                          style: TextStyle(
+                                                              fontSize: 9.sp,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300,
+                                                              color:
+                                                                  Colors.white),
                                                         ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  left: 15.0),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              bottom: 2.0),
+                                                      child: Text(
+                                                        state
+                                                            .mainPageProducts[
+                                                                index]
+                                                            .productName,
+                                                        style: TextStyle(
+                                                            fontSize: 11.sp,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : 100.h < 1750
+                                      ? Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 40.0),
+                                          child: GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 1,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                    Radius.circular(20),
+                                                  ),
+                                                  gradient: LinearGradient(
+                                                    begin: Alignment.topCenter,
+                                                    end: Alignment.bottomCenter,
+                                                    colors: [
+                                                      projectColors.black2,
+                                                      projectColors.black,
+                                                    ],
+                                                  )),
+                                              height: 40.h,
+                                              width: 90.w,
                                               child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
                                                 children: [
                                                   Padding(
+                                                      padding: EdgeInsets.only(
+                                                          top: 5.h),
+                                                      child: Center(
+                                                        child: state
+                                                                    .mainPageProducts[
+                                                                        index]
+                                                                    .imageUrl ==
+                                                                ""
+                                                            ? Image.asset(
+                                                                'assets/images/shadowgun2.png',
+                                                                fit: BoxFit
+                                                                    .contain,
+                                                                height: 340,
+                                                              )
+                                                            : CachedNetworkImage(
+                                                                key:
+                                                                    UniqueKey(),
+                                                                imageUrl: state
+                                                                    .mainPageProducts[
+                                                                        index]
+                                                                    .imageUrl,
+                                                                height: 340,
+                                                                fit: BoxFit
+                                                                    .contain,
+                                                              ),
+                                                      )),
+                                                  Padding(
                                                     padding:
                                                         const EdgeInsets.only(
-                                                            bottom: 6.0),
-                                                    child: Container(
-                                                      height: 20,
-                                                      color: projectColors.black3,
-                                                      child: Text(
-                                                        AppLocalizations.of(
-                                                                context)!
-                                                            .newKeyword,
-                                                        style: TextStyle(
-                                                            fontSize: 9.sp,
-                                                            fontWeight:
-                                                                FontWeight.w300,
-                                                            color: Colors.white),
-                                                      ),
+                                                            left: 15.0,
+                                                            bottom: 10),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Container(
+                                                          color: projectColors
+                                                              .black3,
+                                                          child: Text(
+                                                            AppLocalizations.of(
+                                                                    context)!
+                                                                .newKeyword,
+                                                            style: const TextStyle(
+                                                                fontSize: 35,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w300,
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                        Text(
+                                                          state
+                                                              .mainPageProducts[
+                                                                  index]
+                                                              .productName,
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 38,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .white),
+                                                        ),
+                                                      ],
                                                     ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 40.0),
+                                          child: GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.white,
+                                                    width: 1,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                    Radius.circular(20),
+                                                  ),
+                                                  gradient: LinearGradient(
+                                                    begin: Alignment.topCenter,
+                                                    end: Alignment.bottomCenter,
+                                                    colors: [
+                                                      projectColors.black2,
+                                                      projectColors.black,
+                                                    ],
+                                                  )),
+                                              height: 40.h,
+                                              width: 95.w,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Padding(
+                                                    padding: EdgeInsets.only(
+                                                        top: 5.h),
+                                                    child: Center(
+                                                        child: state
+                                                                    .mainPageProducts[
+                                                                        index]
+                                                                    .imageUrl ==
+                                                                ""
+                                                            ? Image.asset(
+                                                                'assets/images/shadowgun2.png',
+                                                                fit: BoxFit
+                                                                    .contain,
+                                                                height: 340,
+                                                              )
+                                                            : CachedNetworkImage(
+                                                                key:
+                                                                    UniqueKey(),
+                                                                imageUrl: state
+                                                                    .mainPageProducts[
+                                                                        index]
+                                                                    .imageUrl,
+                                                                fit: BoxFit
+                                                                    .contain,
+                                                                height: 340,
+                                                              )),
                                                   ),
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.only(
-                                                            bottom: 2.0),
-                                                    child: Text(
-                                                      state
-                                                          .mainPageProducts[index]
-                                                          .productName,
-                                                      style: TextStyle(
-                                                          fontSize: 11.sp,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: Colors.white),
+                                                            left: 15.0,
+                                                            bottom: 10),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Container(
+                                                          color: projectColors
+                                                              .black3,
+                                                          child: Text(
+                                                            AppLocalizations.of(
+                                                                    context)!
+                                                                .newKeyword,
+                                                            style: TextStyle(
+                                                                fontSize: 9.sp,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400,
+                                                                color: Colors
+                                                                    .white),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                        Text(
+                                                          state
+                                                              .mainPageProducts[
+                                                                  index]
+                                                              .productName,
+                                                          style: TextStyle(
+                                                              fontSize: 10.sp,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              color:
+                                                                  Colors.white),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ),
+                                                  )
                                                 ],
                                               ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : 100.h < 1750
-                                    ? Padding(
-                                        padding: const EdgeInsets.only(top: 40.0),
-                                        child: GestureDetector(
-                                          onTap: () {},
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Colors.white,
-                                                  width: 1,
-                                                ),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                  Radius.circular(20),
-                                                ),
-                                                gradient: LinearGradient(
-                                                  begin: Alignment.topCenter,
-                                                  end: Alignment.bottomCenter,
-                                                  colors: [
-                                                    projectColors.black2,
-                                                    projectColors.black,
-                                                  ],
-                                                )),
-                                            height: 40.h,
-                                            width: 90.w,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Padding(
-                                                  padding:  EdgeInsets.only(top: 5.h),
-                                                  child: Center(
-                                                      child: state
-                                                                  .mainPageProducts[
-                                                                      index]
-                                                                  .imageUrl ==
-                                                              ""
-                                                          ? Image.asset(
-                                                              'assets/images/shadowgun2.png',
-                                                              fit: BoxFit.contain,
-                                                              height: 340,
-                                                            )
-                                                          :  CachedNetworkImage(
-                                                            key:UniqueKey(),
-                                                            imageUrl: state
-                                                                .mainPageProducts[
-                                                                    index]
-                                                                .imageUrl,height: 340,fit: BoxFit.contain,),
-                                                )),
-                                                Padding(
-                                                  padding: const EdgeInsets.only(
-                                                      left: 15.0, bottom: 10),
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
-                                                    children: [
-                                                      Container(
-                                                        color:
-                                                            projectColors.black3,
-                                                        child: Text(
-                                                          AppLocalizations.of(
-                                                                  context)!
-                                                              .newKeyword,
-                                                          style: const TextStyle(
-                                                              fontSize: 35,
-                                                              fontWeight:
-                                                                  FontWeight.w300,
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 10,
-                                                      ),
-                                                      Text(
-                                                        state
-                                                            .mainPageProducts[
-                                                                index]
-                                                            .productName,
-                                                        style: const TextStyle(
-                                                            fontSize: 38,
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            color: Colors.white),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                )
-                                              ],
                                             ),
                                           ),
-                                        ),
-                                      )
-                                    : Padding(
-                                        padding: const EdgeInsets.only(top: 40.0),
-                                        child: GestureDetector(
-                                          onTap: () {},
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Colors.white,
-                                                  width: 1,
-                                                ),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                  Radius.circular(20),
-                                                ),
-                                                gradient: LinearGradient(
-                                                  begin: Alignment.topCenter,
-                                                  end: Alignment.bottomCenter,
-                                                  colors: [
-                                                    projectColors.black2,
-                                                    projectColors.black,
-                                                  ],
-                                                )),
-                                            height: 40.h,
-                                            width: 95.w,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Padding(
-                                                  padding:  EdgeInsets.only(top: 5.h),
-                                                  child: Center(
-                                                      child: state
-                                                                  .mainPageProducts[
-                                                                      index]
-                                                                  .imageUrl ==
-                                                              ""
-                                                          ? Image.asset(
-                                                              'assets/images/shadowgun2.png',
-                                                              fit: BoxFit.contain,
-                                                              height: 340,
-                                                            )
-                                                          : CachedNetworkImage(
-                                                            key: UniqueKey(),
-                                                            imageUrl: state
-                                                                  .mainPageProducts[
-                                                                      index]
-                                                                  .imageUrl,
-                                                              fit: BoxFit.contain,
-                                                              height: 340,)),
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.only(
-                                                      left: 15.0, bottom: 10),
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
-                                                    children: [
-                                                      Container(
-                                                        color:
-                                                            projectColors.black3,
-                                                        child: Text(
-                                                          AppLocalizations.of(
-                                                                  context)!
-                                                              .newKeyword,
-                                                          style:  TextStyle(
-                                                              fontSize: 9.sp,
-                                                              fontWeight:
-                                                                  FontWeight.w400,
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 10,
-                                                      ),
-                                                      Text(
-                                                        state
-                                                            .mainPageProducts[
-                                                                index]
-                                                            .productName,
-                                                        style:  TextStyle(
-                                                            fontSize: 10.sp,
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            color: Colors.white),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                          }),
+                                        );
+                            }),
+                      ),
                     );
                   }),
                   CarouselSlider(
@@ -1131,16 +1180,21 @@ class _CanikHomePageState extends State<CanikHomePage> {
                           padding: const EdgeInsets.all(8.0),
                           child: SizedBox(
                             height: 210,
-                            child: FutureBuilder<List<ProductCategoriesByWeapons>>(
+                            child:
+                                FutureBuilder<List<ProductCategoriesByWeapons>>(
                               future: productCategoriesFilteredByGuns,
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
-                                  
-                                  ProductCategoriesByWeapons productCategory = 
-                                  language == "TR" ?
-                                      snapshot.data!.firstWhere(((element) =>
-                                          element.categoryName == 'TP SERİSİ')) : snapshot.data!.firstWhere(((element) =>
-                                          element.categoryName == 'TP SERIES')) ;
+                                  ProductCategoriesByWeapons productCategory =
+                                      language == "TR"
+                                          ? snapshot.data!.firstWhere(
+                                              ((element) =>
+                                                  element.categoryName ==
+                                                  'TP SERİSİ'))
+                                          : snapshot.data!.firstWhere(
+                                              ((element) =>
+                                                  element.categoryName ==
+                                                  'TP SERIES'));
 
                                   return ListView.builder(
                                     physics: const BouncingScrollPhysics(),
@@ -1149,13 +1203,22 @@ class _CanikHomePageState extends State<CanikHomePage> {
                                         .productSubCategory.length,
                                     itemBuilder: (context, index) {
                                       SubCategory subCategory = SubCategory(
-                                      categoryName: 
-                                      productCategory.productSubCategory[index].categoryName, 
-                                      categoryCode: productCategory.productSubCategory[index].categoryCode,
-                                      imageUrl: productCategory.productSubCategory[index].imageUrl,
-                                      parentProductCategoryName: productCategory.productSubCategory[index].parentProductCategoryName,
-                                      productNumber: productCategory.productSubCategory[index].productNumber
-                                      );
+                                          categoryName: productCategory
+                                              .productSubCategory[index]
+                                              .categoryName,
+                                          categoryCode: productCategory
+                                              .productSubCategory[index]
+                                              .categoryCode,
+                                          imageUrl: productCategory
+                                              .productSubCategory[index]
+                                              .imageUrl,
+                                          parentProductCategoryName:
+                                              productCategory
+                                                  .productSubCategory[index]
+                                                  .parentProductCategoryName,
+                                          productNumber: productCategory
+                                              .productSubCategory[index]
+                                              .productNumber);
                                       return Padding(
                                         padding:
                                             const EdgeInsets.only(right: 8.0),
@@ -1176,15 +1239,21 @@ class _CanikHomePageState extends State<CanikHomePage> {
                           padding: const EdgeInsets.all(8.0),
                           child: SizedBox(
                             height: 360,
-                            child: FutureBuilder<List<ProductCategoriesByWeapons>>(
+                            child:
+                                FutureBuilder<List<ProductCategoriesByWeapons>>(
                               future: productCategoriesFilteredByGuns,
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
                                   ProductCategoriesByWeapons productCategory =
-                                      language == "TR" ?
-                                      snapshot.data!.firstWhere(((element) =>
-                                          element.categoryName == 'TP SERİSİ')) : snapshot.data!.firstWhere(((element) =>
-                                          element.categoryName == 'TP SERIES')) ;
+                                      language == "TR"
+                                          ? snapshot.data!.firstWhere(
+                                              ((element) =>
+                                                  element.categoryName ==
+                                                  'TP SERİSİ'))
+                                          : snapshot.data!.firstWhere(
+                                              ((element) =>
+                                                  element.categoryName ==
+                                                  'TP SERIES'));
 
                                   return ListView.builder(
                                     physics: const BouncingScrollPhysics(),
@@ -1193,13 +1262,22 @@ class _CanikHomePageState extends State<CanikHomePage> {
                                         .productSubCategory.length,
                                     itemBuilder: (context, index) {
                                       SubCategory subCategory = SubCategory(
-                                      categoryName: 
-                                      productCategory.productSubCategory[index].categoryName, 
-                                      categoryCode: productCategory.productSubCategory[index].categoryCode,
-                                      imageUrl: productCategory.productSubCategory[index].imageUrl,
-                                      parentProductCategoryName: productCategory.productSubCategory[index].parentProductCategoryName,
-                                      productNumber: productCategory.productSubCategory[index].productNumber
-                                      );
+                                          categoryName: productCategory
+                                              .productSubCategory[index]
+                                              .categoryName,
+                                          categoryCode: productCategory
+                                              .productSubCategory[index]
+                                              .categoryCode,
+                                          imageUrl: productCategory
+                                              .productSubCategory[index]
+                                              .imageUrl,
+                                          parentProductCategoryName:
+                                              productCategory
+                                                  .productSubCategory[index]
+                                                  .parentProductCategoryName,
+                                          productNumber: productCategory
+                                              .productSubCategory[index]
+                                              .productNumber);
                                       return Padding(
                                         padding:
                                             const EdgeInsets.only(right: 15.0),
@@ -1658,7 +1736,8 @@ class _CanikHomePageState extends State<CanikHomePage> {
                                   child: CachedNetworkImage(
                                     key: UniqueKey(),
                                     imageUrl: campaign.imageUrl!,
-                                    fit: BoxFit.fill,),
+                                    fit: BoxFit.fill,
+                                  ),
                                 ),
                               )
                             : ClipRRect(
@@ -1751,16 +1830,15 @@ class _CanikHomePageState extends State<CanikHomePage> {
                     padding: EdgeInsets.all(2.h),
                     child: Center(
                       child: Text(
-                        campaign.title.length > 40
-                            ? campaign.title.substring(0, 40) + '...'
-                            : campaign.title,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 12.sp,
-                            color: projectColors.white,
-                            fontWeight: FontWeight.bold),
-                            textAlign:TextAlign.center
-                      ),
+                          campaign.title.length > 40
+                              ? campaign.title.substring(0, 40) + '...'
+                              : campaign.title,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 12.sp,
+                              color: projectColors.white,
+                              fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center),
                     ),
                   ),
                 ],
@@ -1801,9 +1879,10 @@ class _CanikHomePageState extends State<CanikHomePage> {
                                       height: _imageHeight,
                                       width: _cardWidth,
                                       child: CachedNetworkImage(
-                                    key: UniqueKey(),
-                                    imageUrl: campaign.imageUrl!,
-                                    fit: BoxFit.fill,),
+                                        key: UniqueKey(),
+                                        imageUrl: campaign.imageUrl!,
+                                        fit: BoxFit.fill,
+                                      ),
                                     ),
                                   )
                                 : ClipRRect(
@@ -1907,7 +1986,8 @@ class _CanikHomePageState extends State<CanikHomePage> {
                             style: TextStyle(
                                 fontSize: 9.sp,
                                 color: projectColors.white,
-                                fontWeight: FontWeight.bold),textAlign: TextAlign.center,
+                                fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
@@ -1948,9 +2028,10 @@ class _CanikHomePageState extends State<CanikHomePage> {
                                       height: _imageHeight,
                                       width: _cardWidth,
                                       child: CachedNetworkImage(
-                                    key: UniqueKey(),
-                                    imageUrl: campaign.imageUrl!,
-                                    fit: BoxFit.fill,),
+                                        key: UniqueKey(),
+                                        imageUrl: campaign.imageUrl!,
+                                        fit: BoxFit.fill,
+                                      ),
                                     ),
                                   )
                                 : ClipRRect(
@@ -2047,16 +2128,15 @@ class _CanikHomePageState extends State<CanikHomePage> {
                         padding: EdgeInsets.all(5.sp),
                         child: Center(
                           child: Text(
-                            campaign.title.length > 40
-                                ? campaign.title.substring(0, 40) + '...'
-                                : campaign.title,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: 9.sp,
-                                color: projectColors.white,
-                                fontWeight: FontWeight.bold),
-                                textAlign:TextAlign.center
-                          ),
+                              campaign.title.length > 40
+                                  ? campaign.title.substring(0, 40) + '...'
+                                  : campaign.title,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 9.sp,
+                                  color: projectColors.white,
+                                  fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center),
                         ),
                       ),
                     ],
@@ -2092,7 +2172,8 @@ class _CanikHomePageState extends State<CanikHomePage> {
                   //     child: Center(child: Image.asset(item.imageUrl))),
                   Flexible(
                       flex: 5,
-                      child: Center(child: CachedNetworkImage(
+                      child: Center(
+                          child: CachedNetworkImage(
                         key: UniqueKey(),
                         imageUrl: subCategory.imageUrl!,
                       ))),
@@ -2138,21 +2219,20 @@ class _CanikHomePageState extends State<CanikHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Flexible(
-                    flex: 5,
-                    child: Center(
-                        // child: SizedBox(
-                        //     height: 180,
-                        //     child: Image.asset(
-                        //       item.imageUrl,
-                        //       fit: BoxFit.contain,
-                        //     ))),
-                      child: SizedBox(
-                            height: 180,
-                            child: Image.network(
-                              subCategory.imageUrl!,
-                              fit: BoxFit.contain,
-                            )))
-                  ),
+                      flex: 5,
+                      child: Center(
+                          // child: SizedBox(
+                          //     height: 180,
+                          //     child: Image.asset(
+                          //       item.imageUrl,
+                          //       fit: BoxFit.contain,
+                          //     ))),
+                          child: SizedBox(
+                              height: 180,
+                              child: Image.network(
+                                subCategory.imageUrl!,
+                                fit: BoxFit.contain,
+                              )))),
                   const SizedBox(height: 40),
                   Flexible(
                     flex: 1,
@@ -2650,7 +2730,12 @@ class CustomViewAllWidgetIpad extends StatelessWidget {
     );
   }
 }
- extension StringCasingExtension on String {
-  String toCapitalized() => length > 0 ?'${this[0].toUpperCase()}${substring(1).toLowerCase()}':'';
-  String toTitleCase() => replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
+
+extension StringCasingExtension on String {
+  String toCapitalized() =>
+      length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+      .split(' ')
+      .map((str) => str.toCapitalized())
+      .join(' ');
 }

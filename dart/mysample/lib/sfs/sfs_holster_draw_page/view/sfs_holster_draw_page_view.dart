@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:draggable_bottom_sheet_nullsafety/draggable_bottom_sheet_nullsafety.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -11,13 +10,14 @@ import 'package:mysample/widgets/custom_bottom_bar_play.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../../constants/color_constants.dart';
-// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
-import "package:canik_flutter/canik_backend.dart";
-import 'package:canik_lib/canik_lib.dart';
+import '../../sfs_core/canik_backend.dart';
+import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 
 class SfsHolsterDrawPageView extends StatefulWidget {
-  final List<HolsterDrawResult> results;
-  const SfsHolsterDrawPageView({Key? key, required this.results})
+  final CanikDevice canikDevice;
+  final SfsAllSettings allSettings;
+  const SfsHolsterDrawPageView(
+      {required this.allSettings, required this.canikDevice, Key? key})
       : super(key: key);
 
   @override
@@ -113,17 +113,6 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
         ]);
   }
 
-  BarChartGroupData generateGroupDataHolsterDrawResult(
-      x, HolsterDrawResult result) {
-    return generateGroupData(
-        x,
-        result.gripTime ?? 0,
-        result.withdrawGunTime ?? 0,
-        result.rotatingTime ?? 0,
-        result.targetingTime ?? 0,
-        result.shotTime ?? 0);
-  }
-
   @override
   Widget build(BuildContext context) {
     return DraggableBottomSheet(
@@ -152,75 +141,70 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
                             height: 30.h,
                             width: 150.w,
                             child: BarChart(BarChartData(
-                                backgroundColor: Colors.transparent,
-                                alignment: BarChartAlignment.spaceBetween,
-                                titlesData: FlTitlesData(
-                                    leftTitles: AxisTitles(),
-                                    rightTitles: AxisTitles(),
-                                    topTitles: AxisTitles(),
-                                    bottomTitles: AxisTitles(
-                                        axisNameSize: 20,
-                                        sideTitles: SideTitles(
-                                          showTitles: true,
-                                          reservedSize: 22,
-                                          getTitlesWidget: (value, meta) {
-                                            return Text(
-                                              value.toStringAsFixed(0),
-                                              style: _SfsHolsterDrawTextStyles
-                                                  .akhand17,
-                                            );
-                                          },
-                                        ))),
-                                barTouchData: BarTouchData(
-                                  touchTooltipData: BarTouchTooltipData(
-                                      tooltipBgColor: Colors.transparent,
-                                      fitInsideVertically: true,
-                                      direction: TooltipDirection.top),
-                                  enabled: true,
-                                  touchCallback:
-                                      (FlTouchEvent event, barTouchResponse) {
-                                    if (!event.isInterestedForInteractions ||
-                                        barTouchResponse == null ||
-                                        barTouchResponse.spot == null) {
-                                      setState(() {
-                                        touchedIndex = -1;
-                                      });
-                                      return;
-                                    }
-                                    final rodIndex = barTouchResponse
-                                        .spot!.touchedRodDataIndex;
-                                    if (isShadowBar(rodIndex)) {
-                                      setState(() {
-                                        touchedIndex = -1;
-                                      });
-                                      return;
-                                    }
+                              backgroundColor: Colors.transparent,
+                              alignment: BarChartAlignment.spaceBetween,
+                              titlesData: FlTitlesData(
+                                  leftTitles: AxisTitles(),
+                                  rightTitles: AxisTitles(),
+                                  topTitles: AxisTitles(),
+                                  bottomTitles: AxisTitles(
+                                      axisNameSize: 20,
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 22,
+                                        getTitlesWidget: (value, meta) {
+                                          return Text(
+                                            value.toStringAsFixed(0),
+                                            style: _SfsHolsterDrawTextStyles
+                                                .akhand17,
+                                          );
+                                        },
+                                      ))),
+                              barTouchData: BarTouchData(
+                                touchTooltipData: BarTouchTooltipData(
+                                    tooltipBgColor: Colors.transparent,
+                                    fitInsideVertically: true,
+                                    direction: TooltipDirection.top),
+                                enabled: true,
+                                touchCallback:
+                                    (FlTouchEvent event, barTouchResponse) {
+                                  if (!event.isInterestedForInteractions ||
+                                      barTouchResponse == null ||
+                                      barTouchResponse.spot == null) {
                                     setState(() {
-                                      touchedIndex = barTouchResponse
-                                              .spot!.touchedBarGroupIndex +
-                                          1;
+                                      touchedIndex = -1;
                                     });
-                                  },
-                                ),
-                                borderData: FlBorderData(show: false),
-                                gridData: FlGridData(show: false),
-                                barGroups: widget.results
-                                    .mapIndexed((index, element) =>
-                                        generateGroupDataHolsterDrawResult(
-                                            index, element))
-                                    .toList()
-                                // [
-                                //   generateGroupData(1, 10, 20, 30, 20, 10),
-                                //   generateGroupData(2, 20, 50, 10, 10, 20),
-                                //   generateGroupData(3, 30, 20, 30, 50, 30),
-                                //   generateGroupData(4, 20, 30, 40, 30, 10),
-                                //   generateGroupData(5, 10, 10, 50, 40, 40),
-                                //   generateGroupData(6, 30, 10, 40, 50, 50),
-                                //   generateGroupData(7, 40, 20, 50, 30, 20),
-                                //   generateGroupData(8, 50, 40, 20, 10, 30),
-                                //   generateGroupData(9, 20, 30, 30, 10, 10),
-                                // ],
-                                )),
+                                    return;
+                                  }
+                                  final rodIndex = barTouchResponse
+                                      .spot!.touchedRodDataIndex;
+                                  if (isShadowBar(rodIndex)) {
+                                    setState(() {
+                                      touchedIndex = -1;
+                                    });
+                                    return;
+                                  }
+                                  setState(() {
+                                    touchedIndex = barTouchResponse
+                                            .spot!.touchedBarGroupIndex +
+                                        1;
+                                  });
+                                },
+                              ),
+                              borderData: FlBorderData(show: false),
+                              gridData: FlGridData(show: false),
+                              barGroups: [
+                                generateGroupData(1, 10, 20, 30, 20, 10),
+                                generateGroupData(2, 20, 50, 10, 10, 20),
+                                generateGroupData(3, 30, 20, 30, 50, 30),
+                                generateGroupData(4, 20, 30, 40, 30, 10),
+                                generateGroupData(5, 10, 10, 50, 40, 40),
+                                generateGroupData(6, 30, 10, 40, 50, 50),
+                                generateGroupData(7, 40, 20, 50, 30, 20),
+                                generateGroupData(8, 50, 40, 20, 10, 30),
+                                generateGroupData(9, 20, 30, 30, 10, 10),
+                              ],
+                            )),
                           ),
                         ),
                       ],

@@ -1,12 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'package:mysample/constants/color_constants.dart';
 import 'package:mysample/widgets/background_image_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../cubit/mailsender_cubit.dart';
+import '../entities/mailsender.dart';
 import 'loading_widget.dart';
 
 class WebviewWidget extends StatefulWidget {
@@ -19,6 +22,7 @@ class WebviewWidget extends StatefulWidget {
 
 class _WebviewWidgetState extends State<WebviewWidget> {
   bool isLoading = true;
+  bool isRegister = false;
   @override
   void initState() {
     super.initState();
@@ -30,23 +34,38 @@ class _WebviewWidgetState extends State<WebviewWidget> {
     setState(() {
       isLoading = false;
     });
+    if (args.contains('CombinedSigninAndSignup')) {
+      setState(() {
+        isRegister = true;
+      });
+    }
+
     if (args.contains('id_token=')) {
       setState(() {
         isVisibleWebView = false;
       });
+      
       final token = args.substring(args.lastIndexOf('=') + 1);
       Map<String, dynamic> payload = token != null ? Jwt.parseJwt(token) : Jwt.parseJwt('');
-      //
-      
-      //
+      if (isRegister) {
+        List<dynamic> email = payload['emails'];
+        String name = payload['given_name'];
+        MailSenderRequestModel mailSenderReqModel =  MailSenderRequestModel(toEmail:email.first,userName: name);
+      await context
+        .read<MailSenderCubit>()
+        .sendMailcubit(mailSenderReqModel);
+      setState(() {
+        isRegister = false;
+      });
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('canikId', payload['oid']);
-      print(payload['oid']);
       await prefs.setBool('isLogin', true);
       await prefs
           .setString('idToken', token)
           .then((value) => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => widget.widget)));
+        
     }
   }
 

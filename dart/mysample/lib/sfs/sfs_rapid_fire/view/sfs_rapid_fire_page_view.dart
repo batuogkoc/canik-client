@@ -10,10 +10,16 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 import '../../../views/add_gun_home.dart';
+import '../../sfs_core/canik_backend.dart';
+import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 import 'sfs_rapid_fire_page_4_view.dart';
 
 class SfsRapidFirePageView extends StatefulWidget {
-  const SfsRapidFirePageView({Key? key}) : super(key: key);
+  final CanikDevice canikDevice;
+  final SfsAllSettings allSettings;
+  const SfsRapidFirePageView(
+      {required this.allSettings, required this.canikDevice, Key? key})
+      : super(key: key);
 
   @override
   State<SfsRapidFirePageView> createState() => _SfsRapidFirePageViewState();
@@ -21,7 +27,7 @@ class SfsRapidFirePageView extends StatefulWidget {
 
 class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
   double _value = 0;
-  
+
   final String _counterImagePath = 'assets/images/rapid_fire_arch_image.png';
   final ScrollController controller = ScrollController();
   final Color _linearTextColor = Colors.white;
@@ -60,7 +66,8 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
                         children: [
                           CarouselSlider(
                             options: CarouselOptions(
-                              onPageChanged: (index, reason) => setState(() => activeIndex = index),
+                              onPageChanged: (index, reason) =>
+                                  setState(() => activeIndex = index),
                               height: 40.h,
                               autoPlay: false,
                               viewportFraction: 1,
@@ -102,9 +109,15 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
                               // showTicks: true
 
                               useRangeColorForAxis: true,
-                              axisTrackStyle: const LinearAxisTrackStyle(color: Colors.transparent, thickness: 1),
-                              majorTickStyle: const LinearTickStyle(color: Colors.white, thickness: 1, length: 15),
-                              minorTickStyle: LinearTickStyle(color: Colors.white.withOpacity(0.3), thickness: 1),
+                              axisTrackStyle: const LinearAxisTrackStyle(
+                                  color: Colors.transparent, thickness: 1),
+                              majorTickStyle: const LinearTickStyle(
+                                  color: Colors.white,
+                                  thickness: 1,
+                                  length: 15),
+                              minorTickStyle: LinearTickStyle(
+                                  color: Colors.white.withOpacity(0.3),
+                                  thickness: 1),
 
                               markerPointers: [
                                 LinearWidgetPointer(
@@ -115,11 +128,15 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
                                         _value = value;
                                         if (_value > 10) {
                                           controller.animateTo(175,
-                                              duration: const Duration(seconds: 1), curve: Curves.fastOutSlowIn);
+                                              duration:
+                                                  const Duration(seconds: 1),
+                                              curve: Curves.fastOutSlowIn);
                                         }
                                         if (_value < 6) {
                                           controller.animateTo(0,
-                                              duration: const Duration(seconds: 1), curve: Curves.fastOutSlowIn);
+                                              duration:
+                                                  const Duration(seconds: 1),
+                                              curve: Curves.fastOutSlowIn);
                                         }
                                       });
                                     },
@@ -128,9 +145,11 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
                                       height: 8.h,
                                       width: 7.w,
                                       decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(15),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
                                           color: ProjectColors().black,
-                                          border: Border.all(color: ProjectColors().black3)),
+                                          border: Border.all(
+                                              color: ProjectColors().black3)),
                                       child: Align(
                                         alignment: Alignment.center,
                                         child: Text(_value.toStringAsFixed(0),
@@ -146,8 +165,10 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
                               animateAxis: true,
                               animationDuration: 1,
                               labelPosition: LinearLabelPosition.outside,
-                              axisLabelStyle:
-                                  TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: _linearTextColor),
+                              axisLabelStyle: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: _linearTextColor),
                             ),
                           ),
                         ],
@@ -160,8 +181,6 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
           ),
           bottomNavigationBar: const CustomBottomBarPlay(),
         )
-        
-      
       ],
     );
   }
@@ -171,7 +190,10 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
         count: items.length,
         onDotClicked: animateToSlide,
         effect: SlideEffect(
-            dotWidth: 15, dotHeight: 15, activeDotColor: projectColors.white, dotColor: projectColors.black3),
+            dotWidth: 15,
+            dotHeight: 15,
+            activeDotColor: projectColors.white,
+            dotColor: projectColors.black3),
       );
   void animateToSlide(int index) => _carouselController.animateToPage(index);
 }
@@ -194,7 +216,9 @@ class _CustomBottomBarPauseCancelFinish extends StatelessWidget {
                 padding: EdgeInsets.only(right: 10.0),
                 child: Text('CANCEL', style: _SfsRapidTextStyles.built17),
               ),
-              InkWell(onTap: () {}, child: Image.asset('assets/images/close-circle.png'))
+              InkWell(
+                  onTap: () {},
+                  child: Image.asset('assets/images/close-circle.png'))
             ],
           ),
           ElevatedButton(
@@ -216,7 +240,9 @@ class _CustomBottomBarPauseCancelFinish extends StatelessWidget {
                 padding: EdgeInsets.only(right: 10.0),
                 child: Text('FINISH', style: _SfsRapidTextStyles.built17),
               ),
-              InkWell(onTap: () {}, child: Image.asset('assets/images/stop-circle.png'))
+              InkWell(
+                  onTap: () {},
+                  child: Image.asset('assets/images/stop-circle.png'))
             ],
           )
         ],
@@ -292,7 +318,8 @@ class _CarouselOne extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _CustomContainer(
-                    child: Image.asset('assets/images/rapid_fire_gun_image.png'),
+                    child:
+                        Image.asset('assets/images/rapid_fire_gun_image.png'),
                   ),
                   //77
                   const _CustomContainer(
@@ -385,7 +412,8 @@ class _CarouselTwo extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _CustomContainer(
-                    child: Image.asset('assets/images/rapid_fire_gun_image.png'),
+                    child:
+                        Image.asset('assets/images/rapid_fire_gun_image.png'),
                   ),
                   //77
                   const _CustomContainer(
@@ -414,10 +442,13 @@ class _CarouselThree extends StatefulWidget {
 
 class __CarouselThreeState extends State<_CarouselThree> {
   String titleText = "How fix incorrect trigger pull";
-  String SubText1 = "This occurs when the shooter exerts excessive forward pressure with the heel of the hand as the gun is fired. This pressure forces the front sight up just as the trigger trips the sear. It will usually result in a shot group high near the 12:00 position on the target.";
-  String SubText2 = "Diagnosing and fixing trigger control heeling errors (as well as any of these errors) is not an exact science because several other factors may be involved, like problems with proper grip, sight alignment, sight picture, stable stance, etc. A complete and deliberate focus on the front sight, both mentally and visually, will usually help cure this error.";
-  String errorText = "do not anticipate recoil, do not push the heel of the hand forward when the shot breaks, and do not break your wrist upward.";
-  
+  String SubText1 =
+      "This occurs when the shooter exerts excessive forward pressure with the heel of the hand as the gun is fired. This pressure forces the front sight up just as the trigger trips the sear. It will usually result in a shot group high near the 12:00 position on the target.";
+  String SubText2 =
+      "Diagnosing and fixing trigger control heeling errors (as well as any of these errors) is not an exact science because several other factors may be involved, like problems with proper grip, sight alignment, sight picture, stable stance, etc. A complete and deliberate focus on the front sight, both mentally and visually, will usually help cure this error.";
+  String errorText =
+      "do not anticipate recoil, do not push the heel of the hand forward when the shot breaks, and do not break your wrist upward.";
+
   List<int> mockListData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   List<bool> isClick = [];
   @override
@@ -445,7 +476,10 @@ class __CarouselThreeState extends State<_CarouselThree> {
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
                       AppLocalizations.of(context)!.sfs_page3_title,
-                      style: TextStyle(color: ProjectColors().white, fontSize: 18, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                          color: ProjectColors().white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500),
                       textAlign: TextAlign.center,
                     ),
                   )),
@@ -456,23 +490,39 @@ class __CarouselThreeState extends State<_CarouselThree> {
                   children: [
                     Expanded(
                         flex: 1,
-                        child: Text(AppLocalizations.of(context)!.sfs_page3_shot,
-                            style: TextStyle(color: ProjectColors().black3, fontSize: 16, fontWeight: FontWeight.w500),
+                        child: Text(
+                            AppLocalizations.of(context)!.sfs_page3_shot,
+                            style: TextStyle(
+                                color: ProjectColors().black3,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center)),
                     Expanded(
                         flex: 1,
-                        child: Text(AppLocalizations.of(context)!.sfs_page3_score,
-                            style: TextStyle(color: ProjectColors().black3, fontSize: 16, fontWeight: FontWeight.w500),
+                        child: Text(
+                            AppLocalizations.of(context)!.sfs_page3_score,
+                            style: TextStyle(
+                                color: ProjectColors().black3,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center)),
                     Expanded(
                         flex: 1,
-                        child: Text(AppLocalizations.of(context)!.sfs_page3_time,
-                            style: TextStyle(color: ProjectColors().black3, fontSize: 16, fontWeight: FontWeight.w500),
+                        child: Text(
+                            AppLocalizations.of(context)!.sfs_page3_time,
+                            style: TextStyle(
+                                color: ProjectColors().black3,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center)),
                     Expanded(
                         flex: 1,
-                        child: Text(AppLocalizations.of(context)!.sfs_page3_split,
-                            style: TextStyle(color: ProjectColors().black3, fontSize: 16, fontWeight: FontWeight.w500),
+                        child: Text(
+                            AppLocalizations.of(context)!.sfs_page3_split,
+                            style: TextStyle(
+                                color: ProjectColors().black3,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500),
                             textAlign: TextAlign.center)),
                   ],
                 ),
@@ -491,12 +541,15 @@ class __CarouselThreeState extends State<_CarouselThree> {
                           setState(() {
                             if (!isClick[index]) {
                               isClick[index] = true;
-                              showModalBottomSheet(isScrollControlled: true,context: context, builder: (context) => buildSheet(),);
+                              showModalBottomSheet(
+                                isScrollControlled: true,
+                                context: context,
+                                builder: (context) => buildSheet(),
+                              );
                             } else {
                               isClick[index] = false;
                             }
                           });
-                          
                         },
                         child: Container(
                           decoration: isClick[index]
@@ -510,22 +563,30 @@ class __CarouselThreeState extends State<_CarouselThree> {
                               Expanded(
                                   flex: 1,
                                   child: Text(mockListData[index].toString(),
-                                      style: TextStyle(color: ProjectColors().white, fontWeight: FontWeight.w500),
+                                      style: TextStyle(
+                                          color: ProjectColors().white,
+                                          fontWeight: FontWeight.w500),
                                       textAlign: TextAlign.center)),
                               Expanded(
                                   flex: 1,
                                   child: Text("66.7",
-                                      style: TextStyle(color: ProjectColors().white, fontWeight: FontWeight.w500),
+                                      style: TextStyle(
+                                          color: ProjectColors().white,
+                                          fontWeight: FontWeight.w500),
                                       textAlign: TextAlign.center)),
                               Expanded(
                                   flex: 1,
                                   child: Text("5.54",
-                                      style: TextStyle(color: ProjectColors().white, fontWeight: FontWeight.w500),
+                                      style: TextStyle(
+                                          color: ProjectColors().white,
+                                          fontWeight: FontWeight.w500),
                                       textAlign: TextAlign.center)),
                               Expanded(
                                   flex: 1,
                                   child: Text("1.87",
-                                      style: TextStyle(color: ProjectColors().white, fontWeight: FontWeight.w500),
+                                      style: TextStyle(
+                                          color: ProjectColors().white,
+                                          fontWeight: FontWeight.w500),
                                       textAlign: TextAlign.center)),
                             ],
                           ),
@@ -542,151 +603,221 @@ class __CarouselThreeState extends State<_CarouselThree> {
       ),
     );
   }
-  Widget buildSheet() => StatefulBuilder(
-    builder: (context, setState) {
-      return
-      Container(
-        color: projectColors.black,
-        child: 
-        Padding(
-          padding: const EdgeInsets.only(right: 20,left: 20),
-          child: ListView(
-            physics:const NeverScrollableScrollPhysics(),
-            children: [
-               Padding(
-                 padding: const EdgeInsets.only(top: 15,bottom: 40,right: 150,left: 150),
-                 child: Container(
-                  width: 70,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                           ),
-               ),
-              
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Container(
-                  height: 100.h > 1200 ? 15.h : 10.h,
-                  decoration: BoxDecoration(color: projectColors.black2,borderRadius: BorderRadius.circular(10)),
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 20,top: 10,left: 20,bottom: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
 
-                        Text("Do",style: TextStyle(color: projectColors.blue,fontSize: 40,fontWeight: FontWeight.w900),),
-                        SizedBox(
-                          child:Stack(
-                            children: [
-                              Image.asset("assets/images/Vector.png",fit: BoxFit.cover,),
-                              Positioned(
-                                right: 22,
-                                top: 42,
-                                child: Image.asset("assets/images/Rectangle 95.png",fit: BoxFit.cover,)),
-                              Positioned(
-                                right: 2,
-                                top: 30,
-                                child: Image.asset("assets/images/Rectangle 96.png",fit: BoxFit.cover,)),
-                            ],
-                          ) ,
-                        )
-                      ],
+  Widget buildSheet() => StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            color: projectColors.black,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 20, left: 20),
+              child: ListView(
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        top: 15, bottom: 40, right: 150, left: 150),
+                    child: Container(
+                      width: 70,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              Container(
-                height: 100.h > 1200 ? 15.h : 10.h,
-                decoration: BoxDecoration(color: projectColors.black2,borderRadius: BorderRadius.circular(10)),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 20,top: 10,left: 20,bottom: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-
-                      Text("Don't",style: TextStyle(color: projectColors.black3,fontSize: 40,fontWeight: FontWeight.w900),),
-                      SizedBox(
-                        child:Stack(
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Container(
+                      height: 100.h > 1200 ? 15.h : 10.h,
+                      decoration: BoxDecoration(
+                          color: projectColors.black2,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            right: 20, top: 10, left: 20, bottom: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Image.asset("assets/images/Vector.png",fit: BoxFit.cover,),
-                            Positioned(
-                              right: 2,
-                              top: 32,
-                              child: Image.asset("assets/images/Rectangle 93.png",fit: BoxFit.cover,)),
-                            Positioned(
-                              right: 2,
-                              top: 32,
-                              child: Image.asset("assets/images/Rectangle 94.png",fit: BoxFit.cover,)),
+                            Text(
+                              "Do",
+                              style: TextStyle(
+                                  color: projectColors.blue,
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.w900),
+                            ),
+                            SizedBox(
+                              child: Stack(
+                                children: [
+                                  Image.asset(
+                                    "assets/images/Vector.png",
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Positioned(
+                                      right: 22,
+                                      top: 42,
+                                      child: Image.asset(
+                                        "assets/images/Rectangle 95.png",
+                                        fit: BoxFit.cover,
+                                      )),
+                                  Positioned(
+                                      right: 2,
+                                      top: 30,
+                                      child: Image.asset(
+                                        "assets/images/Rectangle 96.png",
+                                        fit: BoxFit.cover,
+                                      )),
+                                ],
+                              ),
+                            )
                           ],
-                        ) ,
-                      )
-                    ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Text(titleText,style: TextStyle(color: projectColors.white,fontSize:100.h>1200 ? 35 : 24,fontWeight: FontWeight.w500),textAlign: TextAlign.left,),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 15,top: 10),
-                child: Text(SubText1,style: TextStyle(color: projectColors.white1,fontSize:100.h>1200 ? 30 : 17,fontWeight: FontWeight.w500,height: 1.5),textAlign: TextAlign.left,),
-              ),
-              Container(
-                height: 100.h>1200 ? 8.h : 11.h,
-                decoration: BoxDecoration(
-                  color: projectColors.blue,
-                  borderRadius: BorderRadius.circular(15)
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 15,bottom: 15,left: 10,right: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                     const Expanded(
-                        flex: 1,
-                        child:  Icon(Icons.error_outline_outlined)),
-                      Expanded(
-                        flex: 6,
-                        child: Text(errorText,style: TextStyle(color: Colors.black,fontSize:100.h > 1200 ? 28 : 15,fontWeight: FontWeight.w500),textAlign: TextAlign.left,))
-                    ],
+                  Container(
+                    height: 100.h > 1200 ? 15.h : 10.h,
+                    decoration: BoxDecoration(
+                        color: projectColors.black2,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          right: 20, top: 10, left: 20, bottom: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't",
+                            style: TextStyle(
+                                color: projectColors.black3,
+                                fontSize: 40,
+                                fontWeight: FontWeight.w900),
+                          ),
+                          SizedBox(
+                            child: Stack(
+                              children: [
+                                Image.asset(
+                                  "assets/images/Vector.png",
+                                  fit: BoxFit.cover,
+                                ),
+                                Positioned(
+                                    right: 2,
+                                    top: 32,
+                                    child: Image.asset(
+                                      "assets/images/Rectangle 93.png",
+                                      fit: BoxFit.cover,
+                                    )),
+                                Positioned(
+                                    right: 2,
+                                    top: 32,
+                                    child: Image.asset(
+                                      "assets/images/Rectangle 94.png",
+                                      fit: BoxFit.cover,
+                                    )),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Text(
+                      titleText,
+                      style: TextStyle(
+                          color: projectColors.white,
+                          fontSize: 100.h > 1200 ? 35 : 24,
+                          fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 15, top: 10),
+                    child: Text(
+                      SubText1,
+                      style: TextStyle(
+                          color: projectColors.white1,
+                          fontSize: 100.h > 1200 ? 30 : 17,
+                          fontWeight: FontWeight.w500,
+                          height: 1.5),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  Container(
+                    height: 100.h > 1200 ? 8.h : 11.h,
+                    decoration: BoxDecoration(
+                        color: projectColors.blue,
+                        borderRadius: BorderRadius.circular(15)),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          top: 15, bottom: 15, left: 10, right: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Expanded(
+                              flex: 1,
+                              child: Icon(Icons.error_outline_outlined)),
+                          Expanded(
+                              flex: 6,
+                              child: Text(
+                                errorText,
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 100.h > 1200 ? 28 : 15,
+                                    fontWeight: FontWeight.w500),
+                                textAlign: TextAlign.left,
+                              ))
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 15, top: 10),
+                    child: Text(
+                      SubText2,
+                      style: TextStyle(
+                          color: projectColors.white1,
+                          fontSize: 100.h > 1200 ? 30 : 17,
+                          fontWeight: FontWeight.w500,
+                          height: 1.5),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  Padding(
+                    padding: 100.h > 1200
+                        ? EdgeInsets.only(top: 25)
+                        : EdgeInsets.zero,
+                    child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                            fixedSize:
+                                100.h > 1200 ? Size(400, 70) : Size(400, 44),
+                            primary: projectColors.black2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(40),
+                              side: BorderSide(
+                                  color: projectColors.white, width: 1.5),
+                            )),
+                        child: Text(
+                          "CANCEL",
+                          style: TextStyle(
+                              color: projectColors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900),
+                        )),
+                  )
+                ],
               ),
-               Padding(
-                padding: EdgeInsets.only(bottom: 15,top: 10),
-                child: Text(SubText2,style: TextStyle(color: projectColors.white1,fontSize:100.h>1200 ? 30 : 17,fontWeight: FontWeight.w500,height: 1.5),textAlign: TextAlign.left,),
-              ),
-              Padding(
-                padding:100.h>1200 ?EdgeInsets.only(top: 25) :  EdgeInsets.zero,
-                child: ElevatedButton(onPressed: () {
-                  Navigator.pop(context);
-                }, 
-                style: ElevatedButton.styleFrom(
-                fixedSize:100.h>1200 ? Size(400, 70) :  Size(400, 44),
-                primary:  projectColors.black2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(40),
-                  side:  BorderSide(color: projectColors.white, width: 1.5),
-                )),  
-                child:Text("CANCEL",style: TextStyle(color: projectColors.white,fontSize: 18,fontWeight: FontWeight.w900),)),
-              )
-            ],
-          ),
-        ),);
-        
-    },
-    );
-
+            ),
+          );
+        },
+      );
 }
-
-
 
 class _CarouselFour extends StatefulWidget {
   const _CarouselFour({Key? key}) : super(key: key);
@@ -760,7 +891,9 @@ class __CarouselFourState extends State<_CarouselFour> {
         padding: _SfsRapidPadding.vertical15,
         child: Container(
           decoration: const BoxDecoration(
-              image: DecorationImage(image: AssetImage("assets/images/Chartsbackground.png"), fit: BoxFit.cover)),
+              image: DecorationImage(
+                  image: AssetImage("assets/images/Chartsbackground.png"),
+                  fit: BoxFit.cover)),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -770,7 +903,10 @@ class __CarouselFourState extends State<_CarouselFour> {
                     child: Text(
                       AppLocalizations.of(context)!.sfs_page4_title,
                       style: TextStyle(
-                          color: projectColors.white, fontSize: 17, fontWeight: FontWeight.w500, letterSpacing: 0.2),
+                          color: projectColors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.2),
                     )),
                 const SizedBox(
                   height: 10,
@@ -792,7 +928,9 @@ class __CarouselFourState extends State<_CarouselFour> {
                               primaryXAxis: NumericAxis(
                                   crossesAt: 0,
                                   isVisible: true,
-                                  axisLine: AxisLine(color: projectColors.blue, dashArray: [3, 6]),
+                                  axisLine: AxisLine(
+                                      color: projectColors.blue,
+                                      dashArray: [3, 6]),
                                   edgeLabelPlacement: EdgeLabelPlacement.shift,
                                   rangePadding: ChartRangePadding.none,
                                   maximumLabels: 0,
@@ -819,14 +957,19 @@ class __CarouselFourState extends State<_CarouselFour> {
                                         shape: DataMarkerType.circle),
                                     // Type of spline
 
-                                    xValueMapper: (ChartData data, _) => data.xval,
-                                    yValueMapper: (ChartData data, _) => data.yval,
+                                    xValueMapper: (ChartData data, _) =>
+                                        data.xval,
+                                    yValueMapper: (ChartData data, _) =>
+                                        data.yval,
                                     dataLabelSettings: DataLabelSettings(
                                         isVisible: true,
                                         alignment: ChartAlignment.center,
-                                        labelAlignment: ChartDataLabelAlignment.outer,
+                                        labelAlignment:
+                                            ChartDataLabelAlignment.outer,
                                         textStyle: TextStyle(
-                                            fontSize: 10, fontWeight: FontWeight.bold, color: projectColors.white)))
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: projectColors.white)))
                               ])),
                       const SizedBox(
                         height: 30,
@@ -843,7 +986,8 @@ class __CarouselFourState extends State<_CarouselFour> {
                                 color: Colors.black.withOpacity(0.1),
                                 spreadRadius: 5,
                                 blurRadius: 7,
-                                offset: const Offset(0, 3), // changes position of shadow
+                                offset: const Offset(
+                                    0, 3), // changes position of shadow
                               ),
                             ],
                           ),
@@ -854,15 +998,18 @@ class __CarouselFourState extends State<_CarouselFour> {
                                 Expanded(
                                   flex: 1,
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Container(
                                         width: 10,
                                         height: 4,
                                         decoration: BoxDecoration(
-                                            color: const Color.fromARGB(255, 255, 80, 99),
-                                            borderRadius: BorderRadius.circular(10)),
+                                            color: const Color.fromARGB(
+                                                255, 255, 80, 99),
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
                                       ),
                                       const SizedBox(
                                         width: 5,
@@ -870,7 +1017,9 @@ class __CarouselFourState extends State<_CarouselFour> {
                                       Text(
                                         AppLocalizations.of(context)!.sfs_grip,
                                         style: const TextStyle(
-                                            color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500),
                                       )
                                     ],
                                   ),
@@ -878,7 +1027,8 @@ class __CarouselFourState extends State<_CarouselFour> {
                                 Expanded(
                                   flex: 1,
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Row(
@@ -887,8 +1037,10 @@ class __CarouselFourState extends State<_CarouselFour> {
                                             width: 10,
                                             height: 4,
                                             decoration: BoxDecoration(
-                                                color: const Color.fromARGB(255, 255, 215, 207),
-                                                borderRadius: BorderRadius.circular(10)),
+                                                color: const Color.fromARGB(
+                                                    255, 255, 215, 207),
+                                                borderRadius:
+                                                    BorderRadius.circular(10)),
                                           ),
                                         ],
                                       ),
@@ -898,7 +1050,9 @@ class __CarouselFourState extends State<_CarouselFour> {
                                       Text(
                                         AppLocalizations.of(context)!.sfs_pull,
                                         style: const TextStyle(
-                                            color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500),
                                       )
                                     ],
                                   ),
@@ -919,7 +1073,8 @@ class __CarouselFourState extends State<_CarouselFour> {
                               primaryXAxis: NumericAxis(
                                   crossesAt: 0,
                                   isVisible: true,
-                                  axisLine: AxisLine(color: projectColors.black3),
+                                  axisLine:
+                                      AxisLine(color: projectColors.black3),
                                   edgeLabelPlacement: EdgeLabelPlacement.none,
                                   rangePadding: ChartRangePadding.auto,
                                   maximumLabels: 0,
@@ -935,16 +1090,20 @@ class __CarouselFourState extends State<_CarouselFour> {
                               ),
                               series: <ChartSeries>[
                                 ColumnSeries<ChartData2nd, int>(
-                                    pointColorMapper: (datum, index) => datum.color,
+                                    pointColorMapper: (datum, index) =>
+                                        datum.color,
                                     color: projectColors.black3,
                                     enableTooltip: true,
                                     dataSource: data2nd,
 
                                     // Type of spline
 
-                                    xValueMapper: (ChartData2nd data, _) => data.xval,
-                                    yValueMapper: (ChartData2nd data, _) => data.yval,
-                                    borderRadius: const BorderRadius.all(Radius.circular(5)),
+                                    xValueMapper: (ChartData2nd data, _) =>
+                                        data.xval,
+                                    yValueMapper: (ChartData2nd data, _) =>
+                                        data.yval,
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(5)),
                                     spacing: 0.8
                                     // dataLabelSettings: DataLabelSettings(
                                     //   isVisible: true,
@@ -1009,8 +1168,9 @@ class _RapidFireCenterImageText extends StatelessWidget {
             height: 20.h,
             width: 30.w,
             decoration: const BoxDecoration(
-              image:
-                  DecorationImage(image: AssetImage('assets/images/rapid_fire_center_icon.png'), fit: BoxFit.contain),
+              image: DecorationImage(
+                  image: AssetImage('assets/images/rapid_fire_center_icon.png'),
+                  fit: BoxFit.contain),
             ),
             child: Padding(
               padding: EdgeInsets.only(left: 5.w, top: 3.h),
@@ -1022,7 +1182,8 @@ class _RapidFireCenterImageText extends StatelessWidget {
                     child: SizedBox(
                         width: 10.w,
                         child: const Text('Overall Score',
-                            textAlign: TextAlign.center, style: _SfsRapidTextStyles.akhand14)),
+                            textAlign: TextAlign.center,
+                            style: _SfsRapidTextStyles.akhand14)),
                   ),
                   const Text('72', style: _SfsRapidTextStyles.akhand17)
                 ],
@@ -1049,7 +1210,8 @@ class _CustomContainerState extends State<_CustomContainer> {
     return Container(
       height: 50,
       width: 50,
-      decoration: const BoxDecoration(color: Color(0xff657981), shape: BoxShape.circle),
+      decoration:
+          const BoxDecoration(color: Color(0xff657981), shape: BoxShape.circle),
       child: widget.child,
     );
   }
@@ -1081,7 +1243,8 @@ class _ArchOfMovement extends StatelessWidget {
   }
 }
 
-class _CustomAppBarRapidFire extends StatelessWidget implements PreferredSizeWidget {
+class _CustomAppBarRapidFire extends StatelessWidget
+    implements PreferredSizeWidget {
   const _CustomAppBarRapidFire({
     Key? key,
   }) : super(key: key);
@@ -1112,34 +1275,43 @@ class _CustomAppBarRapidFire extends StatelessWidget implements PreferredSizeWid
 }
 
 class _SfsRapidTextStyles {
-  static const TextStyle akhand57 = TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
-  static const TextStyle akhand17 = TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
-  static const TextStyle akhand14 = TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white);
-  static const TextStyle akhand12 = TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.white);
-  static const TextStyle akhand10 = TextStyle(fontSize: 10, fontWeight: FontWeight.w400, color: Colors.white);
-  static const TextStyle built17 =
-      TextStyle(fontFamily: 'Built', fontSize: 17, fontWeight: FontWeight.w600, color: Colors.white);
+  static const TextStyle akhand57 =
+      TextStyle(fontSize: 57, fontWeight: FontWeight.w500, color: Colors.white);
+  static const TextStyle akhand17 =
+      TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white);
+  static const TextStyle akhand14 =
+      TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.white);
+  static const TextStyle akhand12 =
+      TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.white);
+  static const TextStyle akhand10 =
+      TextStyle(fontSize: 10, fontWeight: FontWeight.w400, color: Colors.white);
+  static const TextStyle built17 = TextStyle(
+      fontFamily: 'Built',
+      fontSize: 17,
+      fontWeight: FontWeight.w600,
+      color: Colors.white);
 }
 
 class _SfsRapidPadding {
-  static const EdgeInsets allPadding30 = EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20);
+  static const EdgeInsets allPadding30 =
+      EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 20);
   static const EdgeInsets vertical15 = EdgeInsets.symmetric(vertical: 15);
 }
 
 class ChartData {
-   int xval;
-   int yval;
-   
+  int xval;
+  int yval;
+
   ChartData(this.xval, this.yval);
-  
 }
+
 class ChartData2nd {
-   int xval;
-   int yval;
-   Color color;
+  int xval;
+  int yval;
+  Color color;
   ChartData2nd(this.xval, this.yval, this.color);
-  
 }
+
 class SalesData {
   SalesData(this.year, this.sales);
   final String year;

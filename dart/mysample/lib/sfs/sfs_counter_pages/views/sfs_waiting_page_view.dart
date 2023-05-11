@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:kartal/kartal.dart';
 import 'package:mysample/constants/color_constants.dart';
+import 'package:mysample/sfs/sfs_core/canik_backend.dart';
 import 'package:mysample/sfs/sfs_counter_pages/views/sfs_countdown_page_view.dart';
+import 'package:mysample/sfs/sfs_home_page/view/sfs_home_page_view.dart';
 import 'package:mysample/widgets/app_bar_sfs.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import '../../../widgets/background_image_sfs_widget.dart';
-// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
-// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
-import "package:canik_flutter/canik_backend.dart";
-import 'package:canik_lib/canik_lib.dart';
+import '../../sfs_core/canik_viz.dart';
+import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 
 class SfsWaitingPageView extends StatefulWidget {
   final CanikDevice canikDevice;
-  const SfsWaitingPageView({required this.canikDevice, Key? key})
+  final SfsTrainingMode trainingMode;
+  final SfsAllSettings allSettings;
+  const SfsWaitingPageView(
+      {required this.allSettings,
+      required this.trainingMode,
+      required this.canikDevice,
+      Key? key})
       : super(key: key);
 
   @override
@@ -48,8 +54,11 @@ class _SfsWaitingPageViewState extends State<SfsWaitingPageView> {
                         Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) =>
-                                    const SfsCountDownPage()));
+                                builder: (context) => SfsCountDownPage(
+                                      allSettings: widget.allSettings,
+                                      canikDevice: widget.canikDevice,
+                                      trainingMode: widget.trainingMode,
+                                    )));
                       },
                       buttonColor: ProjectColors().blue,
                       borderSideColor: Colors.transparent,

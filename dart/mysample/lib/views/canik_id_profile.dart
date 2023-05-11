@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:jwt_decode/jwt_decode.dart';
@@ -38,6 +39,7 @@ import '../entities/location_permission.dart';
 import '../entities/profile_image.dart';
 import '../entities/response/iys_response.dart';
 import '../entities/response/profile_image_response.dart';
+import '../product/error_handler.dart';
 import '../product/get_profile_image.dart';
 import '../widgets/webview_widget.dart';
 import 'package:dart_ipify/dart_ipify.dart';
@@ -129,14 +131,14 @@ class _CanikProfileState extends State<CanikProfile> {
     final ipAddress = await Ipify.ipv4();
     IysAddRequestModel iysAddRequestModel = IysAddRequestModel(
         ipAddress: ipAddress, canikId: canikId!, type: type, recipient: emails.first, status: status);
-    return context.read<IysAddCubit>().addIys(iysAddRequestModel);
+    return await context.read<IysAddCubit>().addIys(iysAddRequestModel);
   }
 
   //TODO: BURAYA TELEFON GELİNCE TELEFON EKLEMESİ YAP!
   Future<void> listIys() async {
     IysPermissionRequestModel iysPermissionRequestModel =
         IysPermissionRequestModel(eMail: emails.first, mobile: '+905555555555');
-    context.read<IysQuestioningListCubit>().questioningListIys(iysPermissionRequestModel).then((value) => x = value);
+   await context.read<IysQuestioningListCubit>().questioningListIys(iysPermissionRequestModel).then((value) => x = value);
   }
 
   profilePercentageCalculation() {
@@ -235,7 +237,7 @@ class _CanikProfileState extends State<CanikProfile> {
           isUploading = true;
         });
       });
-      // listIys();
+      listIys();
       profilePercentageCalculation();
     });
     getLocationList();
@@ -427,7 +429,7 @@ class _CanikProfileState extends State<CanikProfile> {
       children: [
         const BackgroundImage(),
         DefaultTabController(
-          length: 2,
+          length: 3,
           child: Scaffold(
             backgroundColor: Colors.transparent,
             appBar: AppBar(
@@ -553,14 +555,12 @@ class _CanikProfileState extends State<CanikProfile> {
                         style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w500),
                       ),
                     ),
-
-                    ///TODO: PERMISSION KISMI DUZELINCE AÇ
-                    // Tab(
-                    //   child: Text(
-                    //     AppLocalizations.of(context)!.permissions,
-                    //     style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w500),
-                    //   ),
-                    // ),
+                    Tab(
+                      child: Text(
+                        AppLocalizations.of(context)!.permissions,
+                        style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.w500),
+                      ),
+                    ),
                     Tab(
                       child: Text(
                         AppLocalizations.of(context)!.settings,
@@ -588,239 +588,170 @@ class _CanikProfileState extends State<CanikProfile> {
                   city: city,
                   emails: emails,
                   updateUrl: _updateUrl),
-              //  Padding(
-              //   padding: EdgeInsets.only(left: 30, right: 30, top: height / 16),
-              //   child: Column(
-              //     mainAxisAlignment: MainAxisAlignment.start,
-              //     crossAxisAlignment: CrossAxisAlignment.center,
-              //     children: [
-              //       // customRow(
-              //       //   textStyleTitleText,
-              //       //   textStyleTitleY,
-              //       //   customText = AppLocalizations.of(context)!.sms_permission,
-              //       // ),
-              //       // SizedBox(
-              //       //   height: height / 17,
-              //       // ),
+               Padding(
+                padding: EdgeInsets.only(left: 30, right: 30, top: height / 16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // customRow(
+                    //   textStyleTitleText,
+                    //   textStyleTitleY,
+                    //   customText = AppLocalizations.of(context)!.sms_permission,
+                    // ),
+                    // SizedBox(
+                    //   height: height / 17,
+                    // ),
 
-              //       BlocBuilder<IysQuestioningListCubit, IysPermissionResponse>(
-              //         builder: (context, response) {
-              //           IysPermissionResponseModel permission = x.iysPermissionResponse;
-              //           if (x.isError == false) {
-              //             return Row(
-              //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //               children: [
-              //                 Text(
-              //                   AppLocalizations.of(context)!.e_mail_permission,
-              //                   style: _projectTextStyles.textStyleTitleText,
-              //                 ),
-              //                 ElevatedButton(
-              //                     style: ElevatedButton.styleFrom(
-              //                       primary: const Color(0xff9cabc2).withOpacity(0.60),
-              //                       shape: RoundedRectangleBorder(
-              //                         borderRadius: BorderRadius.circular(30),
-              //                       ),
-              //                     ),
-              //                     onPressed: () {
-              //                       // Aktif edildiğinde kapat!
-              //                       if (true == true) {
-              //                         return;
-              //                       }
-
-              //                       if (permission.eMail == false) {
-              //                         addIysModel('ONAY', 'EPOSTA').then((value) {
-              //                           setState(() {
-              //                             x.iysPermissionResponse.eMail = !permission.eMail;
-
-              //                             // if (value.result == 'false') {
-              //                             //   x.iysPermissionResponse.eMail = !x.iysPermissionResponse.eMail;
-              //                             //   //TODO: ERROR UYARI MESAJI YAZ
-              //                             // }
-              //                           });
-              //                         });
-              //                       } else {
-              //                         addIysModel('RET', 'EPOSTA').then((value) {
-              //                           setState(() {
-              //                             x.iysPermissionResponse.eMail = !permission.eMail;
-
-              //                             if (value.result == 'false') {
-              //                               x.iysPermissionResponse.eMail = !x.iysPermissionResponse.eMail;
-              //                               //TODO: ERROR UYARI MESAJI YAZ
-              //                             }
-              //                           });
-              //                         });
-              //                       }
-              //                     },
-              //                     child: permission.eMail == false
-              //                         ? Text(
-              //                             AppLocalizations.of(context)!.allow,
-              //                             style: _projectTextStyles.buttonTextStyle,
-              //                           )
-              //                         : Text(AppLocalizations.of(context)!.cancel,
-              //                             style: _projectTextStyles.buttonTextStyle))
-              //               ],
-              //             );
-              //           } else {
-              //             return Container();
-              //           }
-              //           //   return Row(
-              //           //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //           //     children: [
-              //           //       Text(
-              //           //         AppLocalizations.of(context)!.e_mail_permission,
-              //           //         style: textStyleTitleText,
-              //           //       ),
-              //           //       Row(
-              //           //         children: [
-              //           //           ElevatedButton(
-              //           //               onPressed: () {
-              //           //                 addIysModel('ONAY', 'EPOSTA');
-              //           //                 listIys();
-              //           //               },
-              //           //               style: ElevatedButton.styleFrom(
-              //           //                 primary: const Color(0xff9cabc2).withOpacity(0.60),
-              //           //                 shape: RoundedRectangleBorder(
-              //           //                   borderRadius: BorderRadius.circular(30),
-              //           //                 ),
-              //           //               ),
-              //           //               child: Text(
-              //           //                 AppLocalizations.of(context)!.available,
-              //           //                 style: textStyleTitleY,
-              //           //               )),
-              //           //         ],
-              //           //       ),
-              //           //     ],
-              //           //   );
-              //           // } else {
-              //           //   return Row(
-              //           //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //           //     children: [
-              //           //       Text(
-              //           //         AppLocalizations.of(context)!.e_mail_permission,
-              //           //         style: textStyleTitleText,
-              //           //       ),
-              //           //       Row(
-              //           //         children: [
-              //           //           ElevatedButton(
-              //           //               onPressed: () {
-              //           //                 addIysModel('RET', 'EPOSTA');
-              //           //                 listIys();
-              //           //               },
-              //           //               style: ElevatedButton.styleFrom(
-              //           //                 primary: const Color(0xff9cabc2).withOpacity(0.60),
-              //           //                 shape: RoundedRectangleBorder(
-              //           //                   borderRadius: BorderRadius.circular(30),
-              //           //                 ),
-              //           //               ),
-              //           //               child: Text(AppLocalizations.of(context)!.cancel)),
-              //           //         ],
-              //           //       ),
-              //           //     ],
-              //           //   );
-              //           // }
-              //         },
-              //       ),
-              //       SizedBox(
-              //         height: height / 17,
-              //       ),
-              //       // Location İzin
-              //       BlocBuilder<GetLocationCubit, GetLocationPermissionResponse>(
-              //         builder: (context, response) {
-              //           if (response.getLocationPermissionResponseModel.isNotNullOrEmpty) {
-              //             if (response.getLocationPermissionResponseModel.last.status == true) {
-              //               return Row(
-              //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //                 children: [
-              //                   Text(AppLocalizations.of(context)!.location_permission,
-              //                       style: _projectTextStyles.textStyleTitleText),
-              //                   ElevatedButton(
-              //                       onPressed: () async {
-              //                         recordId = response.getLocationPermissionResponseModel.last.recordId;
-              //                         var res = await addLocation(false, true, recordId);
-              //                         EasyLoading.show(dismissOnTap: false);
-              //                         if (res.result == 'true') {
-              //                           getLocationList();
-              //                           EasyLoading.dismiss();
-              //                         }
-              //                       },
-              //                       style: ElevatedButton.styleFrom(
-              //                         primary: const Color(0xff9cabc2).withOpacity(0.60),
-              //                         shape: RoundedRectangleBorder(
-              //                           borderRadius: BorderRadius.circular(30),
-              //                         ),
-              //                       ),
-              //                       child: Text(AppLocalizations.of(context)!.cancel,
-              //                           style: _projectTextStyles.buttonTextStyle)),
-              //                 ],
-              //               );
-              //             } else {
-              //               return Row(
-              //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //                 children: [
-              //                   Text(AppLocalizations.of(context)!.location_permission,
-              //                       style: _projectTextStyles.textStyleTitleText),
-              //                   ElevatedButton(
-              //                       onPressed: () async {
-              //                         recordId = response.getLocationPermissionResponseModel.last.recordId;
-              //                         EasyLoading.show(dismissOnTap: false);
-              //                         var res = await addLocation(true, true, recordId);
-              //                         if (res.result == 'true') {
-              //                           getLocationList();
-              //                           EasyLoading.dismiss();
-              //                         }
-              //                       },
-              //                       style: ElevatedButton.styleFrom(
-              //                         primary: const Color(0xff9cabc2).withOpacity(0.60),
-              //                         shape: RoundedRectangleBorder(
-              //                           borderRadius: BorderRadius.circular(30),
-              //                         ),
-              //                       ),
-              //                       child: Text(
-              //                         AppLocalizations.of(context)!.allow,
-              //                         style: _projectTextStyles.buttonTextStyle,
-              //                       )),
-              //                 ],
-              //               );
-              //             }
-              //           } else {
-              //             return Row(
-              //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //               children: [
-              //                 Text(AppLocalizations.of(context)!.location_permission,
-              //                     style: _projectTextStyles.textStyleTitleText),
-              //                 ElevatedButton(
-              //                     onPressed: () async {
-              //                       if (true == true) {
-              //                         return;
-              //                       }
-              //                       if (response.getLocationPermissionResponseModel.isNotNullOrEmpty) {
-              //                         recordId = response.getLocationPermissionResponseModel.last.recordId;
-              //                         EasyLoading.show(dismissOnTap: false);
-              //                         var res = await addLocation(true, true, recordId);
-              //                         if (res.result == 'true') {
-              //                           getLocationList();
-              //                           EasyLoading.dismiss();
-              //                         }
-              //                       }
-              //                     },
-              //                     style: ElevatedButton.styleFrom(
-              //                       primary: const Color(0xff9cabc2).withOpacity(0.60),
-              //                       shape: RoundedRectangleBorder(
-              //                         borderRadius: BorderRadius.circular(30),
-              //                       ),
-              //                     ),
-              //                     child: Text(
-              //                       AppLocalizations.of(context)!.allow,
-              //                       style: _projectTextStyles.buttonTextStyle,
-              //                     )),
-              //               ],
-              //             );
-              //           }
-              //         },
-              //       ),
-              //     ],
-              //   ),
-              // ),
+                    BlocBuilder<IysQuestioningListCubit, IysPermissionResponse>(
+                      builder: (context, response) {
+                        if (response.isError == false) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!.e_mail_permission,
+                                style: _projectTextStyles.textStyleTitleText,
+                              ),
+                              ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    primary: const Color(0xff9cabc2).withOpacity(0.60),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  onPressed: () async{
+                                    EasyLoading.show();
+                                    if (response.iysPermissionResponse.eMail == false) {
+                                    var result = await addIysModel('ONAY', 'EPOSTA');
+                                     if (result.result != "basarili") {
+                                          ErrorPopup(5,AppLocalizations.of(context)!.error,AppLocalizations.of(context)!.error_subtitle);
+                                        }
+                                    } 
+                                    else {
+                                    var result = await addIysModel('RET', 'EPOSTA');
+                                    if (result.result != "basarili") {
+                                          ErrorPopup(5,AppLocalizations.of(context)!.error,AppLocalizations.of(context)!.error_subtitle);
+                                        }
+                                    }
+                                    EasyLoading.dismiss();
+                                    listIys();
+                                  },
+                                  child: response.iysPermissionResponse.eMail == false
+                                      ? Text(
+                                          AppLocalizations.of(context)!.allow,
+                                          style: _projectTextStyles.buttonTextStyle,
+                                        )
+                                      : Text(AppLocalizations.of(context)!.cancel,
+                                          style: _projectTextStyles.buttonTextStyle))
+                            ],
+                          );
+                        } else {
+                          return Container();
+                        }
+                      },
+                    ),
+                    SizedBox(
+                      height: height / 17,
+                    ),
+                  //   // Location İzin
+                  //   BlocBuilder<GetLocationCubit, GetLocationPermissionResponse>(
+                  //     builder: (context, response) {
+                  //       if (response.getLocationPermissionResponseModel.isNotNullOrEmpty) {
+                  //         if (response.getLocationPermissionResponseModel.last.status == true) {
+                  //           return Row(
+                  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //             children: [
+                  //               Text(AppLocalizations.of(context)!.location_permission,
+                  //                   style: _projectTextStyles.textStyleTitleText),
+                  //               ElevatedButton(
+                  //                   onPressed: () async {
+                  //                     recordId = response.getLocationPermissionResponseModel.last.recordId;
+                  //                     var res = await addLocation(false, true, recordId);
+                  //                     EasyLoading.show(dismissOnTap: false);
+                  //                     if (res.result == 'true') {
+                  //                       getLocationList();
+                  //                       EasyLoading.dismiss();
+                  //                     }
+                  //                   },
+                  //                   style: ElevatedButton.styleFrom(
+                  //                     primary: const Color(0xff9cabc2).withOpacity(0.60),
+                  //                     shape: RoundedRectangleBorder(
+                  //                       borderRadius: BorderRadius.circular(30),
+                  //                     ),
+                  //                   ),
+                  //                   child: Text(AppLocalizations.of(context)!.cancel,
+                  //                       style: _projectTextStyles.buttonTextStyle)),
+                  //             ],
+                  //           );
+                  //         } else {
+                  //           return Row(
+                  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //             children: [
+                  //               Text(AppLocalizations.of(context)!.location_permission,
+                  //                   style: _projectTextStyles.textStyleTitleText),
+                  //               ElevatedButton(
+                  //                   onPressed: () async {
+                  //                     recordId = response.getLocationPermissionResponseModel.last.recordId;
+                  //                     EasyLoading.show(dismissOnTap: false);
+                  //                     var res = await addLocation(true, true, recordId);
+                  //                     if (res.result == 'true') {
+                  //                       getLocationList();
+                  //                       EasyLoading.dismiss();
+                  //                     }
+                  //                   },
+                  //                   style: ElevatedButton.styleFrom(
+                  //                     primary: const Color(0xff9cabc2).withOpacity(0.60),
+                  //                     shape: RoundedRectangleBorder(
+                  //                       borderRadius: BorderRadius.circular(30),
+                  //                     ),
+                  //                   ),
+                  //                   child: Text(
+                  //                     AppLocalizations.of(context)!.allow,
+                  //                     style: _projectTextStyles.buttonTextStyle,
+                  //                   )),
+                  //             ],
+                  //           );
+                  //         }
+                  //       } else {
+                  //         return Row(
+                  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //           children: [
+                  //             Text(AppLocalizations.of(context)!.location_permission,
+                  //                 style: _projectTextStyles.textStyleTitleText),
+                  //             ElevatedButton(
+                  //                 onPressed: () async {
+                  //                   if (true == true) {
+                  //                     return;
+                  //                   }
+                  //                   if (response.getLocationPermissionResponseModel.isNotNullOrEmpty) {
+                  //                     recordId = response.getLocationPermissionResponseModel.last.recordId;
+                  //                     EasyLoading.show(dismissOnTap: false);
+                  //                     var res = await addLocation(true, true, recordId);
+                  //                     if (res.result == 'true') {
+                  //                       getLocationList();
+                  //                       EasyLoading.dismiss();
+                  //                     }
+                  //                   }
+                  //                 },
+                  //                 style: ElevatedButton.styleFrom(
+                  //                   primary: const Color(0xff9cabc2).withOpacity(0.60),
+                  //                   shape: RoundedRectangleBorder(
+                  //                     borderRadius: BorderRadius.circular(30),
+                  //                   ),
+                  //                 ),
+                  //                 child: Text(
+                  //                   AppLocalizations.of(context)!.allow,
+                  //                   style: _projectTextStyles.buttonTextStyle,
+                  //                 )),
+                  //           ],
+                  //         );
+                  //       }
+                  //     },
+                  //   ),
+                   ],
+                ),
+              ),
               Padding(
                 padding: EdgeInsets.only(left: height / 20, right: height / 20, top: height / 16),
                 child: ListView(

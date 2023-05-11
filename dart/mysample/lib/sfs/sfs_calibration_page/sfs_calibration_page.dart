@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:mysample/sfs/sfs_core/canik_backend.dart';
 import 'package:mysample/sfs/sfs_home_page/view/sfs_home_page_view.dart';
+import 'package:mysample/sfs/sfs_modes_advanced_settings_page/sfs_modes_settings_page.dart';
 import 'package:mysample/widgets/background_image_sfs_calibration.dart';
 import 'package:mysample/widgets/background_image_sfs_widget.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../constants/color_constants.dart';
 import '../../widgets/app_bar_sfs.dart';
-
-// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
-// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
-import "package:canik_flutter/canik_backend.dart";
-import 'package:canik_lib/canik_lib.dart';
 
 class SfsCalibrationPage extends StatefulWidget {
   final CanikDevice canikdevice;
@@ -77,8 +74,10 @@ class _SfsCalibrationPageState extends State<SfsCalibrationPage> {
                         widget.canikdevice.calibrateGyro().then((value) =>
                             Navigator.push(context, MaterialPageRoute(
                               builder: (context) {
-                                return SfsHomePage(
+                                return SfsModesSettingsPage(
                                   canikDevice: widget.canikdevice,
+                                  choosedGun: SfsGunsSettingsModal(
+                                      categoryName: "", imageUrl: ""),
                                 );
                               },
                             )));

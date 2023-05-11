@@ -54,4 +54,6 @@ class EndPoints {
   static const String getMainPageProduct = "Definition/MainPageProduct";
 
   static const String getProductCategoriesByWeapons = "Product/GetProductCategoriesByWeapons";
+
+  static const String mailSender = "Mail/MailSender";
 }

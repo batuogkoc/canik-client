@@ -22,12 +22,13 @@ import 'package:flutter_bloc/src/bloc_provider.dart';
 import '../../bloc/language_form_bloc.dart';
 import '../../cubit/get_location_cubit.dart';
 import '../../cubit/iys_questioning_list_cubit.dart';
+import '../../cubit/mailsender_cubit.dart';
 import '../../cubit/product_categories_by_weapons_cubit.dart';
 import '../../cubit/shot_record_cubit.dart';
 import '../../cubit/weapon_to_user_get_cubit.dart';
 
 class ProductInit {
-  final List providers = [
+  final List<BlocProviderSingleChildWidget> providers = [
     BlocProvider(create: (context) => LanguageFormBloc()),
     BlocProvider(create: (context) => CanikStoreDetailPageCubit()),
     BlocProvider(create: (context) => SpecialPageCubit()),
@@ -51,6 +52,8 @@ class ProductInit {
     BlocProvider(create: (context) => DealerCubit()),
     BlocProvider(create: (context) => CompareWeaponCubit()),
     BlocProvider(create: (context) => MainPageProductCubit()),
-    BlocProvider(create: (context) => ProductCategoriesByWeaponsCubit())
+    BlocProvider(create: (context) => ProductCategoriesByWeaponsCubit()),
+    BlocProvider(create: (context) => MailSenderCubit()),
+    
   ];
 }

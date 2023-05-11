@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kartal/kartal.dart';
+import 'package:mysample/sfs/sfs_core/canik_backend.dart';
 import 'package:mysample/sfs/sfs_counter_pages/views/sfs_waiting_page_view.dart';
 import 'package:mysample/sfs/sfs_home_page/model/sfs_home_model.dart';
 import 'package:mysample/sfs/sfs_home_page/viewmodel/sfs_home_page_view_model.dart';
@@ -9,15 +10,16 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../constants/color_constants.dart';
+import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 
-// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
-// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
-import "package:canik_flutter/canik_backend.dart";
-import 'package:canik_lib/canik_lib.dart';
+enum SfsTrainingMode { fastDraw, rapidFire, shotTimer }
 
 class SfsHomePage extends StatefulWidget {
+  final SfsAllSettings allSettings;
   final CanikDevice canikDevice;
-  const SfsHomePage({required this.canikDevice, Key? key}) : super(key: key);
+  const SfsHomePage(
+      {required this.allSettings, required this.canikDevice, Key? key})
+      : super(key: key);
 
   @override
   State<SfsHomePage> createState() => _SfsHomePageState();
@@ -82,6 +84,12 @@ class _SfsHomePageState extends State<SfsHomePage> {
                 ),
                 _ContinueButton(
                   canikDevice: widget.canikDevice,
+                  trainingMode: _currentIndex == 0
+                      ? SfsTrainingMode.fastDraw
+                      : _currentIndex == 1
+                          ? SfsTrainingMode.rapidFire
+                          : SfsTrainingMode.shotTimer,
+                  allSettings: widget.allSettings,
                 )
               ],
             ),
@@ -119,8 +127,12 @@ class _CustomShareCardState extends State<_CustomShareCard> {
 }
 
 class _ContinueButton extends StatelessWidget {
+  final SfsTrainingMode trainingMode;
+  final SfsAllSettings allSettings;
   final CanikDevice canikDevice;
   const _ContinueButton({
+    required this.allSettings,
+    required this.trainingMode,
     required this.canikDevice,
     Key? key,
   }) : super(key: key);
@@ -131,6 +143,8 @@ class _ContinueButton extends StatelessWidget {
         onPressed: () {
           context.navigateToPage(SfsWaitingPageView(
             canikDevice: canikDevice,
+            allSettings: allSettings,
+            trainingMode: trainingMode,
           ));
         },
         style: ElevatedButton.styleFrom(

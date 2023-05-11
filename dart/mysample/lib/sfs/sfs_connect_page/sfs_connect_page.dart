@@ -9,11 +9,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import '../../constants/color_constants.dart';
 import '../../widgets/app_bar_sfs.dart';
-// import 'package:mysample/sfs/sfs_core/canik_lib.dart';
-// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
-import "package:canik_flutter/canik_backend.dart";
-import 'package:canik_lib/canik_lib.dart';
-
+import '../sfs_core/canik_backend.dart';
+import '../sfs_core/fsm.dart';
 import '../test-sfs/sfs_calibration_page_test.dart';
 
 class SfsConnectPage extends StatefulWidget {
@@ -154,43 +151,74 @@ class _SfsConnectPageState extends State<SfsConnectPage> {
                                                         return Column(
                                                             children: snapshot
                                                                 .data!
-                                                                .map((e) =>
-                                                                    TextButton(
-                                                                      child: Text(
-                                                                          "${e.name == "" ? "<No device name>" : e.name} : ${e.id}"),
-                                                                      onPressed:
-                                                                          () async {
-                                                                        canikDevice =
-                                                                            CanikDevice(e);
-                                                                        try {
-                                                                          await canikDevice.connect(
-                                                                              timeout: const Duration(seconds: 10));
-                                                                        } catch (error) {
-                                                                          Navigator.pop(
-                                                                              context);
-                                                                          setState(
-                                                                              () {
-                                                                            isError =
-                                                                                true;
-                                                                          });
-                                                                          return;
-                                                                        }
-                                                                        FlutterBluePlus
-                                                                            .instance
-                                                                            .stopScan();
-                                                                        Navigator.push(
-                                                                            context,
-                                                                            MaterialPageRoute(
-                                                                          builder:
-                                                                              (context) {
-                                                                            return SfsCalibrationPage(canikdevice: canikDevice);
-                                                                          },
-                                                                        ));
-                                                                        // context.navigateToPage(
-                                                                        //     DevicePage(canikDevice));
-                                                                      },
-                                                                    ))
-                                                                .toList());
+                                                                .where((element) =>
+                                                                    element
+                                                                        .name !=
+                                                                    "")
+                                                                .map((e) {
+                                                          return TextButton(
+                                                            child: Text(
+                                                                "${e.name == "" ? "<No device name>" : e.name} : ${e.id}"),
+                                                            onPressed:
+                                                                () async {
+                                                              canikDevice =
+                                                                  CanikDevice(
+                                                                      e);
+                                                              result = await canikDevice.connect(
+                                                                  timeout: const Duration(
+                                                                      seconds:
+                                                                          10));
+                                                              if (result == Response.idError &&
+                                                                  result ==
+                                                                      Response
+                                                                          .error &&
+                                                                  result ==
+                                                                      Response
+                                                                          .alreadyConnected) {
+                                                                Navigator.pop(
+                                                                    context);
+                                                                setState(() {
+                                                                  isError =
+                                                                      true;
+                                                                  switch (
+                                                                      result) {
+                                                                    case Response
+                                                                        .idError:
+                                                                      print(
+                                                                          'Id error');
+                                                                      break;
+                                                                    case Response
+                                                                        .error:
+                                                                      print(
+                                                                          'Connecting Error');
+                                                                      break;
+                                                                    case Response
+                                                                        .alreadyConnected:
+                                                                      print(
+                                                                          'Already connected error');
+                                                                      break;
+                                                                  }
+                                                                });
+                                                              } else {
+                                                                FlutterBluePlus
+                                                                    .instance
+                                                                    .stopScan();
+                                                                Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) {
+                                                                    return SfsCalibrationPage(
+                                                                        canikdevice:
+                                                                            canikDevice);
+                                                                  },
+                                                                ));
+                                                                // context.navigateToPage(
+                                                                //     DevicePage(canikDevice));
+                                                              }
+                                                            },
+                                                          );
+                                                        }).toList());
                                                       } else {
                                                         EasyLoading.dismiss();
                                                         return const Text(
@@ -233,11 +261,16 @@ class _SfsConnectPageState extends State<SfsConnectPage> {
                                                                           CanikDevice(
                                                                               e.device);
 
-                                                                      try {
-                                                                        await canikDevice.connect(
-                                                                            timeout:
-                                                                                const Duration(seconds: 10));
-                                                                      } catch (error) {
+                                                                      result = await canikDevice.connect(
+                                                                          timeout:
+                                                                              const Duration(seconds: 10));
+
+                                                                      if (result == Response.alreadyConnected ||
+                                                                          result ==
+                                                                              Response
+                                                                                  .error ||
+                                                                          result ==
+                                                                              Response.idError) {
                                                                         Navigator.pop(
                                                                             context);
                                                                         setState(
@@ -245,17 +278,13 @@ class _SfsConnectPageState extends State<SfsConnectPage> {
                                                                           isError =
                                                                               true;
                                                                         });
-                                                                        return;
+                                                                      } else {
+                                                                        FlutterBluePlus
+                                                                            .instance
+                                                                            .stopScan();
+                                                                        context.navigateToPage(
+                                                                            DevicePage(canikDevice));
                                                                       }
-                                                                      FlutterBluePlus
-                                                                          .instance
-                                                                          .stopScan();
-                                                                      Navigator.push(
-                                                                          context,
-                                                                          MaterialPageRoute(
-                                                                              builder: (context) => SfsCalibrationPage(
-                                                                                    canikdevice: canikDevice,
-                                                                                  )));
                                                                     },
                                                                   ))
                                                               .toList());
@@ -451,8 +480,9 @@ class _SfsConnectPageState extends State<SfsConnectPage> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                const SfsCalibrationTestPage()));
+                            builder: (context) => SfsCalibrationPage(
+                                  canikdevice: canikDevice,
+                                )));
                   },
                   child: Image.asset(
                       'assets/images/sfs/sfs-connect-link.png')), //sfs-connect-danger.png
@@ -507,7 +537,7 @@ class DevicePage extends StatelessWidget {
 
               // ***** HolsterDraw *****
               StreamBuilder(
-                stream: canikDevice.holsterDrawStateStream,
+                stream: canikDevice.holsterDrawSM.stateStream,
                 initialData: canikDevice.holsterDrawSM.state,
                 builder: (context, snapshot) {
                   if (snapshot.data! == HolsterDrawState.stop) {
@@ -562,7 +592,7 @@ class DevicePage extends StatelessWidget {
                 },
               ),
               StreamBuilder<HolsterDrawState>(
-                stream: canikDevice.holsterDrawStateStream,
+                stream: canikDevice.holsterDrawSM.stateStream,
                 initialData: canikDevice.holsterDrawSM.state,
                 builder: (context, snapshot) {
                   return Text("HolsterDrawSM state: ${snapshot.data!.name}");

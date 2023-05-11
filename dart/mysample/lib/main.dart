@@ -31,6 +31,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sizer/sizer.dart';
 
+import 'sfs/sfs_modes_advanced_settings_page/sfs_modes_settings_page.dart';
+
+
 void main() async {
   //Uygulamanın başladığı bölüm
   runApp(const Main());
@@ -87,14 +90,15 @@ class _LoginRegisterState extends State<Main> {
     setState(() {
       mockData = GeneralMockData(checkedList: isClick, imagePath: "");
     });
+
+    
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations(
-        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     return MultiBlocProvider(
-      providers: ProductInit().providers.cast(),
+      providers: ProductInit().providers,
       child: BlocBuilder<LanguageFormBloc, LanguageFormState>(
         builder: (context, state) {
           return FutureBuilder<bool>(
@@ -107,9 +111,7 @@ class _LoginRegisterState extends State<Main> {
                       builder: EasyLoading.init(),
                       debugShowCheckedModeBanner: false,
                       theme: ThemeData(fontFamily: 'Akhand'),
-                      locale: (selectedLang == "TR" || selectedLang == null)
-                          ? const Locale("tr")
-                          : const Locale("en"),
+                      locale: (selectedLang == "TR" || selectedLang == null || selectedLang == "tr" ) ? const Locale("tr") : const Locale("en"),
                       supportedLocales: L10n.all,
                       localizationsDelegates: const [
                         AppLocalizations.delegate,
@@ -119,9 +121,7 @@ class _LoginRegisterState extends State<Main> {
                       ],
 
                       //home: CategoriesForGun(accessories: mockData),
-                      home: snapshot.data == true
-                          ? SfsConnectPage()
-                          : const Choice(),
+                      home: snapshot.data == true ?  TabBarPage(index:0) : const Choice(),
                     );
                   },
                 );
