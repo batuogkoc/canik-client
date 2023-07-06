@@ -14,6 +14,7 @@ import '../../../constants/color_constants.dart';
 import 'package:canik_flutter/canik_backend.dart';
 import 'package:canik_lib/canik_lib.dart';
 import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
+import 'package:collection/collection.dart';
 
 class SfsHolsterDrawPageView extends StatefulWidget {
   final CanikDevice canikDevice;
@@ -33,6 +34,18 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
   static const Color _horizColor = Color(0xff1DA0D7);
   static const Color _aimColor = Color(0xff146A90);
   static const Color _shotColor = Colors.white;
+
+  List<HolsterDrawResult> holsterDrawResults = <HolsterDrawResult>[
+    HolsterDrawResult.shot(DateTime.now(), 1, 2, 3, 2, 1),
+    HolsterDrawResult.shot(DateTime.now(), 2, 5, 1, 1, 2),
+    HolsterDrawResult.shot(DateTime.now(), 3, 2, 3, 5, 3),
+    HolsterDrawResult.shot(DateTime.now(), 2, 3, 4, 3, 1),
+    HolsterDrawResult.shot(DateTime.now(), 1, 1, 5, 4, 4),
+    HolsterDrawResult.shot(DateTime.now(), 3, 1, 4, 5, 5),
+    HolsterDrawResult.shot(DateTime.now(), 4, 2, 5, 3, 2),
+    HolsterDrawResult.shot(DateTime.now(), 5, 4, 2, 1, 3),
+    HolsterDrawResult.shot(DateTime.now(), 2, 3, 3, 1, 1),
+  ];
 
   int touchedIndex = -1;
   Color clickedColor = Colors.transparent;
@@ -115,6 +128,46 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
         ]);
   }
 
+  BarChartGroupData generateGroupDataFromHolsterDrawResult(
+      int x, HolsterDrawResult result) {
+    // double grip = result.gripTime ?? 0;
+    // double pull = grip + (result.withdrawGunTime ?? 0);
+    // double horizontal = pull + (result.rotatingTime ?? 0);
+    // double aim = horizontal + (result.targetingTime ?? 0);
+    // double shot = aim + (result.shotTime ?? 0);
+    double grip = (result.gripTime ?? 0);
+    double pull = (result.withdrawGunTime ?? 0);
+    double horizontal = (result.rotatingTime ?? 0);
+    double aim = (result.targetingTime ?? 0);
+    double shot = (result.shotTime ?? 0);
+    return generateGroupData(x, grip, pull, horizontal, aim, shot);
+  }
+
+  List<BarChartGroupData> generateBarGroupsFromHolsterDrawResults(
+      List<HolsterDrawResult> results) {
+    return results
+        .mapIndexed((index, result) => generateGroupData(
+            index,
+            result.gripTime ?? 0,
+            result.withdrawGunTime ?? 0,
+            result.rotatingTime ?? 0,
+            result.targetingTime ?? 0,
+            result.shotTime ?? 0))
+        .toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.canikDevice.holsterDrawResultStream.listen((event) {
+      setState(() {
+        holsterDrawResults.add(event);
+        print(holsterDrawResults);
+      });
+    });
+    widget.canikDevice.holsterDrawSM.start();
+  }
+
   @override
   Widget build(BuildContext context) {
     return DraggableBottomSheet(
@@ -195,17 +248,9 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
                               ),
                               borderData: FlBorderData(show: false),
                               gridData: FlGridData(show: false),
-                              barGroups: [
-                                generateGroupData(1, 10, 20, 30, 20, 10),
-                                generateGroupData(2, 20, 50, 10, 10, 20),
-                                generateGroupData(3, 30, 20, 30, 50, 30),
-                                generateGroupData(4, 20, 30, 40, 30, 10),
-                                generateGroupData(5, 10, 10, 50, 40, 40),
-                                generateGroupData(6, 30, 10, 40, 50, 50),
-                                generateGroupData(7, 40, 20, 50, 30, 20),
-                                generateGroupData(8, 50, 40, 20, 10, 30),
-                                generateGroupData(9, 20, 30, 30, 10, 10),
-                              ],
+                              barGroups:
+                                  generateBarGroupsFromHolsterDrawResults(
+                                      holsterDrawResults),
                             )),
                           ),
                         ),
@@ -272,6 +317,23 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
               AppLocalizations.of(context)!.stand_by,
               style: _SfsHolsterDrawTextStyles.akhand57,
             ),
+          ),
+          StreamBuilder<HolsterDrawState>(
+            stream: widget.canikDevice.holsterDrawStateStream,
+            initialData: HolsterDrawState.idle,
+            builder: (context, snapshot) {
+              String text = "Error";
+              if (snapshot.hasData) {
+                text = snapshot.data!.name;
+              }
+              return Padding(
+                padding: EdgeInsets.only(top: 5.h),
+                child: Text(
+                  text,
+                  style: _SfsHolsterDrawTextStyles.akhand57,
+                ),
+              );
+            },
           ),
           const CustomBottomBarPlay(),
         ],
