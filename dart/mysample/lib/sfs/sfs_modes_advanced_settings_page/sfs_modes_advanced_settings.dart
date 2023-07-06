@@ -12,7 +12,9 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
-import '../sfs_core/canik_backend.dart';
+// import '../sfs_core/canik_backend.dart';
+import 'package:canik_flutter/canik_backend.dart';
+import 'package:canik_lib/canik_lib.dart';
 
 class SfsModesAdvancedSettings extends StatefulWidget {
   final CanikDevice canikDevice;
@@ -27,9 +29,9 @@ class SfsModesAdvancedSettings extends StatefulWidget {
 }
 
 class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
-  double pointer = 0;
-  double pointer2 = 0;
-  double pointer3 = 0;
+  double magazineCapacity = 0;
+  double countdownDurationSecs = 0;
+  double distanceToTarget = 0;
   bool isClick = false;
   bool isClick2 = false;
   @override
@@ -60,7 +62,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                       padding: const EdgeInsets.all(15.0),
                       child: CachedNetworkImage(
                         key: UniqueKey(),
-                        imageUrl: widget.datas.choosedGun.imageUrl,
+                        imageUrl: widget.datas.chosenGun.imageUrl,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -110,15 +112,17 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                                         builder: (context) => SfsHomePage(
                                               allSettings: SfsAllSettings(
                                                 modesSettings: widget.datas,
-                                                advancedSettings:
-                                                    SfsAdvancedSettings(
-                                                        category:
-                                                            AppLocalizations.of(
-                                                                    context)!
-                                                                .dryfire,
-                                                        pointer: pointer,
-                                                        pointer2: pointer2,
-                                                        pointer3: pointer3),
+                                                advancedSettings: SfsAdvancedSettings(
+                                                    detectorType:
+                                                        SfsShotDetectorType
+                                                            .dryFire,
+                                                    magazineCapacity:
+                                                        magazineCapacity
+                                                            .toInt(),
+                                                    countdownDurationSecs:
+                                                        countdownDurationSecs,
+                                                    distanceToTarget:
+                                                        distanceToTarget),
                                               ),
                                               canikDevice: widget.canikDevice,
                                             )));
@@ -435,7 +439,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                                       thickness: 10),
                                   markerPointers: [
                                     LinearWidgetPointer(
-                                      value: pointer,
+                                      value: magazineCapacity,
                                       markerAlignment:
                                           LinearMarkerAlignment.center,
                                       child: Container(
@@ -460,7 +464,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                                       ),
                                       onChanged: (value) {
                                         setState(() {
-                                          pointer = value;
+                                          magazineCapacity = value;
                                         });
                                       },
                                     ),
@@ -483,7 +487,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                         child: Padding(
                           padding: const EdgeInsets.only(right: 20),
                           child: Text(
-                            pointer.toInt().toString(),
+                            magazineCapacity.toInt().toString(),
                             style: TextStyle(
                                 color: projectColors.white,
                                 fontWeight: FontWeight.w500,
@@ -568,7 +572,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                                       thickness: 10),
                                   markerPointers: [
                                     LinearWidgetPointer(
-                                      value: pointer2,
+                                      value: countdownDurationSecs,
                                       markerAlignment:
                                           LinearMarkerAlignment.center,
                                       child: Container(
@@ -593,7 +597,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                                       ),
                                       onChanged: (value) {
                                         setState(() {
-                                          pointer2 = value;
+                                          countdownDurationSecs = value;
                                         });
                                       },
                                     ),
@@ -616,7 +620,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                         child: Padding(
                           padding: const EdgeInsets.only(right: 20),
                           child: Text(
-                            pointer2.toInt().toString(),
+                            countdownDurationSecs.toInt().toString(),
                             style: TextStyle(
                                 color: projectColors.white,
                                 fontWeight: FontWeight.w500,
@@ -661,7 +665,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                                       thickness: 10),
                                   markerPointers: [
                                     LinearWidgetPointer(
-                                      value: pointer3,
+                                      value: distanceToTarget,
                                       markerAlignment:
                                           LinearMarkerAlignment.center,
                                       child: Container(
@@ -686,7 +690,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                                       ),
                                       onChanged: (value) {
                                         setState(() {
-                                          pointer3 = value;
+                                          distanceToTarget = value;
                                         });
                                       },
                                     ),
@@ -709,7 +713,7 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                         child: Padding(
                           padding: const EdgeInsets.only(right: 20),
                           child: Text(
-                            "${pointer3.toInt().toString()}m",
+                            "${distanceToTarget.toInt().toString()}m",
                             style: TextStyle(
                                 color: projectColors.white,
                                 fontWeight: FontWeight.w500,
@@ -805,15 +809,17 @@ class SfsAllSettings {
   });
 }
 
+enum SfsShotDetectorType { dryFire, liveFire, paintFire, coolFire, simulation }
+
 class SfsAdvancedSettings {
-  double pointer;
-  double pointer2;
-  double pointer3;
-  String category;
+  int magazineCapacity;
+  double countdownDurationSecs;
+  double distanceToTarget;
+  SfsShotDetectorType detectorType;
   SfsAdvancedSettings({
-    required this.pointer,
-    required this.pointer2,
-    required this.pointer3,
-    required this.category,
+    required this.magazineCapacity,
+    required this.countdownDurationSecs,
+    required this.distanceToTarget,
+    required this.detectorType,
   });
 }

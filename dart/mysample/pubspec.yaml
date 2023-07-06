@@ -95,6 +95,11 @@ dependencies:
   draggable_bottom_sheet_nullsafety: ^1.0.2
   circular_menu: ^2.0.1
   syncfusion_flutter_charts: ^20.2.45
+
+  canik_lib:
+    path: ../canik_lib
+  canik_flutter:
+    path: ../canik_flutter
 dev_dependencies:
   build_runner: ^2.1.7
   flutter_test:

@@ -10,7 +10,10 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 import '../../../views/add_gun_home.dart';
-import '../../sfs_core/canik_backend.dart';
+// import '../../sfs_core/canik_backend.dart';
+import 'package:canik_flutter/canik_backend.dart';
+import 'package:canik_flutter/shot_det_datasets/shot_det_datasets.dart';
+import 'package:canik_lib/canik_lib.dart';
 import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 import 'sfs_rapid_fire_page_4_view.dart';
 
@@ -33,12 +36,29 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
   final Color _linearTextColor = Colors.white;
   final CarouselController _carouselController = CarouselController();
   int activeIndex = 0;
+  int shotCount = 0;
   late final List<Widget> items = [
     const _CarouselOne(),
     const _CarouselTwo(),
     const _CarouselThree(),
     const _CarouselFour(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    widget.canikDevice.processedDataStream
+        .map((event) => event.deviceAccelG.length)
+        .transform(ShotDetectorTransformer(ShotDetector(
+            ShotConditions(50, 50, 10, 2, 15, debugEnabled: true),
+            ShotDataset()..fillFromList(paintFireSetList))))
+        .listen((event) {
+      setState(() {
+        shotCount = event;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(

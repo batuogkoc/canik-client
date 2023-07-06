@@ -1,5 +1,4 @@
 import 'package:canik_lib/canik_lib.dart';
-import 'package:test/test.dart';
 
 void main() {
   // group('A group of tests', () {

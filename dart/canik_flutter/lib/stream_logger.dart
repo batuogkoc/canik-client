@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class StreamLogger<T> {
   final Stream<T> inputStream;

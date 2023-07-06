@@ -10,7 +10,9 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../../widgets/app_bar_sfs_only_icon.dart';
-import '../../sfs_core/canik_backend.dart';
+// import '../../sfs_core/canik_backend.dart';
+import 'package:canik_flutter/canik_backend.dart';
+import 'package:canik_lib/canik_lib.dart';
 import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 
 class SfsCountDownPage extends StatefulWidget {

@@ -267,6 +267,12 @@ class HolsterDrawSM {
       _updateStateCallback();
     }
   }
+  // HolsterDrawResult _generateNotBegun(){}
+  // HolsterDrawResult _generateRotatingTimeout(){}
+  // HolsterDrawResult _generateTargetingTimeout(){}
+  // HolsterDrawResult _generateShotWhileTargeting(){}
+  // HolsterDrawResult _generateShotTimeout(){}
+  // HolsterDrawResult _generateShot(){}
 
   void _updateStateCallback() {
     onStateUpdate?.call(state);

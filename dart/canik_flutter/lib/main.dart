@@ -4,7 +4,6 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:flutter/foundation.dart";
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:canik_lib/canik_lib.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 // import 'stream_logger.dart';
 // import 'package:path_provider/path_provider.dart';
 import 'dart:io';

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+import 'package:canik_flutter/canik_backend.dart';
+import 'package:canik_lib/canik_lib.dart';
 import 'package:mysample/sfs/sfs_home_page/view/sfs_home_page_view.dart';
 import 'package:mysample/sfs/sfs_modes_advanced_settings_page/sfs_modes_settings_page.dart';
 import 'package:mysample/widgets/background_image_sfs_calibration.dart';
@@ -76,7 +78,7 @@ class _SfsCalibrationPageState extends State<SfsCalibrationPage> {
                               builder: (context) {
                                 return SfsModesSettingsPage(
                                   canikDevice: widget.canikdevice,
-                                  choosedGun: SfsGunsSettingsModal(
+                                  chosenGun: SfsGunsSettingsModal(
                                       categoryName: "", imageUrl: ""),
                                 );
                               },

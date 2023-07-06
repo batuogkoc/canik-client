@@ -10,7 +10,9 @@ import 'package:mysample/widgets/custom_bottom_bar_play.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../../constants/color_constants.dart';
-import '../../sfs_core/canik_backend.dart';
+// import '../../sfs_core/canik_backend.dart';
+import 'package:canik_flutter/canik_backend.dart';
+import 'package:canik_lib/canik_lib.dart';
 import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 
 class SfsHolsterDrawPageView extends StatefulWidget {

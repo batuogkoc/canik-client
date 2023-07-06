@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kartal/kartal.dart';
-import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+import 'package:canik_flutter/canik_backend.dart';
+import 'package:canik_lib/canik_lib.dart';
 import 'package:mysample/sfs/sfs_counter_pages/views/sfs_waiting_page_view.dart';
 import 'package:mysample/sfs/sfs_home_page/model/sfs_home_model.dart';
 import 'package:mysample/sfs/sfs_home_page/viewmodel/sfs_home_page_view_model.dart';

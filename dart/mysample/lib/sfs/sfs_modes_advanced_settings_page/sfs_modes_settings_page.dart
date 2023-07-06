@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kartal/kartal.dart';
 import 'package:mysample/product/utility/image_paths/image_path.dart';
-import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+// import 'package:mysample/sfs/sfs_core/canik_backend.dart';
+import 'package:canik_flutter/canik_backend.dart';
+import 'package:canik_lib/canik_lib.dart';
 import 'package:mysample/sfs/sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 import 'package:mysample/views/add_gun_home.dart';
 import 'package:mysample/widgets/image_widget.dart';
@@ -16,9 +18,9 @@ import '../../entities/response/product_categories_weapons_response.dart';
 
 class SfsModesSettingsPage extends StatefulWidget {
   final CanikDevice canikDevice;
-  final SfsGunsSettingsModal choosedGun;
+  final SfsGunsSettingsModal chosenGun;
   const SfsModesSettingsPage(
-      {required this.canikDevice, required this.choosedGun, Key? key})
+      {required this.canikDevice, required this.chosenGun, Key? key})
       : super(key: key);
 
   @override
@@ -83,14 +85,14 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                     ),
                     child: Padding(
                         padding: const EdgeInsets.all(40),
-                        child: widget.choosedGun.imageUrl.isNullOrEmpty
+                        child: widget.chosenGun.imageUrl.isNullOrEmpty
                             ? Image.asset(
                                 "assets/images/placeholdergun.png",
                                 fit: BoxFit.contain,
                               )
                             : CachedNetworkImage(
                                 key: UniqueKey(),
-                                imageUrl: widget.choosedGun.imageUrl,
+                                imageUrl: widget.chosenGun.imageUrl,
                                 fit: BoxFit.contain,
                               )),
                   ),
@@ -429,8 +431,8 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                         ),
                         ElevatedButton(
                             onPressed: () {
-                              widget.choosedGun.categoryName == "" &&
-                                      widget.choosedGun.imageUrl == ""
+                              widget.chosenGun.categoryName == "" &&
+                                      widget.chosenGun.imageUrl == ""
                                   ? null
                                   : Navigator.push(
                                       context,
@@ -439,8 +441,7 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                               SfsModesAdvancedSettings(
                                                 canikDevice: widget.canikDevice,
                                                 datas: SfsModesSettings(
-                                                    choosedGun:
-                                                        widget.choosedGun,
+                                                    chosenGun: widget.chosenGun,
                                                     dominanthand: isRight
                                                         ? "RightHand"
                                                         : "LeftHand",
@@ -541,7 +542,7 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                                       SfsModesSettingsPage(
                                                         canikDevice:
                                                             widget.canikDevice,
-                                                        choosedGun:
+                                                        chosenGun:
                                                             prodcatGuns[index],
                                                       )));
                                         },
@@ -555,11 +556,10 @@ class _SfsModesSettingsPageState extends State<SfsModesSettingsPage> {
                                                 child: Padding(
                                                     padding:
                                                         const EdgeInsets.all(5),
-                                                    child: CachedNetworkImage(
+                                                    child: Image.network(
+                                                      prodcatGuns[index]
+                                                          .imageUrl,
                                                       key: UniqueKey(),
-                                                      imageUrl:
-                                                          prodcatGuns[index]
-                                                              .imageUrl,
                                                       height: 10.h,
                                                       fit: BoxFit.contain,
                                                     )))),
@@ -625,11 +625,11 @@ class SfsGunsSettingsModal {
 }
 
 class SfsModesSettings {
-  SfsGunsSettingsModal choosedGun;
+  SfsGunsSettingsModal chosenGun;
   String dominanthand;
   String level;
   SfsModesSettings({
-    required this.choosedGun,
+    required this.chosenGun,
     required this.dominanthand,
     required this.level,
   });
