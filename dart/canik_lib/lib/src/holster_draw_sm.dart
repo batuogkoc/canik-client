@@ -25,7 +25,14 @@ class HolsterDrawResult {
   final double? targetingTime;
   final double? shotTime;
   final HolsterDrawResultState state;
-
+  HolsterDrawResult.zero()
+      : state = HolsterDrawResultState.notBegun,
+        startTime = DateTime(0),
+        gripTime = 0,
+        withdrawGunTime = 0,
+        rotatingTime = 0,
+        targetingTime = 0,
+        shotTime = 0;
   HolsterDrawResult.notBegun(this.startTime)
       : state = HolsterDrawResultState.notBegun,
         gripTime = null,
@@ -86,6 +93,29 @@ class HolsterDrawResult {
         rotatingTime = rotatingTime,
         targetingTime = targetingTime,
         shotTime = shotTime;
+
+  double getTotalTime() {
+    return (gripTime ?? 0.0) +
+        (withdrawGunTime ?? 0.0) +
+        (rotatingTime ?? 0.0) +
+        (targetingTime ?? 0.0) +
+        (shotTime ?? 0.0);
+    // return (gripTime ?? 0.0);
+  }
+
+  List<double?> getTimesNullable() {
+    return [
+      gripTime,
+      withdrawGunTime,
+      rotatingTime,
+      targetingTime,
+      shotTime,
+    ];
+  }
+
+  List<double> getTimes() {
+    return getTimesNullable().map((e) => e ?? 0).toList();
+  }
 }
 
 class HolsterDrawSM {

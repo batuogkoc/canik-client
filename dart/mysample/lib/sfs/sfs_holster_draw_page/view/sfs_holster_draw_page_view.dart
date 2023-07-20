@@ -15,6 +15,7 @@ import 'package:canik_flutter/canik_backend.dart';
 import 'package:canik_lib/canik_lib.dart';
 import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 import 'package:collection/collection.dart';
+import 'dart:math';
 
 class SfsHolsterDrawPageView extends StatefulWidget {
   final CanikDevice canikDevice;
@@ -342,6 +343,12 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
   }
 
   Widget _expandedWidget() {
+    HolsterDrawResult currResult = holsterDrawResults.isEmpty
+        ? HolsterDrawResult.zero()
+        : holsterDrawResults.last;
+    HolsterDrawResult? prevResult = holsterDrawResults.length > 1
+        ? holsterDrawResults[holsterDrawResults.length - 2]
+        : null;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -357,8 +364,12 @@ class _SfsHolsterDrawPageViewState extends State<SfsHolsterDrawPageView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _PercentColumn(),
-              const _CustomContainerTotalShot(),
+              _PercentColumn(
+                  currResult: currResult,
+                  prevResult: prevResult,
+                  maxWidth: 70.w),
+              _CustomContainerTotalShot(
+                  currResult: currResult, prevResult: prevResult),
               const _MedalContainer(),
               Padding(
                 padding: EdgeInsets.only(top: 2.h),
@@ -471,7 +482,11 @@ class _MedalContainer extends StatelessWidget {
 }
 
 class _CustomContainerTotalShot extends StatelessWidget {
-  const _CustomContainerTotalShot({
+  HolsterDrawResult? prevResult;
+  HolsterDrawResult currResult;
+  _CustomContainerTotalShot({
+    required this.currResult,
+    this.prevResult,
     Key? key,
   }) : super(key: key);
 
@@ -494,13 +509,23 @@ class _CustomContainerTotalShot extends StatelessWidget {
                 children: [
                   Text(AppLocalizations.of(context)!.total,
                       style: _SfsHolsterDrawTextStyles.built14),
-                  const Text('1,1527', style: _SfsHolsterDrawTextStyles.built17)
+                  Text(currResult.getTotalTime().toString(),
+                      style: _SfsHolsterDrawTextStyles.built17)
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('%12,2', style: _SfsHolsterDrawTextStyles.built14),
+                  Text(
+                      prevResult == null || prevResult?.getTotalTime() == 0
+                          ? "%0"
+                          : "%" +
+                              (100 *
+                                      (currResult.getTotalTime() /
+                                              prevResult!.getTotalTime() -
+                                          1))
+                                  .toString(),
+                      style: _SfsHolsterDrawTextStyles.built14),
                   Text(AppLocalizations.of(context)!.better_than_avg,
                       style: _SfsHolsterDrawTextStyles.built17)
                 ],
@@ -514,60 +539,75 @@ class _CustomContainerTotalShot extends StatelessWidget {
 }
 
 class _PercentColumn extends StatelessWidget {
-  const _PercentColumn({
+  HolsterDrawResult? prevResult;
+  HolsterDrawResult currResult;
+  double maxWidth;
+  _PercentColumn({
+    required this.currResult,
+    required this.maxWidth,
+    this.prevResult,
     Key? key,
   }) : super(key: key);
 
+  double getBarWidth(double time) {
+    return maxWidth * (time / currResult.getTotalTime());
+  }
+
+  List<double> getBarWidths() {
+    return currResult.getTimes().map((e) => getBarWidth(e)).toList();
+  }
+
+  List<double> getDeltaTs() {
+    if (prevResult == null) {
+      return [0, 0, 0, 0, 0];
+    }
+    var ret = currResult.getTimes();
+    var prevTimes = prevResult!.getTimes();
+    return ret
+        .mapIndexed((index, element) => element - prevTimes[index])
+        .toList();
+  }
+
+  Icon getDeltaTIcon(double deltaT) {
+    if (deltaT < 0) {
+      return const Icon(
+        Icons.arrow_drop_up_sharp,
+        color: Colors.red,
+      );
+    } else if (deltaT > 0) {
+      return const Icon(
+        Icons.arrow_drop_down_sharp,
+        color: Colors.green,
+      );
+    } else {
+      return const Icon(
+        Icons.adjust,
+        color: Color(0xff30445F),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final times = currResult.getTimes();
+    final barWidths = getBarWidths();
+    final deltaTs = getDeltaTs();
+    final texts = [
+      AppLocalizations.of(context)!.sfs_grip,
+      AppLocalizations.of(context)!.sfs_pull,
+      AppLocalizations.of(context)!.sfs_horizontal,
+      AppLocalizations.of(context)!.sfs_aim,
+      AppLocalizations.of(context)!.sfs_shot
+    ];
+
     return Column(
-      children: [
-        _CustomRowForBottom(
-          text: AppLocalizations.of(context)!.sfs_grip,
-          containerWidth: 14.w,
-          textOfPercent: '0.28',
-          icon: const Icon(
-            Icons.arrow_drop_down_sharp,
-            color: Colors.green,
-          ),
-        ),
-        _CustomRowForBottom(
-          text: AppLocalizations.of(context)!.sfs_pull,
-          containerWidth: 11.w,
-          textOfPercent: '0,22',
-          icon: const Icon(
-            Icons.adjust,
-            color: Color(0xff30445F),
-          ),
-        ),
-        _CustomRowForBottom(
-          text: AppLocalizations.of(context)!.sfs_horizontal,
-          containerWidth: 23.w,
-          textOfPercent: '0.46',
-          icon: const Icon(
-            Icons.arrow_drop_up_sharp,
-            color: Colors.red,
-          ),
-        ),
-        _CustomRowForBottom(
-          text: AppLocalizations.of(context)!.sfs_aim,
-          containerWidth: 31.w,
-          textOfPercent: '0.62',
-          icon: const Icon(
-            Icons.arrow_drop_down_sharp,
-            color: Colors.green,
-          ),
-        ),
-        _CustomRowForBottom(
-          text: AppLocalizations.of(context)!.sfs_shot,
-          containerWidth: 5.w,
-          textOfPercent: '0.10',
-          icon: const Icon(
-            Icons.arrow_drop_up_sharp,
-            color: Colors.red,
-          ),
-        )
-      ],
+      children: List<_CustomRowForBottom>.generate(
+          min(barWidths.length, min(deltaTs.length, texts.length)),
+          (index) => _CustomRowForBottom(
+              text: texts[index],
+              containerWidth: barWidths[index],
+              textOfPercent: times[index].toString(),
+              icon: getDeltaTIcon(deltaTs[index]))),
     );
   }
 }

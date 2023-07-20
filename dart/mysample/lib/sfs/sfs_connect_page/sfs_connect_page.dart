@@ -3,6 +3,10 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:kartal/kartal.dart';
 import 'package:mysample/sfs/sfs_calibration_page/sfs_calibration_page.dart';
+import 'package:mysample/sfs/sfs_holster_draw_page/view/sfs_holster_draw_page_view.dart';
+import 'package:mysample/sfs/sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
+import 'package:mysample/sfs/sfs_modes_advanced_settings_page/sfs_modes_settings_page.dart';
+import 'package:mysample/sfs/sfs_rapid_fire/view/sfs_rapid_fire_page_view.dart';
 import 'package:mysample/widgets/background_image_sfs_widget.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -475,8 +479,17 @@ class _SfsConnectTextStyles {
 
 class DevicePage extends StatelessWidget {
   final CanikDevice canikDevice;
-  const DevicePage(this.canikDevice, {Key? key}) : super(key: key);
-
+  DevicePage(this.canikDevice, {Key? key}) : super(key: key);
+  final allSettings = SfsAllSettings(
+      advancedSettings: SfsAdvancedSettings(
+          countdownDurationSecs: 0,
+          detectorType: SfsShotDetectorType.dryFire,
+          distanceToTarget: 20,
+          magazineCapacity: 12),
+      modesSettings: SfsModesSettings(
+          chosenGun: SfsGunsSettingsModal(categoryName: "", imageUrl: ""),
+          dominanthand: "left",
+          level: "beginner"));
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -484,6 +497,28 @@ class DevicePage extends StatelessWidget {
         body: Center(
           child: Column(
             children: [
+              ElevatedButton(
+                child: const Text("Rapid fire"),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) {
+                      return SfsRapidFirePageView(
+                          allSettings: allSettings, canikDevice: canikDevice);
+                    },
+                  ));
+                },
+              ),
+              ElevatedButton(
+                child: const Text("Fast Draw"),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) {
+                      return SfsHolsterDrawPageView(
+                          allSettings: allSettings, canikDevice: canikDevice);
+                    },
+                  ));
+                },
+              ),
               ElevatedButton(
                 child: const Text("Disconnect"),
                 onPressed: () {
