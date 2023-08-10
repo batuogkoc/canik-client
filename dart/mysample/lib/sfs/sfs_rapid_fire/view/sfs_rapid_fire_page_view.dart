@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:mysample/constants/color_constants.dart';
 import 'package:mysample/widgets/background_image_sfs_widget.dart';
 import 'package:mysample/widgets/custom_bottom_bar_play.dart';
@@ -13,9 +14,38 @@ import '../../../views/add_gun_home.dart';
 // import '../../sfs_core/canik_backend.dart';
 import 'package:canik_flutter/canik_backend.dart';
 import 'package:canik_flutter/shot_det_datasets/shot_det_datasets.dart';
+import 'package:canik_flutter/shot_det_datasets/shot_det_conditions.dart';
+
 import 'package:canik_lib/canik_lib.dart';
 import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 import 'sfs_rapid_fire_page_4_view.dart';
+import 'package:vector_math/vector_math.dart' hide Colors;
+import 'dart:math';
+
+List<Vector2> getAnglesYP(List<ShotInstance> shotInstances) {
+  return shotInstances
+      .map((e) => e.processedData.orientation.toEuler().zy)
+      .toList(); //rpy->yp
+}
+
+double? calculateScore(List<ShotInstance> shotInstances, double distance,
+    {double imseMultiplier = 10}) {
+  if (shotInstances.length < 2) {
+    return null;
+  }
+  List<Vector2> angles = getAnglesYP(shotInstances);
+  int n = angles.length;
+
+  Vector2 average =
+      angles.reduce((value, element) => value + element) / n.toDouble();
+  var angularDeflections = angles.map((e) => (e - average).length);
+  var deflections = angularDeflections.map((e) => tan(e) * distance);
+  var meanSquaredError = deflections
+          .map((e) => e * e)
+          .reduce((value, element) => value + element) /
+      n;
+  return meanSquaredError / 2;
+}
 
 class SfsRapidFirePageView extends StatefulWidget {
   final CanikDevice canikDevice;
@@ -36,25 +66,24 @@ class _SfsRapidFirePageViewState extends State<SfsRapidFirePageView> {
   final Color _linearTextColor = Colors.white;
   final CarouselController _carouselController = CarouselController();
   int activeIndex = 0;
-  int shotCount = 0;
-  late final List<Widget> items = [
-    const _CarouselOne(),
-    const _CarouselTwo(),
-    const _CarouselThree(),
-    const _CarouselFour(),
-  ];
+  final List<ShotInstance> shotInstances = <ShotInstance>[];
+  final List<double?> scores = <double>[];
+  late final List<Widget> items;
 
   @override
   void initState() {
     super.initState();
-    widget.canikDevice.processedDataStream
-        .map((event) => event.deviceAccelG.length)
-        .transform(ShotDetectorTransformer(ShotDetector(
-            ShotConditions(50, 50, 10, 2, 15, debugEnabled: true),
-            ShotDataset()..fillFromList(paintFireSetList))))
-        .listen((event) {
+    items = [
+      _CarouselOne(this),
+      _CarouselTwo(this),
+      _CarouselThree(this),
+      _CarouselFour(),
+    ];
+    widget.canikDevice.shotInstanceStream.listen((event) {
       setState(() {
-        shotCount = event;
+        shotInstances.add(event);
+        scores.add(calculateScore(shotInstances,
+            widget.allSettings.advancedSettings.distanceToTarget));
       });
     });
   }
@@ -271,21 +300,32 @@ class _CustomBottomBarPauseCancelFinish extends StatelessWidget {
   }
 }
 
+abstract class IShotInstanceListOwner {
+  void updateShotInstanceList(List<ShotInstance> shotInstances);
+}
+
 class _CarouselOne extends StatelessWidget {
-  const _CarouselOne({
+  _SfsRapidFirePageViewState _sfsRapidFirePageViewState;
+  _CarouselOne(
+    this._sfsRapidFirePageViewState, {
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final controller = CarouselController();
-
     // late final List<Widget> items = [
     //   const Padding(
     //     padding: EdgeInsets.only(right: 10.0),
     //     child: _CarouselOne(),
     //   ),
     // ];
+    final controller = CarouselController();
+
+    double? score = _sfsRapidFirePageViewState.scores.isEmpty
+        ? null
+        : _sfsRapidFirePageViewState.scores.last;
+
+    String scoreString = score == null ? "-" : score.toString();
     return Padding(
       padding: const EdgeInsets.only(top: 15),
       child: SizedBox(
@@ -311,8 +351,8 @@ class _CarouselOne extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: _SfsRapidTextStyles.akhand14,
                         ),
-                        const Text(
-                          '72',
+                        Text(
+                          scoreString,
                           textAlign: TextAlign.center,
                           style: _SfsRapidTextStyles.akhand14,
                         ),
@@ -360,10 +400,16 @@ class _CarouselOne extends StatelessWidget {
 }
 
 class _CarouselTwo extends StatelessWidget {
-  const _CarouselTwo({Key? key}) : super(key: key);
+  final _SfsRapidFirePageViewState _sfsRapidFirePageViewState;
+  _CarouselTwo(this._sfsRapidFirePageViewState, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    double? score = _sfsRapidFirePageViewState.scores.isEmpty
+        ? null
+        : _sfsRapidFirePageViewState.scores.last;
+    String scoreString = score == null ? "-" : score.toString();
+
     return Padding(
       padding: const EdgeInsets.only(top: 15),
       child: SizedBox(
@@ -389,8 +435,8 @@ class _CarouselTwo extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: _SfsRapidTextStyles.akhand14,
                         ),
-                        const Text(
-                          '72',
+                        Text(
+                          scoreString,
                           textAlign: TextAlign.center,
                           style: _SfsRapidTextStyles.akhand14,
                         ),
@@ -454,7 +500,8 @@ class _CarouselTwo extends StatelessWidget {
 }
 
 class _CarouselThree extends StatefulWidget {
-  const _CarouselThree({Key? key}) : super(key: key);
+  final _SfsRapidFirePageViewState _sfsRapidFirePageViewState;
+  _CarouselThree(this._sfsRapidFirePageViewState, {Key? key}) : super(key: key);
 
   @override
   State<_CarouselThree> createState() => __CarouselThreeState();
@@ -469,16 +516,17 @@ class __CarouselThreeState extends State<_CarouselThree> {
   String errorText =
       "do not anticipate recoil, do not push the heel of the hand forward when the shot breaks, and do not break your wrist upward.";
 
-  List<int> mockListData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  // List<int> mockListData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   List<bool> isClick = [];
   @override
   void initState() {
-    isClick = List<bool>.filled(mockListData.length, false);
+    isClick = List<bool>.filled(shotInstances.length, false);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    isClick = List<bool>.filled(shotInstances.length, false);
     return Padding(
       padding: _SfsRapidPadding.vertical15,
       child: SizedBox(
@@ -554,7 +602,7 @@ class __CarouselThreeState extends State<_CarouselThree> {
                   width: MediaQuery.of(context).size.width,
                   child: ListView.builder(
                     physics: const BouncingScrollPhysics(),
-                    itemCount: mockListData.length,
+                    itemCount: shotInstances.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
                         onTap: () {
@@ -574,7 +622,7 @@ class __CarouselThreeState extends State<_CarouselThree> {
                         child: Container(
                           decoration: isClick[index]
                               ? BoxDecoration(color: ProjectColors().blue)
-                              : mockListData[index] % 2 != 0
+                              : (index + 1) % 2 != 0
                                   ? BoxDecoration(color: ProjectColors().black2)
                                   : BoxDecoration(color: ProjectColors().black),
                           child: Row(
@@ -582,28 +630,41 @@ class __CarouselThreeState extends State<_CarouselThree> {
                             children: [
                               Expanded(
                                   flex: 1,
-                                  child: Text(mockListData[index].toString(),
+                                  child: Text((index + 1).toString(),
                                       style: TextStyle(
                                           color: ProjectColors().white,
                                           fontWeight: FontWeight.w500),
                                       textAlign: TextAlign.center)),
                               Expanded(
                                   flex: 1,
-                                  child: Text("66.7",
+                                  child: Text(
+                                      widget._sfsRapidFirePageViewState
+                                                  .scores[index] ==
+                                              null
+                                          ? "-"
+                                          : widget._sfsRapidFirePageViewState
+                                              .scores[index]
+                                              .toString(),
                                       style: TextStyle(
                                           color: ProjectColors().white,
                                           fontWeight: FontWeight.w500),
                                       textAlign: TextAlign.center)),
                               Expanded(
                                   flex: 1,
-                                  child: Text("5.54",
+                                  child: Text(
+                                      shotInstances[index].time.toString(),
                                       style: TextStyle(
                                           color: ProjectColors().white,
                                           fontWeight: FontWeight.w500),
                                       textAlign: TextAlign.center)),
                               Expanded(
                                   flex: 1,
-                                  child: Text("1.87",
+                                  child: Text(
+                                      shotInstances[index].deltaT == null
+                                          ? "-"
+                                          : shotInstances[index]
+                                              .deltaT
+                                              .toString(),
                                       style: TextStyle(
                                           color: ProjectColors().white,
                                           fontWeight: FontWeight.w500),
@@ -622,6 +683,10 @@ class __CarouselThreeState extends State<_CarouselThree> {
         ),
       ),
     );
+  }
+
+  List<ShotInstance> get shotInstances {
+    return widget._sfsRapidFirePageViewState.shotInstances;
   }
 
   Widget buildSheet() => StatefulBuilder(
@@ -840,7 +905,7 @@ class __CarouselThreeState extends State<_CarouselThree> {
 }
 
 class _CarouselFour extends StatefulWidget {
-  const _CarouselFour({Key? key}) : super(key: key);
+  _CarouselFour({Key? key}) : super(key: key);
 
   @override
   State<_CarouselFour> createState() => __CarouselFourState();
@@ -882,6 +947,7 @@ class __CarouselFourState extends State<_CarouselFour> {
   late TooltipBehavior _tooltipbehaviour;
   late TooltipBehavior _tooltipbehaviour2;
   late ZoomPanBehavior _panBehavior2;
+
   @override
   void initState() {
     _tooltipbehaviour = TooltipBehavior(enable: true);

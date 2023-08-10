@@ -360,7 +360,8 @@ class DevicePage extends StatelessWidget {
                       stream: canikDevice.holsterDrawResultStream,
                       initialData: HolsterDrawResult.notBegun(DateTime.now()),
                       builder: (context, snapshot) {
-                        return Text('''
+                        return Text(
+                            '''
 HolsterDrawSM result: ${snapshot.data!.state.name} 
 start:       ${snapshot.data!.startTime} 
 grip:        ${snapshot.data!.gripTime} 
@@ -372,7 +373,8 @@ shot:        ${snapshot.data!.shotTime}
                       },
                     ),
                     StreamBuilder<int>(
-                      stream: canikDevice.shotCount,
+                      stream: canikDevice.shotInstanceStream
+                          .map((event) => event.shotCount),
                       initialData: 0,
                       builder: (context, snapshot) {
                         return Text("Shot count: ${snapshot.data!}");

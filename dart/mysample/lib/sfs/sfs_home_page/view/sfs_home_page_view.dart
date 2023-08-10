@@ -11,6 +11,9 @@ import 'package:mysample/widgets/background_image_sfs_widget.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import 'package:canik_flutter/shot_det_datasets/shot_det_datasets.dart';
+import 'package:canik_flutter/shot_det_datasets/shot_det_conditions.dart'
+    as conditions;
 import '../../../constants/color_constants.dart';
 import '../../sfs_modes_advanced_settings_page/sfs_modes_advanced_settings.dart';
 
@@ -19,9 +22,34 @@ enum SfsTrainingMode { fastDraw, rapidFire, shotTimer }
 class SfsHomePage extends StatefulWidget {
   final SfsAllSettings allSettings;
   final CanikDevice canikDevice;
-  const SfsHomePage(
-      {required this.allSettings, required this.canikDevice, Key? key})
-      : super(key: key);
+  SfsHomePage({required this.allSettings, required this.canikDevice, Key? key})
+      : super(key: key) {
+    switch (allSettings.advancedSettings.detectorType) {
+      case SfsShotDetectorType.paintFire:
+        canikDevice.updateShotConditionsAndDataset(
+            conditions.paintFireConditions,
+            ShotDataset()..fillFromList(paintFireSetList));
+        break;
+      case SfsShotDetectorType.dryFire:
+        canikDevice.updateShotConditionsAndDataset(conditions.dryFireConditions,
+            ShotDataset()..fillFromList(dryFireSetList));
+        break;
+      case SfsShotDetectorType.liveFire:
+        canikDevice.updateShotConditionsAndDataset(
+            conditions.liveFireConditions,
+            ShotDataset()..fillFromList(liveFireSetList));
+        break;
+      //TODO: blank fire dataset does not exist
+      // case SfsShotDetectorType.blankFire:
+      //     canikDevice.updateShotConditionsAndDataset(conditions.blankFireConditions, ShotDataset()..fillFromList(--));
+      //   break;
+      //TODO: cool fire dataset does not exist
+      // case SfsShotDetectorType.coolFire:
+      //     canikDevice.updateShotConditionsAndDataset(conditions.coolFireConditions, ShotDataset()..fillFromList(--));
+      // break;
+      default:
+    }
+  }
 
   @override
   State<SfsHomePage> createState() => _SfsHomePageState();

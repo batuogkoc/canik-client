@@ -99,16 +99,14 @@ class CanikDevice {
 
   late List<BluetoothService> services;
 
-  // final _processedDataStreamController = StreamController<ProcessedData>();
   late Stream<ProcessedData> _processedDataBroadcastStream;
   final _stateStreamController = StreamController<BluetoothDeviceState>();
   final RawDataToProcessedDataTransformer _rawDataToProcessedDataTransformer;
 
-  final ShotDetectorTransformer _shotDetectorTransformer;
-  late Stream<int> _shotCountStream;
+  late final ShotDetectorTransformer _shotDetectorTransformer;
+  late Stream<ShotInstance> _shotInstanceStream;
 
-  // final HolsterDrawSMTransformer _holsterDrawSMTransformer;
-  final HolsterDrawSM _holsterDrawSM;
+  late final HolsterDrawSM _holsterDrawSM;
   final _holsterDrawStateStreamController =
       StreamController<HolsterDrawState>.broadcast();
   final _holsterDrawResultStreamController =
@@ -116,6 +114,11 @@ class CanikDevice {
 
   final double gyroRadsScale;
   final double accGScale;
+
+  static final ShotConditions _defaultShotConditions =
+      ShotConditions(50, 50, 10, 2, 15, debugEnabled: false);
+  static final ShotDataset _defaultShotDataset = ShotDataset()
+    ..fillFromList(paintFireSetList);
   //degrees2Radians * (6000) / 32767
   CanikDevice(this._device,
       {this.gyroRadsScale = degrees2Radians * (250) / 32767,
@@ -126,20 +129,13 @@ class CanikDevice {
       bool startHolsterDrawSM = false})
       : _rawDataToProcessedDataTransformer =
             RawDataToProcessedDataTransformer.broadcast(
-                FscfCcAhrs({"aLambda1": 0.0017, "mLambda1": 0.0001})),
-        _shotDetectorTransformer = ShotDetectorTransformer(ShotDetector(
-            ShotConditions(50, 50, 10, 2, 15, debugEnabled: true),
-            ShotDataset()..fillFromList(paintFireSetList))),
-        _holsterDrawSM = HolsterDrawSM(
-            drawThresholdG,
-            rotatingAngularRateThreshDegS,
-            ShotDetector(ShotConditions(50, 50, 10, 2, 15, debugEnabled: true),
-                ShotDataset()..fillFromList(paintFireSetList))) {
-    // _processedDataBroadcastStream =
-    //     _processedDataStreamController.stream.asBroadcastStream();
-
-    // _holsterDrawSM = HolsterDrawSM(
-    //     processedDataStream, drawThresholdG, rotatingAngularRateThreshDegS);
+                FscfCcAhrs({"aLambda1": 0.0017, "mLambda1": 0.0001})) {
+    _shotDetectorTransformer = ShotDetectorTransformer(
+        ShotDetector(_defaultShotConditions, _defaultShotDataset));
+    _holsterDrawSM = HolsterDrawSM(
+        drawThresholdG,
+        rotatingAngularRateThreshDegS,
+        ShotDetector(_defaultShotConditions, _defaultShotDataset));
     if (startHolsterDrawSM) {
       _holsterDrawSM.start();
     }
@@ -175,9 +171,8 @@ class CanikDevice {
     _processedDataBroadcastStream = bufferedRawData.value
         .transform(BufferedRawDataToRawDataTransformer())
         .transform(_rawDataToProcessedDataTransformer);
-    _shotCountStream = processedDataStream
-        .map((event) => event.deviceAccelG.length)
-        .transform(_shotDetectorTransformer);
+    _shotInstanceStream =
+        processedDataStream.transform(_shotDetectorTransformer);
     _holsterDrawSM.onResult = _holsterDrawResultStreamController.sink.add;
     _holsterDrawSM.onStateUpdate = _holsterDrawStateStreamController.sink.add;
     processedDataStream.listen(_holsterDrawSM.onData);
@@ -227,12 +222,20 @@ class CanikDevice {
     return completer.future;
   }
 
+  void updateShotConditionsAndDataset(
+      ShotConditions shotConditions, ShotDataset shotDataset) {
+    holsterDrawSM.shotDetector
+        .updateShotConditionsAndDataset(shotConditions, shotDataset);
+    _shotDetectorTransformer.shotDetector
+        .updateShotConditionsAndDataset(shotConditions, shotDataset);
+  }
+
   Stream<ProcessedData> get processedDataStream {
     return _processedDataBroadcastStream;
   }
 
-  Stream<int> get shotCount {
-    return _shotCountStream;
+  Stream<ShotInstance> get shotInstanceStream {
+    return _shotInstanceStream;
   }
 
   get id {

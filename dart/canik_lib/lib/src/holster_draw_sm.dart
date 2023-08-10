@@ -1,4 +1,4 @@
-import 'dart:ffi';
+// import 'dart:ffi';
 
 import 'package:canik_lib/src/shot_det.dart';
 import 'package:canik_lib/src/stream_transformer_helpers.dart';
@@ -322,7 +322,7 @@ class HolsterDrawSM {
   }
 
   bool shotDetection(ProcessedData data) {
-    return shotDetector.onDataReceive(data.deviceAccelG.length);
+    return shotDetector.onDataReceive(data) != null;
   }
 
   get state {

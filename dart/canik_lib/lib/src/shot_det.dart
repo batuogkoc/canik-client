@@ -11,6 +11,21 @@ import 'package:collection/collection.dart';
 import "dart:async";
 import 'package:canik_lib/canik_lib.dart';
 
+class ShotInstance {
+  final DateTime time;
+  final double? deltaT;
+  final ProcessedData processedData;
+  final int shotCount;
+  ShotInstance.zero()
+      : time = DateTime.fromMillisecondsSinceEpoch(0),
+        processedData = ProcessedData.zero(),
+        shotCount = 0,
+        deltaT = 0;
+  ShotInstance(
+      this.time, this.deltaT, this.shotCount, ProcessedData processedData)
+      : processedData = processedData.copy();
+}
+
 class ShotConditions {
   double resemblenceThresh;
   double corrAvgThresh;
@@ -109,26 +124,28 @@ class ShotDetector {
 
   int _dataCounter = 0;
 
-  final ShotDataset _shotDataset;
+  ShotDataset _shotDataset;
 
-  final ShotConditions _shotConditions;
+  ShotConditions _shotConditions;
 
   bool _lastWindowShotCandidate = false;
 
-  final CircularBuffer<double> _accelNormBuffer;
+  final CircularBuffer<ProcessedData> _processedDataBuffer;
+
+  ShotInstance? previousShot;
 
   ShotDetector(this._shotConditions, this._shotDataset,
       {this.windowSize = 90, this.algorithmPeriod = 40})
-      : _accelNormBuffer = CircularBuffer(windowSize);
+      : _processedDataBuffer = CircularBuffer(windowSize);
 
-  bool onDataReceive(double data) {
-    _accelNormBuffer.add(data);
+  ShotInstance? onDataReceive(ProcessedData data) {
+    _processedDataBuffer.add(data);
     _dataCounter++;
     if (_dataCounter >= algorithmPeriod) {
       _dataCounter = 0;
       return _shotCalculator();
     }
-    return false;
+    return null;
   }
 
   bool processFilteredShotSignal(Array rawSignalWithinWindow,
@@ -138,8 +155,10 @@ class ShotDetector {
         maxCorrelationArray, rawSignalWithinWindow);
   }
 
-  bool _shotCalculator() {
-    var windowSignal = _accelNormBuffer.toList(growable: false);
+  ShotInstance? _shotCalculator() {
+    var windowSignal = _processedDataBuffer
+        .map((element) => element.deviceAccelG.length)
+        .toList(growable: false);
     bool shotCandidateDetected = processFilteredShotSignal(
         Array(windowSignal), _shotDataset, _shotConditions);
 
@@ -149,16 +168,19 @@ class ShotDetector {
 
     if (shotDetected) {
       shotCounter++;
-      print("Shot detected");
-      // String out = "";
-      // for (double element in windowSignal) {
-      //   out += element.toStringAsPrecision(3) + ", ";
-      // }
-      // print(out);
-      // print(conditions.debug);
-      return true;
+      ProcessedData currData =
+          _processedDataBuffer[_processedDataBuffer.length - 1];
+      ShotInstance currentShot = ShotInstance(
+          DateTime.now(),
+          previousShot == null
+              ? null
+              : currData.time - previousShot!.processedData.time,
+          shotCounter,
+          currData);
+      previousShot = currentShot;
+      return currentShot;
     }
-    return false;
+    return null;
   }
 
   void reset() {
@@ -173,10 +195,16 @@ class ShotDetector {
   ShotDataset get dataset {
     return _shotDataset;
   }
+
+  void updateShotConditionsAndDataset(
+      ShotConditions shotConditions, ShotDataset shotDataset) {
+    _shotConditions = shotConditions;
+    _shotDataset = shotDataset;
+  }
 }
 
 class ShotDetectorTransformer
-    extends PersistentStreamTransformerTemplate<double, int> {
+    extends PersistentStreamTransformerTemplate<ProcessedData, ShotInstance> {
   ShotDetector shotDetector;
 
   ShotDetectorTransformer(this.shotDetector,
@@ -186,9 +214,10 @@ class ShotDetectorTransformer
       {bool sync = false, bool cancelOnError = true})
       : super.broadcast(cancelOnError: cancelOnError, sync: sync);
 
-  void onData(double data) {
-    if (shotDetector.onDataReceive(data)) {
-      publishData(shotDetector.shotCounter);
+  void onData(ProcessedData data) {
+    ShotInstance? shotInstance = shotDetector.onDataReceive(data);
+    if (shotInstance != null) {
+      publishData(shotInstance);
     }
   }
 }

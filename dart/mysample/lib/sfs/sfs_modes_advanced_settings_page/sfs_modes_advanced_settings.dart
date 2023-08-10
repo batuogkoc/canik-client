@@ -809,7 +809,14 @@ class SfsAllSettings {
   });
 }
 
-enum SfsShotDetectorType { dryFire, liveFire, paintFire, coolFire, simulation }
+enum SfsShotDetectorType {
+  dryFire,
+  liveFire,
+  paintFire,
+  coolFire,
+  blankFire,
+  simulation
+}
 
 class SfsAdvancedSettings {
   int magazineCapacity;
