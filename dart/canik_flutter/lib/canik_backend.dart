@@ -130,7 +130,7 @@ class CanikDevice {
       : _rawDataToProcessedDataTransformer =
             RawDataToProcessedDataTransformer.broadcast(
                 FscfCcAhrs({"aLambda1": 0.0017, "mLambda1": 0.0001})) {
-    _shotDetectorTransformer = ShotDetectorTransformer(
+    _shotDetectorTransformer = ShotDetectorTransformer.broadcast(
         ShotDetector(_defaultShotConditions, _defaultShotDataset));
     _holsterDrawSM = HolsterDrawSM(
         drawThresholdG,
