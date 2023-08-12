@@ -34,6 +34,73 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
   double distanceToTarget = 0;
   bool isClick = false;
   bool isClick2 = false;
+
+  Widget buildShotDetectorSelectionRow(
+      BuildContext context,
+      String detectorText,
+      SfsShotDetectorType shotDetectorType,
+      String imageString) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Container(
+        width: 80.w,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: projectColors.black2),
+            color: projectColors.black),
+        child: Padding(
+          padding:
+              const EdgeInsets.only(top: 10, left: 15, right: 15, bottom: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Image.asset(
+                    imageString,
+                    fit: BoxFit.fitWidth,
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  Text(
+                    detectorText,
+                    style: TextStyle(
+                        color: projectColors.white,
+                        fontWeight: FontWeight.w500),
+                  )
+                ],
+              ),
+              GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SfsHomePage(
+                                  allSettings: SfsAllSettings(
+                                    modesSettings: widget.datas,
+                                    advancedSettings: SfsAdvancedSettings(
+                                        detectorType: shotDetectorType,
+                                        magazineCapacity:
+                                            magazineCapacity.toInt(),
+                                        countdownDurationSecs:
+                                            countdownDurationSecs,
+                                        distanceToTarget: distanceToTarget),
+                                  ),
+                                  canikDevice: widget.canikDevice,
+                                )));
+                  },
+                  child: Image.asset("assets/images/chevron-right.png",
+                      fit: BoxFit.cover))
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -71,230 +138,31 @@ class _SfsModesAdvancedSettingsState extends State<SfsModesAdvancedSettings> {
                 const SizedBox(
                   height: 20,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
-                  child: Container(
-                    width: 80.w,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: projectColors.black2),
-                        color: projectColors.black),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          top: 10, left: 15, right: 15, bottom: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Image.asset(
-                                "assets/images/sfssettingsicon.png",
-                                fit: BoxFit.fitWidth,
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Text(
-                                AppLocalizations.of(context)!.dryfire,
-                                style: TextStyle(
-                                    color: projectColors.white,
-                                    fontWeight: FontWeight.w500),
-                              )
-                            ],
-                          ),
-                          GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => SfsHomePage(
-                                              allSettings: SfsAllSettings(
-                                                modesSettings: widget.datas,
-                                                advancedSettings: SfsAdvancedSettings(
-                                                    detectorType:
-                                                        SfsShotDetectorType
-                                                            .dryFire,
-                                                    magazineCapacity:
-                                                        magazineCapacity
-                                                            .toInt(),
-                                                    countdownDurationSecs:
-                                                        countdownDurationSecs,
-                                                    distanceToTarget:
-                                                        distanceToTarget),
-                                              ),
-                                              canikDevice: widget.canikDevice,
-                                            )));
-                              },
-                              child: Image.asset(
-                                  "assets/images/chevron-right.png",
-                                  fit: BoxFit.cover))
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
-                  child: Container(
-                    width: 80.w,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: projectColors.black2),
-                        color: projectColors.black),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          top: 10, left: 15, right: 15, bottom: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Image.asset(
-                                "assets/images/sfssettingsicon2.png",
-                                fit: BoxFit.fitWidth,
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Text(
-                                AppLocalizations.of(context)!.simunition,
-                                style: TextStyle(
-                                    color: projectColors.white,
-                                    fontWeight: FontWeight.w500),
-                              )
-                            ],
-                          ),
-                          Image.asset("assets/images/chevron-right.png",
-                              fit: BoxFit.cover)
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
-                  child: Container(
-                    width: 80.w,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: projectColors.black2),
-                        color: projectColors.black),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          top: 10, left: 15, right: 15, bottom: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Image.asset(
-                                "assets/images/sfssettingsicon3.png",
-                                fit: BoxFit.fitWidth,
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Text(
-                                AppLocalizations.of(context)!.coolfire,
-                                style: TextStyle(
-                                    color: projectColors.white,
-                                    fontWeight: FontWeight.w500),
-                              )
-                            ],
-                          ),
-                          Image.asset("assets/images/chevron-right.png",
-                              fit: BoxFit.cover)
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
-                  child: Container(
-                    width: 80.w,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: projectColors.black2),
-                        color: projectColors.black),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          top: 10, left: 15, right: 15, bottom: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Image.asset(
-                                "assets/images/sfssettingsicon4.png",
-                                fit: BoxFit.fitWidth,
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Text(
-                                AppLocalizations.of(context)!.livefire,
-                                style: TextStyle(
-                                    color: projectColors.white,
-                                    fontWeight: FontWeight.w500),
-                              )
-                            ],
-                          ),
-                          Image.asset("assets/images/chevron-right.png",
-                              fit: BoxFit.cover)
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 15),
-                  child: Container(
-                    width: 80.w,
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
-                        border: Border.all(color: projectColors.black2),
-                        color: projectColors.black),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          top: 10, left: 15, right: 15, bottom: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Image.asset(
-                                "assets/images/sfssettingsicon5.png",
-                                fit: BoxFit.fitWidth,
-                              ),
-                              const SizedBox(
-                                width: 20,
-                              ),
-                              Text(
-                                AppLocalizations.of(context)!.blankfire,
-                                style: TextStyle(
-                                    color: projectColors.white,
-                                    fontWeight: FontWeight.w500),
-                              )
-                            ],
-                          ),
-                          Image.asset("assets/images/chevron-right.png",
-                              fit: BoxFit.cover)
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                buildShotDetectorSelectionRow(
+                    context,
+                    AppLocalizations.of(context)!.dryfire,
+                    SfsShotDetectorType.dryFire,
+                    "assets/images/sfssettingsicon.png"),
+                buildShotDetectorSelectionRow(
+                    context,
+                    AppLocalizations.of(context)!.simunition,
+                    SfsShotDetectorType.simunition,
+                    "assets/images/sfssettingsicon2.png"),
+                buildShotDetectorSelectionRow(
+                    context,
+                    AppLocalizations.of(context)!.coolfire,
+                    SfsShotDetectorType.coolFire,
+                    "assets/images/sfssettingsicon3.png"),
+                buildShotDetectorSelectionRow(
+                    context,
+                    AppLocalizations.of(context)!.livefire,
+                    SfsShotDetectorType.liveFire,
+                    "assets/images/sfssettingsicon4.png"),
+                buildShotDetectorSelectionRow(
+                    context,
+                    AppLocalizations.of(context)!.blankfire,
+                    SfsShotDetectorType.blankFire,
+                    "assets/images/sfssettingsicon5.png"),
                 GestureDetector(
                   onTap: () {
                     showModalBottomSheet(
@@ -815,7 +683,7 @@ enum SfsShotDetectorType {
   paintFire,
   coolFire,
   blankFire,
-  simulation
+  simunition
 }
 
 class SfsAdvancedSettings {
